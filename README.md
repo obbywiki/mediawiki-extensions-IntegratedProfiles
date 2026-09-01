@@ -158,8 +158,6 @@ IntegratedProfiles integrates certain functionalities from NewAuth.
 * UserCollections*
 * IntegratedAchievements*
 
-\*Unreleased, scrapped, or both.
-
 
 ## Configuration
 
@@ -174,9 +172,9 @@ IntegratedProfiles integrates certain functionalities from NewAuth.
 | `$wgIntegratedProfilesAvatarMaxBytes` | `2097152` | Maximum avatar upload size in bytes (default 2 MiB). |
 | `$wgIntegratedProfilesEnableAnimatedAvatars` | `true` | When false, reject all animated avatar uploads regardless of user rights. Existing GIFs will still be displayed. |
 | `$wgIntegratedProfilesBannerMaxBytes` | `4194304` | Maximum banner upload size in bytes (default 4 MiB). |
-| `$wgIntegratedProfilesLanguageInterwikis` | `[]` | Currently only works with Citizen. Language interwiki prefixes to inject on user/user talk pages (e.g. ["en","ko","ja"]). Skips the wiki content language and $wgLocalInterwikis. See below. |
+| `$wgIntegratedProfilesLanguageInterwikis` | `[]` | Language interwiki prefixes to inject on user/user talk pages (e.g. ["en","ko","ja"]). Skips the wiki content language and $wgLocalInterwikis. See below. |
 
-You can use $wgIntegratedProfilesLanguageInterwikis to link to language interwikis automatically. Currently only works with Citizen. Please ensure each language code set here is also registered in the `interwiki` table of **each** wiki (shown on `Special:Interwiki`).
+You can use $wgIntegratedProfilesLanguageInterwikis to link to language interwikis automatically. Please ensure each language code set here is also registered in the `interwiki` table of **each** wiki (shown on `Special:Interwiki`). No longer locked to Citizen!
 
 ```php
 $wgIntegratedProfilesLanguageInterwikis = [ 'en', 'ko', 'ja', 'zh' ];
@@ -235,7 +233,6 @@ By default, this is:
 ### onIntegratedProfilesRenderTab
 
 Fill HTML for a companion-owned tab when it is the active tab.
-
 
 ## Misc
 
