@@ -1,0 +1,22 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint:
+    uses: StarCitizenTools/mediawiki-ci-workflows/.github/workflows/lint.yml@main
+    with:
+      lint-php: true
+      lint-js: true
+
+  # test-js:
+  #   uses: StarCitizenTools/mediawiki-ci-workflows/.github/workflows/test-js.yml@main
+
+  # test-php:
+  #   uses: StarCitizenTools/mediawiki-ci-workflows/.github/workflows/test-php.yml@main
+  #   with:
+  #     project-type: extension
+  #     project-name: IntegratedProfiles

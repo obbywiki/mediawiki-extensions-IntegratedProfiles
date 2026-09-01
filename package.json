@@ -1,0 +1,58 @@
+{
+	"name": "mediawiki-extensions-integrated-profiles",
+	"version": "0.1.0",
+	"description": "Implements modern user profiles with the ability for other extensions to build on it.",
+	"private": true,
+	"scripts": {
+		"build": "vite build -c vite.build.config.mjs",
+		"typecheck": "vue-tsc --noEmit",
+		"lint": "pnpm lint:js && pnpm lint:css",
+		"lint:js": "eslint resources src",
+		"lint:css": "stylelint \"resources/**/*.css\" \"src/**/*.vue\"",
+		"test": "vitest run",
+		"test:watch": "vitest"
+	},
+	"author": "ObbyWiki",
+	"license": "GPL-3.0-or-later",
+	"packageManager": "pnpm@10.12.1",
+	"devDependencies": {
+		"@eslint/eslintrc": "^3.3.6",
+		"@eslint/js": "^10.0.1",
+		"@typescript-eslint/eslint-plugin": "^8.68.0",
+		"@typescript-eslint/parser": "^8.68.0",
+		"@vitejs/plugin-vue": "^6.0.5",
+		"@vue/test-utils": "^2.4.6",
+		"eslint": "^10.9.1",
+		"eslint-config-wikimedia": "^0.32.4",
+		"eslint-plugin-vue": "^10.10.0",
+		"jsdom": "^29.0.1",
+		"stylelint": "^17.12.0",
+		"stylelint-config-wikimedia": "^0.19.2",
+		"types-mediawiki": "^2.0.0",
+		"typescript": "^6.0.3",
+		"vite": "^8.0.16",
+		"vitest": "^4.0.18",
+		"vue": "3.5.13",
+		"vue-eslint-parser": "^10.4.1",
+		"vue-tsc": "^3.0.6"
+	},
+	"overrides": {
+		"eslint": "$eslint",
+		"eslint-plugin-vue": "$eslint-plugin-vue",
+		"@typescript-eslint/eslint-plugin": "$@typescript-eslint/eslint-plugin",
+		"@typescript-eslint/parser": "$@typescript-eslint/parser"
+	},
+	"pnpm": {
+		"overrides": {
+			"eslint-plugin-vue": "^10.10.0",
+			"@typescript-eslint/eslint-plugin": "^8.68.0",
+			"@typescript-eslint/parser": "^8.68.0"
+		},
+		"peerDependencyRules": {
+			"allowedVersions": {
+				"eslint": "*",
+				"typescript": "*"
+			}
+		}
+	}
+}

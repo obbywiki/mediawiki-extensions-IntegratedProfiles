@@ -1,0 +1,8 @@
+* text=auto eol=lf
+resources/dist/* linguist-vendored
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.svg text
+*.woff2 binary

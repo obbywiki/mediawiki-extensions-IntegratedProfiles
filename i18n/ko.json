@@ -1,0 +1,10 @@
+{
+	"@metadata": {
+		"authors": [
+			"The Obby Wiki"
+		]
+	},
+	
+	"integratedprofiles-edit-count": "$1 편집",
+	"integratedprofiles-joined": "가입일 $1"
+}

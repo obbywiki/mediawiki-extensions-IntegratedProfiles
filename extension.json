@@ -1,0 +1,336 @@
+{
+	"manifest_version": 2,
+	"name": "IntegratedProfiles",
+	"version": "0.1.0",
+	"author": [
+		"[https://wolfite.dev Wolfite]",
+		"[https://obby.wiki The Obby Wiki]"
+	],
+	"url": "https://www.mediawiki.org/wiki/Extension:IntegratedProfiles",
+	"descriptionmsg": "integratedprofiles-desc",
+	"license-name": "GPL-3.0-or-later",
+	"type": "other",
+	"requires": {
+		"MediaWiki": ">= 1.46.0"
+	},
+	"AutoloadNamespaces": {
+		"MediaWiki\\Extension\\IntegratedProfiles\\": "src/"
+	},
+	"ServiceWiringFiles": [
+		"src/ServiceWiring.php"
+	],
+	"AvailableRights": [
+		"integratedprofiles-manage",
+		"integratedprofiles-animated-avatar"
+	],
+	"GroupPermissions": {
+		"sysop": {
+			"integratedprofiles-manage": true,
+			"integratedprofiles-animated-avatar": true
+		}
+	},
+	"HookHandlers": {
+		"main": {
+			"class": "MediaWiki\\Extension\\IntegratedProfiles\\Hooks",
+			"services": [
+				"IntegratedProfiles.ProfileService",
+				"IntegratedProfiles.ProfileHandler",
+				"IntegratedProfiles.HookRunner",
+				"IntegratedProfiles.AvatarService",
+				"IntegratedProfiles.ProfileLanguageLinks"
+			]
+		}
+	},
+	"Hooks": {
+		"ArticleFromTitle": "main",
+		"GetPreferences": "main",
+		"BeforePageDisplay": "main",
+		"OutputPageBodyAttributes": "main",
+		"SaveUserOptions": "main",
+		"DeleteAccount": "main",
+		"LanguageLinks": "main",
+		"SpecialContributionsBeforeMainOutput": "main"
+	},
+	"attributes": {
+		"GlobalPreferences": {
+			"AutoPrefs": [
+				"ip-about",
+				"ip-featured-article",
+				"ip-website",
+				"ip-twitter",
+				"ip-github",
+				"ip-mediawiki",
+				"ip-miraheze",
+				"ip-fandom",
+				"ip-banner",
+				"ip-hide-connections",
+				"ip-visibility"
+			]
+		}
+	},
+	"APIModules": {
+		"setintegratedprofile": {
+			"class": "MediaWiki\\Extension\\IntegratedProfiles\\Api\\ApiSetIntegratedProfile",
+			"services": [
+				"IntegratedProfiles.ProfileService"
+			]
+		},
+		"integratedprofileuploadavatar": {
+			"class": "MediaWiki\\Extension\\IntegratedProfiles\\Api\\ApiIntegratedProfileUploadAvatar",
+			"services": [
+				"IntegratedProfiles.ProfileService",
+				"IntegratedProfiles.AvatarService"
+			]
+		},
+		"integratedprofiledeleteavatar": {
+			"class": "MediaWiki\\Extension\\IntegratedProfiles\\Api\\ApiIntegratedProfileDeleteAvatar",
+			"services": [
+				"IntegratedProfiles.ProfileService",
+				"IntegratedProfiles.AvatarService"
+			]
+		},
+		"integratedprofileuploadbanner": {
+			"class": "MediaWiki\\Extension\\IntegratedProfiles\\Api\\ApiIntegratedProfileUploadBanner",
+			"services": [
+				"IntegratedProfiles.ProfileService"
+			]
+		},
+		"integratedprofiledeletebanner": {
+			"class": "MediaWiki\\Extension\\IntegratedProfiles\\Api\\ApiIntegratedProfileDeleteBanner",
+			"services": [
+				"IntegratedProfiles.ProfileService"
+			]
+		}
+	},
+	"APIListModules": {
+		"integratedprofile": {
+			"class": "MediaWiki\\Extension\\IntegratedProfiles\\Api\\ApiQueryIntegratedProfile",
+			"services": [
+				"IntegratedProfiles.ProfileService"
+			]
+		},
+		"integratedprofileavatar": {
+			"class": "MediaWiki\\Extension\\IntegratedProfiles\\Api\\ApiQueryIntegratedProfileAvatar",
+			"services": [
+				"IntegratedProfiles.ProfileService",
+				"IntegratedProfiles.AvatarService"
+			]
+		}
+	},
+	"ResourceFileModulePaths": {
+		"localBasePath": "",
+		"remoteExtPath": "IntegratedProfiles"
+	},
+	"ResourceModules": {
+		"ext.IntegratedProfiles.headerAvatar": {
+			"styles": [
+				"resources/integratedprofiles/css/header_avatar.css"
+			]
+		},
+		"ext.IntegratedProfiles.styles": {
+			"class": "MediaWiki\\ResourceLoader\\CodexModule",
+			"codexStyleOnly": true,
+			"codexComponents": [
+				"CdxButton",
+				"CdxDialog",
+				"CdxField",
+				"CdxMessage",
+				"CdxTextArea",
+				"CdxTextInput"
+			],
+			"styles": [
+				"resources/integratedprofiles/css/ip.css"
+			]
+		},
+		"ext.IntegratedProfiles.mastheadTips": {
+			"scripts": [
+				"resources/integratedprofiles/masthead_tips.js"
+			],
+			"dependencies": [
+				"ext.floatingUI"
+			]
+		},
+		"ext.IntegratedProfiles.pageSidebar": {
+			"scripts": [
+				"resources/integratedprofiles/page_sidebar.js"
+			]
+		},
+		"ext.IntegratedProfiles.app": {
+			"scripts": [
+				"resources/dist/integratedprofiles-app.js"
+			],
+			"dependencies": [
+				"ext.IntegratedProfiles.styles",
+				"vue",
+				"mediawiki.api",
+				"mediawiki.util",
+				"mediawiki.jqueryMsg"
+			],
+			"messages": [
+				"integratedprofiles-edit",
+				"integratedprofiles-edit-title",
+				"integratedprofiles-editor-section-appearance",
+				"integratedprofiles-editor-section-profile",
+				"integratedprofiles-editor-section-links",
+				"integratedprofiles-editor-section-connections",
+				"integratedprofiles-save",
+				"integratedprofiles-cancel",
+				"integratedprofiles-modal-close",
+				"integratedprofiles-editor-social-links",
+				"integratedprofiles-editor-wiki-profiles",
+				"integratedprofiles-wiki-profiles-label",
+				"integratedprofiles-save-error",
+				"integratedprofiles-save-success",
+				"integratedprofiles-avatar-upload",
+				"integratedprofiles-avatar-edit",
+				"integratedprofiles-avatar-change",
+				"integratedprofiles-avatar-alt",
+				"integratedprofiles-avatar-choose",
+				"integratedprofiles-avatar-replace",
+				"integratedprofiles-avatar-delete",
+				"integratedprofiles-avatar-help",
+				"integratedprofiles-avatar-help-static",
+				"integratedprofiles-avatar-preview-help",
+				"integratedprofiles-avatar-confirm",
+				"integratedprofiles-avatar-modal-title",
+				"integratedprofiles-avatar-error",
+				"integratedprofiles-banner-label",
+				"integratedprofiles-banner-help",
+				"integratedprofiles-banner-upload",
+				"integratedprofiles-banner-edit",
+				"integratedprofiles-banner-choose",
+				"integratedprofiles-banner-replace",
+				"integratedprofiles-banner-delete",
+				"integratedprofiles-banner-help-size",
+				"integratedprofiles-banner-preview-help",
+				"integratedprofiles-banner-confirm",
+				"integratedprofiles-banner-modal-title",
+				"integratedprofiles-banner-error",
+				"integratedprofiles-banner-preset-accent",
+				"integratedprofiles-banner-preset-ocean",
+				"integratedprofiles-banner-preset-sunset",
+				"integratedprofiles-banner-preset-forest",
+				"integratedprofiles-banner-preset-midnight",
+				"integratedprofiles-banner-preset-ember",
+				"integratedprofiles-banner-preset-sand",
+				"integratedprofiles-banner-preset-aurora",
+				"integratedprofiles-banner-preset-custom",
+				"integratedprofiles-field-about",
+				"integratedprofiles-field-about-help",
+				"integratedprofiles-field-about-placeholder",
+				"integratedprofiles-field-featured-article",
+				"integratedprofiles-field-featured-article-help",
+				"integratedprofiles-field-featured-article-placeholder",
+				"integratedprofiles-featured-label",
+				"integratedprofiles-field-website",
+				"integratedprofiles-field-website-help",
+				"integratedprofiles-field-website-placeholder",
+				"integratedprofiles-field-twitter",
+				"integratedprofiles-field-twitter-help",
+				"integratedprofiles-field-twitter-placeholder",
+				"integratedprofiles-field-github",
+				"integratedprofiles-field-github-help",
+				"integratedprofiles-field-github-placeholder",
+				"integratedprofiles-field-mediawiki",
+				"integratedprofiles-field-mediawiki-help",
+				"integratedprofiles-field-mediawiki-placeholder",
+				"integratedprofiles-field-miraheze",
+				"integratedprofiles-field-miraheze-help",
+				"integratedprofiles-field-miraheze-placeholder",
+				"integratedprofiles-field-fandom",
+				"integratedprofiles-field-fandom-help",
+				"integratedprofiles-field-fandom-placeholder",
+				"integratedprofiles-field-visibility",
+				"integratedprofiles-field-visibility-help",
+				"integratedprofiles-visibility-public",
+				"integratedprofiles-visibility-public-help",
+				"integratedprofiles-visibility-users",
+				"integratedprofiles-visibility-users-help",
+				"integratedprofiles-visibility-private",
+				"integratedprofiles-visibility-private-help",
+				"integratedprofiles-field-hide-connections",
+				"integratedprofiles-field-hide-connections-help",
+				"integratedprofiles-connections-title",
+				"integratedprofiles-connections-manage",
+				"integratedprofiles-connection-discord",
+				"integratedprofiles-connection-roblox",
+				"integratedprofiles-connection-verified",
+				"integratedprofiles-connection-linked",
+				"integratedprofiles-connection-not-linked",
+				"integratedprofiles-connection-manage",
+				"integratedprofiles-connection-connect",
+				"integratedprofiles-connection-external-help",
+				"integratedprofiles-error-permission",
+				"integratedprofiles-error-invalid-fields",
+				"integratedprofiles-error-invalid-json",
+				"integratedprofiles-error-avatar-upload",
+				"integratedprofiles-error-avatar-size",
+				"integratedprofiles-error-avatar-type",
+				"integratedprofiles-error-avatar-animated",
+				"integratedprofiles-error-banner-upload",
+				"integratedprofiles-error-banner-size",
+				"integratedprofiles-error-banner-type",
+				"integratedprofiles-error-upload-too-large"
+			]
+		},
+		"ext.IntegratedProfiles.profile": {
+			"scripts": [
+				"resources/integratedprofiles/profile_page.js"
+			],
+			"dependencies": [
+				"ext.IntegratedProfiles.app"
+			]
+		}
+	},
+	"MessagesDirs": {
+		"IntegratedProfiles": [
+			"i18n"
+		]
+	},
+	"DefaultUserOptions": {
+		"ip-hide-connections": 0,
+		"ip-visibility": "public"
+	},
+	"config": {
+		"IntegratedProfilesColor": {
+			"value": "#5288F1",
+			"description": "IntegratedProfiles accent color."
+		},
+		"IntegratedProfilesAvatarBorderRadius": {
+			"value": "50%",
+			"description": "Border radius for profile avatars."
+		},
+		"IntegratedProfilesBackend": {
+			"value": "",
+			"description": "A FileBackend from $wgFileBackends. If left empty, $IP/<ipavatars|ipbanners> will be used instead."
+		},
+		"IntegratedProfilesEnableNewAuthPanel": {
+			"value": true,
+			"description": "Show verified NewAuth connections on profiles when NewAuth is loaded."
+		},
+		"IntegratedProfilesAboutMaxLength": {
+			"value": 80,
+			"description": "Maximum length in characters for the about tagline."
+		},
+		"IntegratedProfilesLinkMaxLength": {
+			"value": 255,
+			"description": "Maximum length in characters for freeform profile link fields."
+		},
+		"IntegratedProfilesAvatarMaxBytes": {
+			"value": 2097152,
+			"description": "Maximum avatar upload size in bytes (default 2 MiB)."
+		},
+		"IntegratedProfilesEnableAnimatedAvatars": {
+			"value": true,
+			"description": "When false, reject all animated avatar uploads regardless of user rights. Existing GIFs will still be displayed."
+		},
+		"IntegratedProfilesBannerMaxBytes": {
+			"value": 4194304,
+			"description": "Maximum banner upload size in bytes (default 4 MiB)."
+		},
+		"IntegratedProfilesLanguageInterwikis": {
+			"value": [],
+			"description": "Currently only works with Citizen. Language interwiki prefixes to inject on user/user talk pages (e.g. [\"en\",\"ko\",\"ja\"]). Skips the wiki content language and $wgLocalInterwikis."
+		}
+	}
+}

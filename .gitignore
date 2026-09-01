@@ -1,0 +1,12 @@
+node_modules/**
+.DS_Store
+
+*.tmp
+*.cache
+coverage/**
+vendor/**
+composer.lock
+.phpunit.result.cache
+
+# not ready yet
+tests/**

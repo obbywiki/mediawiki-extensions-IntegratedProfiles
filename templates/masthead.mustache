@@ -1,0 +1,29 @@
+<div class="ip-masthead{{#is_owner}} ip-masthead--self{{/is_owner}}{{#is_private}} ip-masthead--private{{/is_private}}" style="{{masthead_style}}">
+<div class="ip-masthead__hero" aria-hidden="true">
+<div class="ip-masthead__band ip-masthead__band--{{banner_mode}}"></div>
+</div>
+<div class="ip-masthead__body">
+<div class="ip-avatar">
+<img class="ip-avatar__image" src="{{avatar_url}}" alt="{{avatar_alt}}" width="128" height="128" />
+{{#avatar_decoration}}<div class="ip-avatar__decoration">{{{.}}}</div>{{/avatar_decoration}}
+{{#avatar_edit}}<button type="button" id="integratedprofiles-avatar-edit" class="ip-avatar__edit{{#use_floating_ui}} ext-floatingui-reference{{/use_floating_ui}}"{{#show_title}} title="{{label}}"{{/show_title}} aria-label="{{label}}"><span class="ip-avatar__edit-scrim" aria-hidden="true"></span>{{> icon_avatar_edit}}</button>{{#use_floating_ui}}{{> floating_tip}}{{/use_floating_ui}}{{/avatar_edit}}
+</div>
+<div class="ip-identity">
+<div class="ip-identity__heading">
+<div class="ip-identity__name-line">
+<h1 class="ip-identity__name">{{user_name}}</h1>
+{{#aka}}<span class="ip-identity__aka">{{.}}</span>{{/aka}}
+</div>
+{{#you_label}}<span class="ip-identity__you">{{.}}</span>{{/you_label}}
+{{#has_groups}}<ul class="ip-identity__groups">{{#groups}}<li class="ip-identity__group">{{#has_url}}<a class="ip-identity__group-link" href="{{url}}">{{label}}</a>{{/has_url}}{{^has_url}}{{label}}{{/has_url}}</li>{{/groups}}</ul>{{/has_groups}}
+</div>
+{{#is_private}}{{#private_notice}}<p class="ip-identity__private">{{.}}</p>{{/private_notice}}{{/is_private}}
+{{^is_private}}{{#has_meta}}<ul class="ip-identity__meta">{{#has_edit_count}}<li class="ip-identity__meta-item ip-identity__meta-item--edits">{{#has_contributions_url}}<a href="{{contributions_url}}">{{edit_count_label}}</a>{{/has_contributions_url}}{{^has_contributions_url}}{{edit_count_label}}{{/has_contributions_url}}</li>{{/has_edit_count}}{{#joined_label}}<li class="ip-identity__meta-item ip-identity__meta-item--joined">{{.}}</li>{{/joined_label}}</ul>{{/has_meta}}{{/is_private}}
+</div>
+{{#has_links}}{{> links_row}}{{/has_links}}
+{{#show_edit_controls}}<div class="ip-masthead__actions"><button type="button" id="integratedprofiles-edit" class="cdx-button cdx-button--action-progressive cdx-button--weight-primary ip-edit-button ip-edit-button--unplaced">{{edit_label}}</button></div>{{/show_edit_controls}}
+</div>
+{{#featured}}{{> featured_article}}{{/featured}}
+{{#has_about_block}}{{> about_block}}{{/has_about_block}}
+{{#show_edit_controls}}<div id="integratedprofiles-editor-root" class="ip-editor-root"></div><div id="integratedprofiles-modal-root" class="ip-modal-root"></div>{{/show_edit_controls}}
+</div>

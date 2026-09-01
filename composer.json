@@ -1,0 +1,59 @@
+{
+	"name": "obbywiki/integrated-profiles",
+	"type": "mediawiki-extension",
+	"description": "Obby Wiki IntegratedProfiles MediaWiki extension",
+	"keywords": [
+		"MediaWiki",
+		"extension"
+	],
+	"homepage": "https://www.mediawiki.org/wiki/Extension:IntegratedProfiles",
+	"readme": "README.md",
+	"license": "GPL-3.0-or-later",
+	"authors": [
+		{
+			"name": "Wolfite",
+			"email": "w@wolfite.dev",
+			"homepage": "https://wolfite.dev",
+			"role": "Developer"
+		},
+		{
+			"name": "The Obby Wiki",
+			"email": "obbywiki@wou.gg",
+			"homepage": "https://obby.wiki",
+			"role": "Maintainer"
+		}
+	],
+	"autoload": {
+		"psr-4": {
+			"MediaWiki\\Extension\\IntegratedProfiles\\": "src/"
+		}
+	},
+	"autoload-dev": {
+		"psr-4": {
+			"MediaWiki\\Extension\\IntegratedProfiles\\Tests\\": "tests/phpunit/"
+		}
+	},
+	"require": {
+		"composer/installers": ">=1.0.1"
+	},
+	"require-dev": {
+		"mediawiki/mediawiki-codesniffer": "52.0.1",
+		"php-parallel-lint/php-console-highlighter": "1.0.0",
+		"php-parallel-lint/php-parallel-lint": "1.4.0",
+		"phpunit/phpunit": "^10.5"
+	},
+	"scripts": {
+		"test": [
+			"parallel-lint . --exclude node_modules --exclude vendor",
+			"@phpcs"
+		],
+		"phpcs": "phpcs -p -s",
+		"phpunit": "phpunit -c phpunit.xml.dist"
+	},
+	"config": {
+		"allow-plugins": {
+			"composer/installers": true,
+			"dealerdirect/phpcodesniffer-composer-installer": true
+		}
+	}
+}

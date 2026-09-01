@@ -1,0 +1,19 @@
+/* adds the user's custom avatar to the header */
+
+.ip-has-header-avatar .citizen-userMenu .citizen-dropdown-summary > .mw-ui-icon-wikimedia-userAvatar {
+	border-radius: 50%;
+	overflow: hidden;
+	width: 1.5rem;
+	height: 1.5rem;
+}
+
+.ip-has-header-avatar .citizen-userMenu .citizen-dropdown-summary > .mw-ui-icon-wikimedia-userAvatar::before {
+	background-color: transparent !important;
+	background-image: var( --ip-header-avatar ) !important;
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: cover;
+	border-radius: 50%;
+	-webkit-mask-image: none;
+	mask-image: none;
+}
