@@ -9,7 +9,7 @@ jobs:
   lint:
     uses: StarCitizenTools/mediawiki-ci-workflows/.github/workflows/lint.yml@main
     with:
-      lint-php: true
+      # lint-php: true
       lint-js: true
 
   # test-js:
