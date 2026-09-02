@@ -28,7 +28,7 @@ class ProfileService {
 		'IntegratedProfilesAboutMaxLength',
 		'IntegratedProfilesLinkMaxLength',
 		'IntegratedProfilesEnableAnimatedAvatars',
-		'IntegratedProfilesEnabledSocialLinks',
+		'IntegratedProfilesEnabledSocialLinks'
 	];
 
 	private readonly ProfileFields $fields;

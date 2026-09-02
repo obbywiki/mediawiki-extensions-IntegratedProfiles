@@ -283,7 +283,7 @@ class ProfileRenderer {
 	 * @return array{about_html: string, has_wiki_profiles: bool, wiki_profiles_label: string, wiki_profile_items: list<array<string, mixed>>}
 	 */
 	private function build_about_block_view( string $about, array $wiki_profiles, array $messages, bool $use_floating_ui ): array {
-		$wiki_profile_items = $this->build_wiki_profile_items( $wiki_profiles, $messages, $use_floating_ui );
+		$wiki_profile_items = ProfileFields::SHOW_WIKI_PROFILES ? $this->build_wiki_profile_items( $wiki_profiles, $messages, $use_floating_ui ) : [];
 		$about_html = $about === '' ? '' : nl2br( htmlspecialchars( $about, ENT_QUOTES, 'UTF-8' ), false );
 
 		return [

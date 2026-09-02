@@ -315,7 +315,9 @@
 						</div>
 					</details>
 
+					<!-- temporarily disabled -->
 					<details
+						v-if="show_wiki_profiles"
 						class="ip-editor__social-bundle"
 						:open="wiki_profiles_open"
 						@toggle="on_wiki_profiles_toggle"
@@ -534,6 +536,9 @@ const DEFAULT_BANNER_PRESETS = [
 
 const DEFAULT_CONNECTION_PROVIDERS = [ 'discord', 'roblox' ];
 
+// temporarily disabled
+const show_wiki_profiles = false;
+
 const props = defineProps<{
 	config: IntegratedProfilesConfig;
 }>();
@@ -637,13 +642,16 @@ function build_save_fields(): Partial<ProfileFieldsMap> {
 	const payload: Partial<ProfileFieldsMap> = {
 		'ip-about': draft[ 'ip-about' ],
 		'ip-featured-article': draft[ 'ip-featured-article' ],
-		'ip-mediawiki': draft[ 'ip-mediawiki' ],
-		'ip-miraheze': draft[ 'ip-miraheze' ],
-		'ip-fandom': draft[ 'ip-fandom' ],
 		'ip-banner': draft[ 'ip-banner' ],
 		'ip-hide-connections': draft[ 'ip-hide-connections' ],
 		'ip-visibility': draft[ 'ip-visibility' ]
 	};
+
+	if ( show_wiki_profiles ) {
+		payload[ 'ip-mediawiki' ] = draft[ 'ip-mediawiki' ];
+		payload[ 'ip-miraheze' ] = draft[ 'ip-miraheze' ];
+		payload[ 'ip-fandom' ] = draft[ 'ip-fandom' ];
+	}
 
 	for ( const entry of enabled_social_links.value ) {
 		payload[ entry.key ] = draft[ entry.key ] || '';

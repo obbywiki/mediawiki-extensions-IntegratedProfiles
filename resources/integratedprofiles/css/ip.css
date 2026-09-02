@@ -927,6 +927,7 @@
 	overflow: hidden;
 }
 
+/* currently disabled */
 .ip-wiki-profiles {
 	display: flex;
 	flex-wrap: wrap;

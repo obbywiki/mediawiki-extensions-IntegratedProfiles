@@ -1,8 +1,4 @@
-import type {
-	IntegratedProfilesConfig,
-	ProfileFieldsMap,
-	ProfilePayload,
-} from '../types/mw';
+import type { IntegratedProfilesConfig, ProfileFieldsMap, ProfilePayload, WikiProfile } from '../types/mw';
 
 type ApiErrorBody = {
 	error?: { info?: string; code?: string };
@@ -358,6 +354,9 @@ export function apply_payload_to_dom( profile: ProfilePayload ): void {
 	}
 }
 
+// temporarily disabled
+const show_wiki_profiles = false;
+
 const WIKI_PROFILE_LABEL_KEYS: Record<string, string> = {
 	mediawiki: 'integratedprofiles-field-mediawiki',
 	miraheze: 'integratedprofiles-field-miraheze',
@@ -371,7 +370,10 @@ const WIKI_PROFILE_LABEL_KEYS: Record<string, string> = {
  */
 function sync_about_block_dom( profile: ProfilePayload ): void {
 	const about = ( ( profile.fields && profile.fields[ 'ip-about' ] ) || '' ).trim();
-	const wiki_profiles = Array.isArray( profile.wiki_profiles ) ? profile.wiki_profiles : [];
+	let wiki_profiles: WikiProfile[] = [];
+	if ( show_wiki_profiles && Array.isArray( profile.wiki_profiles ) ) {
+		wiki_profiles = profile.wiki_profiles;
+	}
 	let block = document.querySelector( '.ip-about-block' ) as HTMLElement | null;
 
 	if ( about === '' && wiki_profiles.length === 0 ) {

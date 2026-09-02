@@ -181,6 +181,10 @@ IntegratedProfiles integrates certain functionalities from NewAuth.
 $wgIntegratedProfilesEnabledSocialLinks = [ 'website', 'discord', 'roblox' ];
 ```
 
+### Wiki profiles
+
+MediaWiki.org, Miraheze, and Fandom username fields (`ip-mediawiki`, `ip-miraheze`, `ip-fandom`) are implemented but **hidden from the profile editor and masthead**. Stored values are kept. To restore the UI, set `ProfileFields::SHOW_WIKI_PROFILES` and the matching client `show_wiki_profiles` constants to `true`.
+
 ### Language interwikis
 
 You can use $wgIntegratedProfilesLanguageInterwikis to link to language interwikis automatically. Please ensure each language code set here is also registered in the `interwiki` table of **each** wiki (shown on `Special:Interwiki`). No longer locked to Citizen!

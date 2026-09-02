@@ -131,6 +131,9 @@ class ProfileFields {
 		self::KEY_HIDE_CONNECTIONS => true,
 	];
 
+	// temporarily disabled
+	public const SHOW_WIKI_PROFILES = false;
+
 	private const WIKI_PROFILE_BASES = [
 		self::KEY_MEDIAWIKI => 'https://www.mediawiki.org/wiki/',
 		self::KEY_MIRAHEZE => 'https://meta.miraheze.org/wiki/',
@@ -379,6 +382,9 @@ class ProfileFields {
 
 	/**
 	 * Builds wiki-platform profile descriptors for the about/tagline icon chips.
+	 *
+	 * Still produced for stored values / future UI. Masthead and editor stay
+	 * hidden while self::SHOW_WIKI_PROFILES is false.
 	 *
 	 * @param array<string, string> $fields
 	 * @return list<array{kind: string, username: string, url: string}>
