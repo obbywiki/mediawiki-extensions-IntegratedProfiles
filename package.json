@@ -1,6 +1,6 @@
 {
 	"name": "mediawiki-extensions-integrated-profiles",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"description": "Implements modern user profiles with the ability for other extensions to build on it.",
 	"private": true,
 	"scripts": {
