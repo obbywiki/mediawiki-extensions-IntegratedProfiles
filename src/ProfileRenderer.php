@@ -141,6 +141,9 @@ class ProfileRenderer {
 		$you_label = '';
 		if ( $is_owner ) {
 			$you_label = trim( (string)( $messages['you'] ?? '' ) );
+			if ( $you_label === '' ) {
+				$you_label = 'You';
+			}
 		}
 
 		$groups = [];

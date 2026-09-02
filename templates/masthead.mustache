@@ -14,7 +14,7 @@
 <h1 class="ip-identity__name">{{user_name}}</h1>
 {{#aka}}<span class="ip-identity__aka">{{.}}</span>{{/aka}}
 </div>
-{{#you_label}}<span class="ip-identity__you">{{.}}</span>{{/you_label}}
+{{#is_owner}}<span class="ip-identity__you">{{you_label}}</span>{{/is_owner}}
 {{#has_groups}}<ul class="ip-identity__groups">{{#groups}}<li class="ip-identity__group">{{#has_url}}<a class="ip-identity__group-link" href="{{url}}">{{label}}</a>{{/has_url}}{{^has_url}}{{label}}{{/has_url}}</li>{{/groups}}</ul>{{/has_groups}}
 </div>
 {{#is_private}}{{#private_notice}}<p class="ip-identity__private">{{.}}</p>{{/private_notice}}{{/is_private}}
