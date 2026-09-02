@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.3.0](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/compare/v0.2.0...v0.3.0) (2026-09-02)
+
+
+### Features
+
+* configurable social links ([d7ec603](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/d7ec603395cc483e79c1236452f7749188234bfa))
+* make FEATURED_ARTICLE a non-global option ([f87d107](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/f87d107a7f720dee40a444a1ce4d9db5d8fd8062))
+* temporarily disable wiki profile links ([e559848](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/e55984846facdce7366def80a66a0dc245bccc10))
+
+
+### Miscellaneous Chores
+
+* remove prerelease flag from release-please ([6fc28d9](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/6fc28d90df175c7c0156ec879f3cbd39957ee81b))
+
 ## [0.2.0](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/compare/v0.1.0...v0.2.0) (2026-09-02)
 
 
