@@ -391,20 +391,16 @@ class ProfileService {
 	}
 
 	/**
-	 * Persist an ip-* field globally when GlobalPreferences is loaded.
-	 *
-	 * setOption() defaults to GLOBAL_IGNORE, which writes only local
-	 * user_properties. AutoPrefs update existing global_preferences rows but
-	 * do not create them, so Edit profile never synced across CentralAuth wikis.
-	 * GLOBAL_CREATE writes my_wiki.global_preferences keyed by central id, and
-	 * falls back to a local save when no global store exists.
+	 * Sets profile options, with a carve-out for featured articles, which are non-global.
 	 */
 	private function set_profile_option( UserIdentity $user, string $key, string $value ): void {
+		$global_mode = $key === ProfileFields::KEY_FEATURED_ARTICLE ? UserOptionsManager::GLOBAL_IGNORE : UserOptionsManager::GLOBAL_CREATE;
+
 		$this->user_options_manager->setOption(
 			$user,
 			$key,
 			$value,
-			UserOptionsManager::GLOBAL_CREATE
+			$global_mode
 		);
 	}
 

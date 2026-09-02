@@ -89,15 +89,20 @@ class Hooks implements
 	 */
 	public function onGetPreferences( $user, &$preferences ): void {
 		foreach ( ProfileFields::KEYS as $key ) {
-			if (
-				$key === ProfileFields::KEY_VISIBILITY ||
-				$key === ProfileFields::KEY_HIDE_CONNECTIONS
-			) {
+			if ( $key === ProfileFields::KEY_VISIBILITY || $key === ProfileFields::KEY_HIDE_CONNECTIONS ) {
 				continue;
 			}
+
 			$preferences[$key] = [
 				'type' => 'api',
 			];
+
+			// noglobals
+
+			// featured article is obviously nonglobal because it references a local page
+			if ( $key === ProfileFields::KEY_FEATURED_ARTICLE ) {
+				$preferences[$key]['noglobal'] = true;
+			}
 		}
 
 		$preferences['integratedprofiles-prefs-edit'] = [
