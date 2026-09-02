@@ -4,11 +4,12 @@
     "pull-request-title-pattern": "build: release ${version}",
     "packages": {
         ".": {
-            "release-type": "simple",
+            "release-type": "php",
             "prerelease": true,
             "package-name": "integrated-profiles",
             "extra-files": [
-                "extension.json"
+                "extension.json",
+                "package.json"
             ],
             "bump-minor-pre-major": true
         }
