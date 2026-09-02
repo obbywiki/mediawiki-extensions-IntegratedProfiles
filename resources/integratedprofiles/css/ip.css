@@ -318,7 +318,7 @@
 }
 
 .ip-identity__name {
-	margin: 0;
+	margin: 0 !important; /* for timeless */
 	padding: 0;
 	border: 0;
 	font-size: 1.75rem;
