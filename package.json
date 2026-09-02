@@ -30,11 +30,11 @@
 		"stylelint-config-wikimedia": "^0.19.2",
 		"types-mediawiki": "^2.0.0",
 		"typescript": "^6.0.3",
-		"vite": "^8.0.16",
-		"vitest": "^4.0.18",
-		"vue": "3.5.13",
+		"vite": "^8.2.2",
+		"vitest": "^4.1.11",
+		"vue": "3.5.42",
 		"vue-eslint-parser": "^10.4.1",
-		"vue-tsc": "^3.0.6"
+		"vue-tsc": "^3.3.11"
 	},
 	"overrides": {
 		"eslint": "$eslint",
