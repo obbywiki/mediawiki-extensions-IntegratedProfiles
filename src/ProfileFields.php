@@ -579,11 +579,7 @@ class ProfileFields {
 			return null;
 		}
 
-		return [
-			'label' => $this->website_label( $website ),
-			'url' => $website,
-			'kind' => $id,
-		];
+		return [ 'label' => $this->website_label( $website ), 'url' => $website, 'kind' => $id ];
 	}
 
 	/**

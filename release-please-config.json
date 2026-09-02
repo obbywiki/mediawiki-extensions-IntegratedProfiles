@@ -5,7 +5,6 @@
     "packages": {
         ".": {
             "release-type": "php",
-            "prerelease": true,
             "package-name": "integrated-profiles",
             "extra-files": [
                 "extension.json",
