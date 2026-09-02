@@ -30,9 +30,9 @@ wfLoadExtension( 'IntegratedProfiles' );
 
 By default, avatars and banners are stored under `{UploadDirectory}/ipavatars` and `{UploadDirectory}/ipbanners` (usually `$IP/images/...`), as `avatar_{id}.{ext}` and `banner_{id}.{ext}`. Profile fields (prefixed with `ip-`) are stored in `user_properties` (preferences). IntegratedProfiles does not touch wikitext, contributions, or anything else.
 
-The `{id}` in those filenames comes from `CentralIdLookup`, which is either the local user id or the central (`gu_id`) id when CentralAuth is installed.
+The `{id}` in those filenames comes from CentralIdLookup, which is either the local user id or the central (`gu_id`) id when CentralAuth is installed.
 
-Depending on your achitecture, you will have to configure IntegratedProfiles differently.
+See below for the required/recommended setup based on your architecture.
 
 ### Mutual setup
 
