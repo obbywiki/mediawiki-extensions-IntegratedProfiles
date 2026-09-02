@@ -447,7 +447,7 @@
 	padding: 0;
 	border-radius: var( --border-radius-medium );
 	color: var( --color-emphasized );
-	background-color: var( --color-surface-3 );
+	background-color: var( --color-surface-3, var(--background-color-neutral) );
 	text-decoration: none;
 	opacity: 1;
 	transition: background-color 0.2s ease, color 0.2s ease, filter 0.2s ease;
@@ -465,7 +465,7 @@
 
 .ip-links__anchor:hover,
 .ip-links__anchor:focus-visible {
-	background-color: var( --color-surface-4 );
+	background-color: var( --color-surface-4, var( --background-color-neutral-subtle ) );
 }
 
 .ip-links__anchor:focus-visible {
