@@ -28,6 +28,7 @@ class ProfileService {
 		'IntegratedProfilesAboutMaxLength',
 		'IntegratedProfilesLinkMaxLength',
 		'IntegratedProfilesEnableAnimatedAvatars',
+		'IntegratedProfilesEnabledSocialLinks',
 	];
 
 	private readonly ProfileFields $fields;
@@ -48,7 +49,8 @@ class ProfileService {
 		$options->assertRequiredOptions( self::CONSTRUCTOR_OPTIONS );
 		$this->fields = new ProfileFields(
 			(int)$options->get( 'IntegratedProfilesAboutMaxLength' ),
-			(int)$options->get( 'IntegratedProfilesLinkMaxLength' )
+			(int)$options->get( 'IntegratedProfilesLinkMaxLength' ),
+			(array)$options->get( 'IntegratedProfilesEnabledSocialLinks' )
 		);
 	}
 
@@ -197,6 +199,11 @@ class ProfileService {
 			$connections = [];
 		}
 
+		$links = $this->fields->omit_verified_socials(
+			$this->fields->build_public_links( $field_values ),
+			$connections
+		);
+
 		$payload = [
 			'user_id' => $subject->getId(),
 			'central_id' => $this->subject_ids->central_id_for( $subject ),
@@ -208,7 +215,7 @@ class ProfileService {
 				: null,
 			'groups' => $groups,
 			'fields' => $field_values,
-			'links' => $this->fields->build_public_links( $field_values ),
+			'links' => $links,
 			'wiki_profiles' => $this->fields->build_wiki_profiles( $field_values ),
 			'featured_article' => $this->resolve_featured_article(
 				(string)( $field_values[ ProfileFields::KEY_FEATURED_ARTICLE ] ?? '' )

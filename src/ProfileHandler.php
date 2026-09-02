@@ -122,6 +122,7 @@ class ProfileHandler {
 					'fields' => $payload['fields'],
 					'links' => $payload['links'],
 					'wiki_profiles' => $payload['wiki_profiles'] ?? [],
+					'enabled_social_links' => $this->profile_service->get_fields_helper()->enabled_social_entries(),
 
 					'avatar_url' => $payload['avatar_url'],
 					'has_custom_avatar' => $payload['has_custom_avatar'],

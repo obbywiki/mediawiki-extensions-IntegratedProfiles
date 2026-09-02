@@ -392,7 +392,7 @@ class ProfileRenderer {
 			$label = trim( (string)( $link['label'] ?? '' ) );
 			$kind = trim( (string)( $link['kind'] ?? '' ) );
 
-			if ( $url === '' || $label === '' || $kind === '' ) {
+			if ( $label === '' || $kind === '' ) {
 				continue;
 			}
 

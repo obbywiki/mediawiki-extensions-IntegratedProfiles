@@ -58,6 +58,9 @@
 				"ip-website",
 				"ip-twitter",
 				"ip-github",
+				"ip-discord",
+				"ip-roblox",
+				"ip-youtube",
 				"ip-mediawiki",
 				"ip-miraheze",
 				"ip-fandom",
@@ -230,6 +233,15 @@
 				"integratedprofiles-field-github",
 				"integratedprofiles-field-github-help",
 				"integratedprofiles-field-github-placeholder",
+				"integratedprofiles-field-discord",
+				"integratedprofiles-field-discord-help",
+				"integratedprofiles-field-discord-placeholder",
+				"integratedprofiles-field-roblox",
+				"integratedprofiles-field-roblox-help",
+				"integratedprofiles-field-roblox-placeholder",
+				"integratedprofiles-field-youtube",
+				"integratedprofiles-field-youtube-help",
+				"integratedprofiles-field-youtube-placeholder",
 				"integratedprofiles-field-mediawiki",
 				"integratedprofiles-field-mediawiki-help",
 				"integratedprofiles-field-mediawiki-placeholder",
@@ -314,6 +326,11 @@
 		"IntegratedProfilesLinkMaxLength": {
 			"value": 255,
 			"description": "Maximum length in characters for freeform profile link fields."
+		},
+		"IntegratedProfilesEnabledSocialLinks": {
+			"value": [ "website", "twitter", "github", "discord", "roblox", "youtube" ],
+			"merge_strategy": "replace",
+			"description": "Catalog IDs of social links this wiki shows and accepts on save. Preference keys stay registered globally. Unknown IDs are ignored; an empty list disables all social links."
 		},
 		"IntegratedProfilesAvatarMaxBytes": {
 			"value": 2097152,

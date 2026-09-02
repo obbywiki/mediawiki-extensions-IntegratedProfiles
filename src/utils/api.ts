@@ -331,20 +331,26 @@ export function apply_payload_to_dom( profile: ProfilePayload ): void {
 		const li = document.createElement( 'li' );
 		li.className = 'ip-links__item ip-links__item--' + ( link.kind || '' );
 
-		const a = document.createElement( 'a' );
-		a.className = 'ip-links__anchor';
-		a.href = link.url;
-		a.rel = 'nofollow noopener';
-		a.target = '_blank';
-		a.title = link.label;
-		a.setAttribute( 'aria-label', link.label );
+		const url = ( link.url || '' ).trim();
+		const anchor = url ? document.createElement( 'a' ) : document.createElement( 'span' );
+		anchor.className = 'ip-links__anchor';
+		if ( url ) {
+			const a = anchor as HTMLAnchorElement;
+			a.href = url;
+			a.rel = 'nofollow noopener';
+			a.target = '_blank';
+		} else {
+			anchor.setAttribute( 'role', 'img' );
+		}
+		anchor.title = link.label;
+		anchor.setAttribute( 'aria-label', link.label );
 
 		const icon = document.createElement( 'span' );
 		icon.className = 'ip-links__icon';
 		icon.setAttribute( 'aria-hidden', 'true' );
 
-		a.appendChild( icon );
-		li.appendChild( a );
+		anchor.appendChild( icon );
+		li.appendChild( anchor );
 		links_el.appendChild( li );
 	}
 	for ( const verified of verified_items ) {

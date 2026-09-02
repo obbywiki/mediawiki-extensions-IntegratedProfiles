@@ -6,12 +6,23 @@ export type ProfileFieldsMap = {
 	'ip-website': string;
 	'ip-twitter': string;
 	'ip-github': string;
+	'ip-discord': string;
+	'ip-roblox': string;
+	'ip-youtube': string;
 	'ip-mediawiki': string;
 	'ip-miraheze': string;
 	'ip-fandom': string;
 	'ip-banner': string;
 	'ip-hide-connections': string;
 	'ip-visibility': string;
+};
+
+export type SocialLinkType = | 'url' | 'handle' | 'discord_username' | 'roblox_username' | 'youtube_url';
+
+export type EnabledSocialLink = {
+	id: string;
+	key: keyof ProfileFieldsMap;
+	type: SocialLinkType;
 };
 
 export type ProfileLink = {
@@ -47,6 +58,7 @@ export type IntegratedProfilesConfig = {
 	fields: ProfileFieldsMap;
 	links: Record<string, ProfileLink>;
 	wiki_profiles?: WikiProfile[];
+	enabled_social_links?: EnabledSocialLink[];
 	avatar_url: string;
 	has_custom_avatar: boolean;
 	banner_url?: string;

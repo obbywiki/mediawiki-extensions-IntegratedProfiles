@@ -251,7 +251,10 @@
 				</h3>
 
 				<div class="ip-editor__fields">
-					<div class="ip-editor__field">
+					<div
+						v-if="website_enabled"
+						class="ip-editor__field"
+					>
 						<label for="ip-field-website">
 							{{ msg( 'integratedprofiles-field-website' ) }}
 						</label>
@@ -270,6 +273,7 @@
 					</div>
 
 					<details
+						v-if="bundle_social_links.length"
 						class="ip-editor__social-bundle"
 						:open="social_links_open"
 						@toggle="on_social_toggle"
@@ -280,48 +284,32 @@
 							</span>
 						</summary>
 						<div class="ip-editor__social-bundle-fields">
-							<div class="ip-editor__social-bundle-row">
+							<div
+								v-for="entry in bundle_social_links"
+								:key="entry.id"
+								class="ip-editor__social-bundle-row"
+							>
 								<label
 									class="ip-editor__social-bundle-label"
-									for="ip-field-twitter"
+									:for="'ip-field-' + entry.id"
 								>
 									<span
-										class="ip-brand-icon ip-brand-icon--twitter"
+										class="ip-brand-icon"
+										:class="'ip-brand-icon--' + entry.id"
 										aria-hidden="true"
 									/>
-									{{ msg( 'integratedprofiles-field-twitter' ) }}
+									{{ msg( 'integratedprofiles-field-' + entry.id ) }}
 								</label>
 								<input
-									id="ip-field-twitter"
-									v-model="draft['ip-twitter']"
+									:id="'ip-field-' + entry.id"
+									v-model="draft[entry.key]"
 									class="cdx-text-input__input"
-									type="text"
-									maxlength="64"
+									:type="social_input_type( entry )"
+									:maxlength="social_maxlength( entry )"
 									:disabled="busy"
 									:placeholder="
-										msg( 'integratedprofiles-field-twitter-placeholder' )
+										msg( 'integratedprofiles-field-' + entry.id + '-placeholder' )
 									"
-								>
-							</div>
-							<div class="ip-editor__social-bundle-row">
-								<label
-									class="ip-editor__social-bundle-label"
-									for="ip-field-github"
-								>
-									<span
-										class="ip-brand-icon ip-brand-icon--github"
-										aria-hidden="true"
-									/>
-									{{ msg( 'integratedprofiles-field-github' ) }}
-								</label>
-								<input
-									id="ip-field-github"
-									v-model="draft['ip-github']"
-									class="cdx-text-input__input"
-									type="text"
-									maxlength="64"
-									:disabled="busy"
-									:placeholder="msg( 'integratedprofiles-field-github-placeholder' )"
 								>
 							</div>
 						</div>
@@ -530,17 +518,8 @@
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, reactive, ref } from 'vue';
-import type {
-	IntegratedProfilesConfig,
-	ProfileConnection,
-	ProfileFieldsMap,
-	ProfilePayload
-} from '../types/mw';
-import {
-	apply_payload_to_dom,
-	msg,
-	save_profile_fields
-} from '../utils/api';
+import type { EnabledSocialLink, IntegratedProfilesConfig, ProfileConnection, ProfileFieldsMap, ProfilePayload } from '../types/mw';
+import { apply_payload_to_dom, msg, save_profile_fields } from '../utils/api';
 
 const DEFAULT_BANNER_PRESETS = [
 	'accent',
@@ -582,6 +561,9 @@ const draft = reactive<ProfileFieldsMap>( {
 	'ip-website': field_or_empty( props.config.fields && props.config.fields[ 'ip-website' ] ),
 	'ip-twitter': field_or_empty( props.config.fields && props.config.fields[ 'ip-twitter' ] ),
 	'ip-github': field_or_empty( props.config.fields && props.config.fields[ 'ip-github' ] ),
+	'ip-discord': field_or_empty( props.config.fields && props.config.fields[ 'ip-discord' ] ),
+	'ip-roblox': field_or_empty( props.config.fields && props.config.fields[ 'ip-roblox' ] ),
+	'ip-youtube': field_or_empty( props.config.fields && props.config.fields[ 'ip-youtube' ] ),
 	'ip-mediawiki': field_or_empty( props.config.fields && props.config.fields[ 'ip-mediawiki' ] ),
 	'ip-miraheze': field_or_empty( props.config.fields && props.config.fields[ 'ip-miraheze' ] ),
 	'ip-fandom': field_or_empty( props.config.fields && props.config.fields[ 'ip-fandom' ] ),
@@ -597,11 +579,79 @@ const selected_banner = ref( draft[ 'ip-banner' ] || 'accent' );
 const has_custom_banner = ref( !!props.config.has_custom_banner );
 const banner_url = ref( props.config.banner_url || '' );
 const avatar_preview_url = ref( props.config.avatar_url || '' );
-const social_links_open = ref( Boolean( draft[ 'ip-twitter' ] || draft[ 'ip-github' ] ) );
+const social_links_open = ref( false );
 const wiki_profiles_open = ref( Boolean( draft[ 'ip-mediawiki' ] || draft[ 'ip-miraheze' ] || draft[ 'ip-fandom' ] ) );
+
+const DEFAULT_SOCIAL_LINKS: EnabledSocialLink[] = [
+	{ id: 'website', key: 'ip-website', type: 'url' },
+	{ id: 'twitter', key: 'ip-twitter', type: 'handle' },
+	{ id: 'github', key: 'ip-github', type: 'handle' },
+	{ id: 'discord', key: 'ip-discord', type: 'discord_username' },
+	{ id: 'roblox', key: 'ip-roblox', type: 'roblox_username' },
+	{ id: 'youtube', key: 'ip-youtube', type: 'youtube_url' }
+];
+
+const enabled_social_links = computed( (): EnabledSocialLink[] => {
+	const configured = props.config.enabled_social_links;
+	if ( Array.isArray( configured ) ) {
+		return configured;
+	}
+
+	return DEFAULT_SOCIAL_LINKS;
+} );
+
+const website_enabled = computed(
+	() => enabled_social_links.value.some( ( entry ) => entry.id === 'website' )
+);
+
+const bundle_social_links = computed(
+	() => enabled_social_links.value.filter( ( entry ) => entry.id !== 'website' )
+);
+
+social_links_open.value = bundle_social_links.value.some(
+	( entry ) => Boolean( draft[ entry.key ] )
+);
 
 const about_max = computed( () => ( props.config.limits && props.config.limits.about ) || 80 );
 const link_max = computed( () => ( props.config.limits && props.config.limits.link ) || 255 );
+
+function social_input_type( entry: EnabledSocialLink ): string {
+	return entry.type === 'url' || entry.type === 'youtube_url' ? 'url' : 'text';
+}
+
+function social_maxlength( entry: EnabledSocialLink ): number {
+	if ( entry.type === 'discord_username' ) {
+		return 32;
+	}
+	if ( entry.type === 'roblox_username' ) {
+		return 20;
+	}
+	if ( entry.type === 'handle' ) {
+		return 64;
+	}
+
+	return link_max.value;
+}
+
+function build_save_fields(): Partial<ProfileFieldsMap> {
+	const payload: Partial<ProfileFieldsMap> = {
+		'ip-about': draft[ 'ip-about' ],
+		'ip-featured-article': draft[ 'ip-featured-article' ],
+		'ip-mediawiki': draft[ 'ip-mediawiki' ],
+		'ip-miraheze': draft[ 'ip-miraheze' ],
+		'ip-fandom': draft[ 'ip-fandom' ],
+		'ip-banner': draft[ 'ip-banner' ],
+		'ip-hide-connections': draft[ 'ip-hide-connections' ],
+		'ip-visibility': draft[ 'ip-visibility' ]
+	};
+
+	for ( const entry of enabled_social_links.value ) {
+		payload[ entry.key ] = draft[ entry.key ] || '';
+	}
+
+	return payload;
+}
+
 const about_length = computed( () => ( draft[ 'ip-about' ] || '' ).length );
 const about_remaining = computed( () => about_max.value - about_length.value );
 const banner_presets = computed( () => {
@@ -779,7 +829,7 @@ async function on_save(): Promise<void> {
 
 	try {
 		const profile = await save_profile_fields(
-			{ ...draft },
+			build_save_fields(),
 			props.config.user_name
 		);
 
