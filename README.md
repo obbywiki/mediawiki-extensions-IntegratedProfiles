@@ -3,6 +3,8 @@
 > [!WARNING]  
 > IntegratedProfiles is currently in BETA.
 
+![IntegratedProfiles Preview](./docs/images/image.png)
+
 IntegratedProfiles implements user profiles, similar to Fandom and UserProfilesV2, but with the focus of integration, meaning any other extension add things on top of it.
 
 ## Installation
@@ -147,13 +149,11 @@ Integrations are the whole point of IntegratedProfiles!
 
 ### Built-in integrations
 
-IntegratedProfiles integrates certain functionalities from NewAuth.
+IntegratedProfiles integrates certain functionalities from NewAuth. If you have access to NewAuth and have the extension loaded and properly configured, it should work correctly without any configuration. If it does not, please contact me.
 
 ### Third-party integrations
 
 * UserFlairs
-* UserCollections*
-* IntegratedAchievements*
 
 
 ## Configuration
@@ -203,42 +203,7 @@ Add both directions, e.g. `en` = `https://wiki.local/$1` and `ko` = `https://ko.
 
 ## Hooks
 
-### IntegratedProfilesAfterMasthead
-
-Append HTML after the profile masthead (the masthead being the top profile UI, before the actual page).
-
-```php
-public function onIntegratedProfilesAfterMasthead( string &$html, array $profile ): void {}
-```
-
-### IntegratedProfilesAfterAvatar
-
-Undocumented.
-
-```php
-public function onIntegratedProfilesAfterAvatar( array $profile, string &$html ): void {}
-```
-
-### IntegratedProfilesGetTabs
-
-You can use this hook to mutate `&$tabs`.
-
-```php
-public function onIntegratedProfilesGetTabs( array &$tabs, array $profile ): void {}
-```
-
-```php
-[ 'id' => string, 'label' => string, 'weight' => int ]
-```
-
-By default, this is:
-
-* About (weight: 10)
-* Contributions (weight: 20)
-
-### onIntegratedProfilesRenderTab
-
-Fill HTML for a companion-owned tab when it is the active tab.
+Please see better hook documentation at https://www.mediawiki.org/wiki/Extension:IntegratedProfiles.
 
 ## Misc
 
