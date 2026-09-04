@@ -12,7 +12,8 @@ IntegratedProfiles implements user profiles, similar to Fandom and UserProfilesV
 
 ### Requirements
 
-* MediaWiki 1.46 or later
+* MediaWiki 1.45 or later
+** Only MW 1.45 and MW 1.46 have been tested. Earlier versions may work but are not officially supported.
 
 ### Suggestions
 
