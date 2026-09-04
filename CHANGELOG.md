@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.0](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/compare/v0.3.0...v0.4.0) (2026-09-04)
+
+
+### Features
+
+* improve skin compatibility ([1b34a8a](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/1b34a8a365463d39354c26e114a9466ef9e61371))
+* support mw 1.45 ([d3a6bd5](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/d3a6bd5ab6926bb7d0ad068ff4e66c4fa6095ae2))
+
 ## [0.3.0](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/compare/v0.2.0...v0.3.0) (2026-09-02)
 
 
