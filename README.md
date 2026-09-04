@@ -1,9 +1,10 @@
 # IntegratedProfiles (Usage)
 
+![IntegratedProfiles Preview](./docs/images/image.png)
+
 > [!WARNING]  
 > IntegratedProfiles is currently in BETA.
 
-![IntegratedProfiles Preview](./docs/images/image.png)
 
 IntegratedProfiles implements user profiles, similar to Fandom and UserProfilesV2, but with the focus of integration, meaning any other extension add things on top of it.
 
@@ -46,7 +47,7 @@ wfLoadExtension( 'FloatingUI' ); # Provides tooltip feedback for certain UI acti
 
 ### Single wiki
 
-No extra configuration is needed. The default backend is enough:
+No extra configuration is needed. The default backend is enough, so simply load the extension:
 
 ```php
 wfLoadExtension( 'IntegratedProfiles' );
