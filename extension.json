@@ -1,7 +1,7 @@
 {
 	"manifest_version": 2,
 	"name": "IntegratedProfiles",
-	"version": "0.3.0",
+	"version": "0.4.0",
 	"author": [
 		"[https://wolfite.dev Wolfite]",
 		"[https://obby.wiki The Obby Wiki]"
