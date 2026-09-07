@@ -9,6 +9,11 @@ use Wikimedia\FileBackend\FileBackend;
 use Wikimedia\FileBackend\FSFileBackend;
 use Wikimedia\LockManager\NullLockManager;
 
+// < 1.46
+if (!class_exists('Wikimedia\LockManager\NullLockManager')) {
+	class_alias( 'NullLockManager', 'Wikimedia\LockManager\NullLockManager' );
+}
+
 /**
  * FileBackend I/O for profile banners under the ipbanners container (also see AvatarStorage).
  *

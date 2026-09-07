@@ -12,6 +12,11 @@ use MediaWiki\Title\Title;
 use MediaWiki\User\Options\Hook\SaveUserOptionsHook;
 use MediaWiki\User\UserIdentity;
 
+// < 1.46
+if (!interface_exists('MediaWiki\Specials\Hook\SpecialContributionsBeforeMainOutputHook')) {
+	class_alias( 'MediaWiki\Hook\SpecialContributionsBeforeMainOutputHook', 'MediaWiki\Specials\Hook\SpecialContributionsBeforeMainOutputHook' );
+}
+
 /**
  * Hooks.
  */
