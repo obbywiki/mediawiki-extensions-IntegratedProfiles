@@ -126,10 +126,17 @@
 									:disabled="busy"
 									@click="on_open_banner_modal"
 								>
-									<span
+									<svg
 										class="ip-editor__banner-add-icon"
+										viewBox="0 0 20 20"
 										aria-hidden="true"
-									>＋</span>
+										focusable="false"
+									>
+										<path
+											fill="currentColor"
+											d="M19 19H1v-2h18zM10.703 1l5.211 5.117-1.406 1.422L11 4v11H9V4L5.492 7.54 4.086 6.116 9.296 1z"
+										/>
+									</svg>
 								</button>
 							</li>
 						</ul>

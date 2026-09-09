@@ -1603,21 +1603,23 @@
 }
 
 .ip-editor__banner-swatch--add {
-	background: var( --color-base );
-	color: var( --color-inverted );
+	background-color: transparent;
+	border-color: var( --border-color-base );
 	box-shadow: none;
+	border-style: dashed;
+	align-content: center;
 }
 
 .ip-editor__banner-swatch--add:focus-visible,
 .ip-editor__banner-swatch--add:hover:not( :disabled ) {
 	border-color: var( --color-progressive );
-	background: var( --color-base );
 }
 
 .ip-editor__banner-add-icon {
-	font-size: 1.15rem;
-	font-weight: bold;
-	line-height: 1;
+	display: block;
+	width: 1.15rem;
+	height: 1.15rem;
+	color: var( --color-subtle );
 }
 
 .ip-editor__label,
