@@ -161,7 +161,17 @@
 				"mediawiki.Title",
 				"mediawiki.page.ready",
 				"mediawiki.api",
+				"mediawiki.util",
+				"mediawiki.jqueryMsg",
+				"mediawiki.language",
 				"ext.floatingUI"
+			],
+			"messages": [
+				"integratedprofiles-aka",
+				"integratedprofiles-user-card-edits",
+				"integratedprofiles-user-card-joined",
+				"integratedprofiles-avatar-alt",
+				"integratedprofiles-private-notice"
 			]
 		},
 		"ext.IntegratedProfiles.mastheadTips": {

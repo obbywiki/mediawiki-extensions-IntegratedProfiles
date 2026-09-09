@@ -35,6 +35,12 @@ let open_link = null;
 /** @type {Function|null} */
 let cleanup_auto_update = null;
 
+/** @type {number} */
+let banner_token = 0;
+
+/** @type {number} */
+let avatar_token = 0;
+
 /** @type {mw.Api|null} */
 let api = null;
 
@@ -231,26 +237,373 @@ function fetch_card_payload( user_name ) {
 }
 
 /**
+ * @type {string[]}
+ */
+const BANNER_PRESETS = [
+	'accent',
+	'ocean',
+	'sunset',
+	'forest',
+	'midnight',
+	'ember',
+	'sand',
+	'aurora',
+	'custom'
+];
+
+/**
+ * @param {string} tag
+ * @param {string} [class_name]
+ * @return {HTMLElement}
+ */
+function h( tag, class_name ) {
+	const node = document.createElement( tag );
+	if ( class_name ) {
+		node.className = class_name;
+	}
+
+	return node;
+}
+
+/**
+ * @return {{ color: string, avatar_border_radius: string }}
+ */
+function cards_config() {
+	const raw = mw.config.get( 'wgIntegratedProfilesCards' ) || {};
+
+	return {
+		color: raw.color || '#5288F1',
+		avatar_border_radius: raw.avatar_border_radius || '50%'
+	};
+}
+
+/**
+ * @return {string}
+ */
+function default_avatar_url() {
+	const assets = String( mw.config.get( 'wgExtensionAssetsPath' ) || '' ).replace( /\/$/, '' );
+
+	return assets + '/IntegratedProfiles/resources/avatars/default.svg';
+}
+
+/**
+ * @param {string} user_name
+ * @return {string}
+ */
+function user_page_url( user_name ) {
+	return mw.util.getUrl( 'User:' + user_name );
+}
+
+/**
+ * @param {number} n
+ * @return {string}
+ */
+function format_number( n ) {
+	if ( mw.language && mw.language.convertNumber ) {
+		return mw.language.convertNumber( n );
+	}
+
+	return String( n );
+}
+
+/**
+ * @param {string|null} registration
+ * @return {string}
+ */
+function format_joined( registration ) {
+	if ( !registration || registration.length < 8 ) { return ''; }
+
+	const year = Number( registration.slice( 0, 4 ) );
+	const month = Number( registration.slice( 4, 6 ) ) - 1;
+	const day = Number( registration.slice( 6, 8 ) );
+	if ( !year || month < 0 || month > 11 || !day ) { return ''; }
+
+	const locale = mw.config.get( 'wgUserLanguage' ) || mw.config.get( 'wgContentLanguage' ) || 'en';
+	const formatted = new Intl.DateTimeFormat( locale, {
+		year: 'numeric',
+		month: 'short',
+		day: 'numeric'
+	} ).format( new Date( year, month, day ) );
+
+	return formatted;
+}
+
+/**
+ * @param {string} url
+ * @return {string}
+ */
+function css_url( url ) {
+	return 'url("' + String( url ).replace( /\\/g, '\\\\' ).replace( /"/g, '\\"' ) + '")';
+}
+
+/**
+ * Paint one frame at opacity 0 so adding --ready can fade.
+ *
+ * @param {HTMLElement} el
+ * @return {void}
+ */
+function force_reflow( el ) {
+	el.getBoundingClientRect();
+}
+
+/**
+ * @param {HTMLElement} banner
+ * @param {CardPayload} payload
+ */
+function apply_banner( banner, payload ) {
+	const token = ++banner_token;
+	banner.className = 'ip-user-card__banner';
+	banner.style.removeProperty( '--ip-user-card-banner-image' );
+
+	/**
+	 * @return {void}
+	 */
+	function reveal() {
+		if ( token !== banner_token ) { return; }
+
+		force_reflow( banner );
+		requestAnimationFrame( () => {
+			if ( token !== banner_token ) { return; }
+
+			banner.classList.add( 'ip-user-card__banner--ready' );
+		} );
+	}
+
+	let mode = payload.banner || 'accent';
+	if ( mode === 'custom' && payload.banner_url ) {
+		const img = new Image();
+		img.onload = function () {
+			if ( token !== banner_token ) { return; }
+
+			banner.classList.add( 'ip-user-card__banner--custom' );
+			banner.style.setProperty( '--ip-user-card-banner-image', css_url( payload.banner_url ) );
+			reveal();
+		};
+		img.onerror = function () {
+			if ( token !== banner_token ) { return; }
+
+			banner.classList.add( 'ip-user-card__banner--accent' );
+			reveal();
+		};
+		img.src = payload.banner_url;
+		return;
+	}
+
+	if ( mode === 'custom' || !BANNER_PRESETS.includes( mode ) ) {
+		mode = 'accent';
+	}
+
+	banner.classList.add( 'ip-user-card__banner--' + mode );
+	reveal();
+}
+
+function apply_card_chrome() {
+	if ( !card_el ) { return; }
+
+	const config = cards_config();
+	card_el.style.setProperty( '--ip-user-card-accent', config.color );
+	card_el.style.setProperty( '--ip-user-card-avatar-radius', config.avatar_border_radius );
+}
+
+/**
+ * @param {HTMLImageElement} avatar
+ * @param {string} url
+ */
+function set_avatar_src( avatar, url ) {
+	const token = ++avatar_token;
+	avatar.classList.remove( 'ip-user-card__avatar--ready' );
+
+	/**
+	 * @return {void}
+	 */
+	function reveal() {
+		if ( token !== avatar_token ) { return; }
+
+		force_reflow( avatar );
+		requestAnimationFrame( () => {
+			if ( token !== avatar_token ) { return; }
+
+			avatar.classList.add( 'ip-user-card__avatar--ready' );
+		} );
+	}
+
+	avatar.onload = reveal;
+	avatar.onerror = function () {
+		if ( token !== avatar_token ) { return; }
+
+		avatar.onerror = null;
+		avatar.src = default_avatar_url();
+		if ( avatar.complete && avatar.naturalWidth ) {
+			reveal();
+		}
+	};
+	avatar.src = url;
+	if ( avatar.complete && avatar.naturalWidth ) {
+		reveal();
+	}
+}
+
+/**
+ * @param {Element} item
+ * @param {string} value_text
+ * @param {string} label_text
+ */
+function fill_meta_pair( item, value_text, label_text ) {
+	const value = item.querySelector( '.ip-user-card__meta-value' );
+	const label = item.querySelector( '.ip-user-card__meta-label' );
+	if ( value ) {
+		value.textContent = value_text;
+	}
+	if ( label ) {
+		label.textContent = label_text;
+	}
+}
+
+/**
+ * @param {string} user_name
+ */
+function show_card_skeleton( user_name ) {
+	if ( !card_el ) { return; }
+
+	banner_token += 1;
+	avatar_token += 1;
+	apply_card_chrome();
+	card_el.className = 'ip-user-card ip-user-card--skeleton';
+
+	const profile_url = user_page_url( user_name );
+
+	const banner = card_el.querySelector( '.ip-user-card__banner' );
+	if ( banner ) {
+		banner.className = 'ip-user-card__banner';
+		banner.style.removeProperty( '--ip-user-card-banner-image' );
+	}
+
+	const user_name_el = card_el.querySelector( '.ip-user-card__user-name' );
+	const aka = card_el.querySelector( '.ip-user-card__aka' );
+	const about = card_el.querySelector( '.ip-user-card__about' );
+	const edits = card_el.querySelector( '.ip-user-card__meta-item--edits' );
+	const joined = card_el.querySelector( '.ip-user-card__meta-item--joined' );
+	const notice = card_el.querySelector( '.ip-user-card__meta-item--private' );
+	const avatar = card_el.querySelector( '.ip-user-card__avatar' );
+	const avatar_link = card_el.querySelector( '.ip-user-card__avatar-link' );
+
+	if ( user_name_el instanceof HTMLAnchorElement ) {
+		user_name_el.textContent = user_name;
+		user_name_el.href = profile_url;
+	}
+	if ( aka ) {
+		aka.hidden = true;
+		aka.textContent = '';
+	}
+	if ( about ) {
+		about.hidden = true;
+		about.textContent = '';
+	}
+	if ( edits ) {
+		edits.hidden = false;
+		fill_meta_pair( edits, '', '' );
+	}
+	if ( joined ) {
+		joined.hidden = false;
+		fill_meta_pair( joined, '', '' );
+	}
+	if ( notice ) {
+		notice.hidden = true;
+		notice.textContent = '';
+	}
+	if ( avatar_link instanceof HTMLAnchorElement ) {
+		avatar_link.href = profile_url;
+	}
+	if ( avatar instanceof HTMLImageElement ) {
+		avatar.classList.remove( 'ip-user-card__avatar--ready' );
+		avatar.removeAttribute( 'src' );
+		avatar.alt = '';
+	}
+}
+
+/**
  * @param {CardPayload} payload
  */
 function fill_card( payload ) {
 	if ( !card_el ) { return; }
 
-	card_el.textContent = '';
+	apply_card_chrome();
+	card_el.classList.remove( 'ip-user-card--skeleton' );
 	card_el.classList.toggle( 'ip-user-card--private', !!payload.is_private );
 
-	const avatar = document.createElement( 'img' );
-	avatar.className = 'ip-user-card__avatar';
-	avatar.src = payload.avatar_url || '';
-	avatar.alt = '';
-	avatar.width = 48;
-	avatar.height = 48;
+	const user_name = payload.user || '';
+	const profile_url = user_page_url( user_name );
+	const real_name_text = ( payload.real_name || '' ).trim();
+	const about_text = ( payload.about || '' ).trim();
+	const show_aka = !!real_name_text && !payload.is_private;
 
-	const name = document.createElement( 'span' );
-	name.className = 'ip-user-card__name';
-	name.textContent = payload.user || '';
+	const banner = card_el.querySelector( '.ip-user-card__banner' );
+	if ( banner ) {
+		apply_banner( banner, payload );
+	}
 
-	card_el.append( avatar, name );
+	const user_name_el = card_el.querySelector( '.ip-user-card__user-name' );
+	const aka = card_el.querySelector( '.ip-user-card__aka' );
+	const about = card_el.querySelector( '.ip-user-card__about' );
+	const edits = card_el.querySelector( '.ip-user-card__meta-item--edits' );
+	const joined = card_el.querySelector( '.ip-user-card__meta-item--joined' );
+	const notice = card_el.querySelector( '.ip-user-card__meta-item--private' );
+	const avatar_link = card_el.querySelector( '.ip-user-card__avatar-link' );
+	const avatar = card_el.querySelector( '.ip-user-card__avatar' );
+
+	if ( user_name_el instanceof HTMLAnchorElement ) {
+		user_name_el.textContent = user_name;
+		user_name_el.href = profile_url;
+	}
+
+	if ( aka ) {
+		aka.hidden = !show_aka;
+		aka.textContent = show_aka ?
+			mw.message( 'integratedprofiles-aka', real_name_text ).text() :
+			'';
+	}
+
+	if ( about ) {
+		about.hidden = !about_text || !!payload.is_private;
+		about.textContent = about_text;
+	}
+
+	if ( edits ) {
+		const show_edits = !payload.is_private;
+		edits.hidden = !show_edits;
+		fill_meta_pair(
+			edits,
+			show_edits ? format_number( payload.edit_count ) : '',
+			show_edits ? mw.message( 'integratedprofiles-user-card-edits', payload.edit_count ).text() : ''
+		);
+	}
+
+	if ( joined ) {
+		const joined_value = payload.is_private ? '' : format_joined( payload.registration );
+		joined.hidden = !joined_value;
+		fill_meta_pair(
+			joined,
+			joined_value,
+			joined_value ? mw.message( 'integratedprofiles-user-card-joined' ).text() : ''
+		);
+	}
+
+	if ( notice ) {
+		notice.hidden = !payload.is_private;
+		notice.textContent = payload.is_private ?
+			mw.message( 'integratedprofiles-private-notice' ).text() :
+			'';
+	}
+
+	if ( avatar_link instanceof HTMLAnchorElement ) {
+		avatar_link.href = profile_url;
+	}
+
+	if ( avatar instanceof HTMLImageElement ) {
+		avatar.alt = mw.message( 'integratedprofiles-avatar-alt' ).text();
+		set_avatar_src( avatar, payload.avatar_url || default_avatar_url() );
+	}
+
 	update_position();
 }
 
@@ -323,8 +676,50 @@ function ensure_card_root() {
 	const content = document.createElement( 'div' );
 	content.className = 'ext-floatingui-floating-content';
 
-	const card = document.createElement( 'span' );
-	card.className = 'ip-user-card';
+	const card = h( 'div', 'ip-user-card ip-user-card--skeleton' );
+	const panel = h( 'div', 'ip-user-card__panel' );
+	panel.append(
+		h( 'div', 'ip-user-card__banner ip-user-card__banner--accent' )
+	);
+
+	const body = h( 'div', 'ip-user-card__content' );
+	const identity = h( 'div', 'ip-user-card__identity' );
+	const name_line = h( 'div', 'ip-user-card__name-line' );
+	const user_link = document.createElement( 'a' );
+	user_link.className = 'ip-user-card__user-name';
+	const aka = h( 'span', 'ip-user-card__aka' );
+	aka.hidden = true;
+	name_line.append( user_link, aka );
+	const about = h( 'div', 'ip-user-card__about' );
+	about.hidden = true;
+	identity.append( name_line, about );
+
+	const meta = h( 'div', 'ip-user-card__meta' );
+	const edits_item = h( 'span', 'ip-user-card__meta-item ip-user-card__meta-item--edits' );
+	edits_item.append(
+		h( 'span', 'ip-user-card__meta-value' ),
+		h( 'span', 'ip-user-card__meta-label' )
+	);
+	const joined_item = h( 'span', 'ip-user-card__meta-item ip-user-card__meta-item--joined' );
+	joined_item.append(
+		h( 'span', 'ip-user-card__meta-label' ),
+		h( 'span', 'ip-user-card__meta-value' )
+	);
+	const private_item = h( 'span', 'ip-user-card__meta-item ip-user-card__meta-item--private' );
+	private_item.hidden = true;
+	meta.append( edits_item, joined_item, private_item );
+
+	body.append( identity, meta, h( 'div', 'ip-user-card__extras' ) );
+	panel.append( body );
+
+	const avatar_link = document.createElement( 'a' );
+	avatar_link.className = 'ip-user-card__avatar-link';
+	const avatar = document.createElement( 'img' );
+	avatar.className = 'ip-user-card__avatar';
+	avatar.alt = '';
+	avatar_link.append( avatar );
+	card.append( panel, avatar_link );
+
 	content.append( card );
 	card_el = card;
 
@@ -402,10 +797,7 @@ function show_card( link ) {
 	link.setAttribute( 'aria-expanded', 'true' );
 
 	const root = ensure_card_root();
-	if ( card_el ) {
-		card_el.textContent = '';
-		card_el.classList.remove( 'ip-user-card--private' );
-	}
+	show_card_skeleton( user_name );
 	root.setAttribute( 'aria-label', user_name );
 	document.body.append( root );
 	root.classList.add( VISIBLE_CLASS );

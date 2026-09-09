@@ -250,6 +250,12 @@ class Hooks implements
 
 		$out->addModuleStyles( [ 'ext.floatingUI.init.styles' ] );
 		$out->addModules( [ 'ext.IntegratedProfiles.userCards' ] );
+		$out->addJsConfigVars( [
+			'wgIntegratedProfilesCards' => [
+				'color' => (string)$out->getConfig()->get( 'IntegratedProfilesColor' ),
+				'avatar_border_radius' => (string)$out->getConfig()->get( 'IntegratedProfilesAvatarBorderRadius' )
+			]
+		] );
 	}
 
 	/**

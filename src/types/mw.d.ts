@@ -120,6 +120,10 @@ export interface IntegratedProfilesApi {
 declare global {
 	interface MediaWikiConfigMap {
 		wgIntegratedProfiles?: IntegratedProfilesConfig;
+		wgIntegratedProfilesCards?: {
+			color?: string;
+			avatar_border_radius?: string;
+		};
 	}
 
 	namespace mw {
