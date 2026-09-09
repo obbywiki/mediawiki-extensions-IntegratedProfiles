@@ -117,6 +117,12 @@
 				"IntegratedProfiles.ProfileService",
 				"IntegratedProfiles.AvatarService"
 			]
+		},
+		"integratedprofilecard": {
+			"class": "MediaWiki\\Extension\\IntegratedProfiles\\Api\\ApiQueryIntegratedProfileCard",
+			"services": [
+				"IntegratedProfiles.ProfileService"
+			]
 		}
 	},
 	"ResourceFileModulePaths": {
@@ -142,6 +148,30 @@
 			],
 			"styles": [
 				"resources/integratedprofiles/css/ip.css"
+			]
+		},
+		"ext.IntegratedProfiles.userCards": {
+			"scripts": [
+				"resources/integratedprofiles/user_cards.js"
+			],
+			"styles": [
+				"resources/integratedprofiles/css/user_cards.css"
+			],
+			"dependencies": [
+				"mediawiki.Title",
+				"mediawiki.page.ready",
+				"mediawiki.api",
+				"mediawiki.util",
+				"mediawiki.jqueryMsg",
+				"mediawiki.language",
+				"ext.floatingUI"
+			],
+			"messages": [
+				"integratedprofiles-aka",
+				"integratedprofiles-user-card-edits",
+				"integratedprofiles-user-card-joined",
+				"integratedprofiles-avatar-alt",
+				"integratedprofiles-private-notice"
 			]
 		},
 		"ext.IntegratedProfiles.mastheadTips": {
@@ -318,6 +348,10 @@
 		"IntegratedProfilesEnableNewAuthPanel": {
 			"value": true,
 			"description": "Show verified NewAuth connections on profiles when NewAuth is loaded."
+		},
+		"IntegratedProfilesEnableUserCards": {
+			"value": false,
+			"description": "When true, show on-click profile cards for username links. Requires the FloatingUI extension."
 		},
 		"IntegratedProfilesAboutMaxLength": {
 			"value": 80,

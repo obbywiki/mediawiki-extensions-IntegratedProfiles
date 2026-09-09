@@ -1,0 +1,287 @@
+.ip-user-card {
+	--ip-user-card-accent: #5288f1;
+	--ip-user-card-avatar-size: 4.75rem;
+	--ip-user-card-avatar-radius: 50%;
+	--ip-user-card-overlap-y: 1.15rem;
+	--ip-user-card-avatar-left: 0.85rem;
+	box-sizing: border-box;
+	position: relative;
+	width: 26rem;
+	max-width: calc( 100vw - 2rem );
+	padding: var( --ip-user-card-overlap-y ) 0 0;
+	overflow: visible;
+	color: #fff;
+}
+
+.ip-user-card__panel {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	min-height: 5.75rem;
+	overflow: hidden;
+	border-radius: 0.5rem;
+	background: #2a2a2a;
+	box-shadow: 0 8px 24px rgba( 0, 0, 0, 0.28 );
+}
+
+.ip-user-card__banner {
+	position: absolute;
+	inset: 0;
+	z-index: 0;
+	background: linear-gradient( 135deg, color-mix( in srgb, var( --ip-user-card-accent ) 85%, #000 15% ) 0%, var( --ip-user-card-accent ) 55%, color-mix( in srgb, var( --ip-user-card-accent ) 72%, #fff 28% ) 100% );
+	opacity: 0;
+	transition: opacity 0.4s ease;
+}
+
+.ip-user-card__banner--instant {
+	transition: none;
+}
+
+.ip-user-card__banner.ip-user-card__banner--ready {
+	opacity: 1;
+}
+
+@media ( prefers-reduced-motion: reduce ) {
+	.ip-user-card__banner {
+		transition: none;
+	}
+}
+
+.ip-user-card__banner::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	background: linear-gradient( 180deg, rgba( 0, 0, 0, 0.32 ) 0%, rgba( 0, 0, 0, 0.66 ) 100% );
+}
+
+.ip-user-card__banner--accent {
+	background: linear-gradient( 135deg, color-mix( in srgb, var( --ip-user-card-accent ) 85%, #000 15% ) 0%, var( --ip-user-card-accent ) 55%, color-mix( in srgb, var( --ip-user-card-accent ) 72%, #fff 28% ) 100% );
+}
+
+.ip-user-card__banner--ocean {
+	background: linear-gradient( 135deg, #0d7377 0%, #14919b 45%, #1a3a5c 100% );
+}
+
+.ip-user-card__banner--sunset {
+	background: linear-gradient( 135deg, #c45c26 0%, #e07a3d 40%, #f0a05a 100% );
+}
+
+.ip-user-card__banner--forest {
+	background: linear-gradient( 135deg, #2d5a27 0%, #3d7a35 50%, #1a3d16 100% );
+}
+
+.ip-user-card__banner--midnight {
+	background: linear-gradient( 135deg, #1e293b 0%, #334155 45%, #0f172a 100% );
+}
+
+.ip-user-card__banner--ember {
+	background: linear-gradient( 135deg, #7f1d1d 0%, #991b1b 40%, #3f1f1f 100% );
+}
+
+.ip-user-card__banner--sand {
+	background: linear-gradient( 135deg, #a68a64 0%, #c4a574 45%, #8b7355 100% );
+}
+
+.ip-user-card__banner--aurora {
+	background: linear-gradient( 135deg, #4c1d95 0%, #6366f1 45%, #0e7490 100% );
+}
+
+.ip-user-card__banner--custom {
+	background-color: var( --ip-user-card-accent );
+	background-image: var( --ip-user-card-banner-image );
+	background-position: center;
+	background-size: cover;
+	background-repeat: no-repeat;
+}
+
+.ip-user-card__content {
+	position: relative;
+	z-index: 1;
+	display: flex;
+	flex: 1 1 auto;
+	flex-direction: column;
+	box-sizing: border-box;
+	min-height: 5.75rem;
+	padding: 0.7rem 1rem 0.7rem calc( var( --ip-user-card-avatar-left ) + var( --ip-user-card-avatar-size ) + 0.75rem );
+}
+
+.ip-user-card__identity {
+	min-width: 0;
+}
+
+.ip-user-card__name-line {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 0.35rem;
+	min-width: 0;
+}
+
+.ip-user-card__user-name,
+.ip-user-card__user-name:link,
+.ip-user-card__user-name:visited {
+	min-width: 0;
+	overflow: hidden;
+	font-size: 1.15rem;
+	font-weight: bold;
+	line-height: 1.25;
+	color: #fff;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	text-decoration: none;
+	cursor: pointer;
+}
+
+a.ip-user-card__user-name:hover,
+a.ip-user-card__user-name:focus {
+	color: #fff;
+}
+
+.ip-user-card__aka {
+	color: rgba( 255, 255, 255, 0.72 );
+	font-size: 0.9rem;
+	font-weight: normal;
+	line-height: 1.2;
+	white-space: nowrap;
+}
+
+.ip-user-card__about {
+	display: block;
+	min-width: 0;
+	margin-top: 0.3rem;
+	overflow: hidden;
+	font-size: 0.8rem;
+	line-height: 1.35;
+	color: rgba( 255, 255, 255, 0.78 );
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.ip-user-card__meta {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 0.65rem 0.95rem;
+	margin-top: auto;
+	margin-left: calc( -1 * ( var( --ip-user-card-avatar-size ) + 0.75rem ) );
+	padding-top: 0.7rem;
+	font-size: 0.75rem;
+	line-height: 1.3;
+}
+
+.ip-user-card__meta-label {
+	color: rgba( 255, 255, 255, 0.52 );
+}
+
+.ip-user-card__meta-value {
+	color: #fff;
+	font-weight: 500;
+}
+
+.ip-user-card__meta-item--edits .ip-user-card__meta-label {
+	margin-left: 0.28em;
+}
+
+.ip-user-card__meta-item--joined .ip-user-card__meta-label {
+	margin-right: 0.28em;
+}
+
+.ip-user-card__meta-item--private {
+	color: rgba( 255, 255, 255, 0.72 );
+}
+
+.ip-user-card__meta-item[ hidden ],
+.ip-user-card__aka[ hidden ],
+.ip-user-card__about[ hidden ] {
+	display: none;
+}
+
+.ip-user-card__extras:empty {
+	display: none;
+}
+
+.ip-user-card__avatar-link {
+	position: absolute;
+	top: 0;
+	left: var( --ip-user-card-avatar-left );
+	z-index: 2;
+	display: block;
+	width: var( --ip-user-card-avatar-size );
+	height: var( --ip-user-card-avatar-size );
+	cursor: pointer;
+}
+
+.ip-user-card__avatar {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	border-radius: var( --ip-user-card-avatar-radius );
+	background: rgba( 255, 255, 255, 0.16 );
+	opacity: 0;
+	transition: opacity 0.35s ease;
+}
+
+.ip-user-card__avatar--instant {
+	transition: none;
+}
+
+.ip-user-card__avatar.ip-user-card__avatar--ready {
+	opacity: 1;
+}
+
+@media ( prefers-reduced-motion: reduce ) {
+	.ip-user-card__avatar {
+		transition: none;
+	}
+}
+
+.ip-user-card--skeleton .ip-user-card__meta-item {
+	width: 3.6rem;
+	height: 0.55rem;
+	border-radius: 0.2rem;
+	background: rgba( 255, 255, 255, 0.22 );
+	color: transparent;
+	animation: ip-user-card-pulse 1.2s ease-in-out infinite;
+}
+
+.ip-user-card--skeleton .ip-user-card__avatar {
+	background: rgba( 255, 255, 255, 0.22 );
+	animation: ip-user-card-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes ip-user-card-pulse {
+	50% {
+		opacity: 0.55;
+	}
+}
+
+@media ( prefers-reduced-motion: reduce ) {
+	.ip-user-card--skeleton .ip-user-card__meta-item,
+	.ip-user-card--skeleton .ip-user-card__avatar {
+		animation: none;
+	}
+}
+
+#ip-user-card-floating.ext-floatingui-floating {
+	z-index: 1100;
+	overflow: visible;
+}
+
+#ip-user-card-floating .ext-floatingui-floating-inner {
+	overflow: visible;
+	background: transparent;
+	border: 0;
+	border-radius: 0;
+	box-shadow: none;
+}
+
+#ip-user-card-floating .ext-floatingui-floating-content {
+	overflow: visible;
+	padding: 0;
+	background: transparent;
+}
+
+#ip-user-card-floating .ext-floatingui-floating-arrow {
+	display: none;
+}

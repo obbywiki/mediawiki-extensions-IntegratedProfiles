@@ -166,6 +166,7 @@ IntegratedProfiles integrates certain functionalities from NewAuth. If you have 
 | `$wgIntegratedProfilesAvatarBorderRadius` | `50%` | Border radius for profile avatars. |
 | `$wgIntegratedProfilesBackend` | `''` | Named entry in `$wgFileBackends`. Empty uses `{UploadDirectory}/ipavatars` and `{UploadDirectory}/ipbanners`. Must already exist if set. See Setup. |
 | `$wgIntegratedProfilesEnableNewAuthPanel` | `true` | Show verified connections when NewAuth is loaded. |
+| `$wgIntegratedProfilesEnableUserCards` | `false` | On-click profile cards for username links. Requires FloatingUI. |
 | `$wgIntegratedProfilesAboutMaxLength` | `80` | Maximum length in characters for the about tagline. |
 | `$wgIntegratedProfilesLinkMaxLength` | `255` | Maximum length in characters for freeform profile link fields. |
 | `$wgIntegratedProfilesEnabledSocialLinks` | `['website','twitter','github','discord','roblox','youtube']` | Only accepts one of the presets. Feel free to request or add any. |
@@ -178,6 +179,15 @@ IntegratedProfiles integrates certain functionalities from NewAuth. If you have 
 
 ```php
 $wgIntegratedProfilesEnabledSocialLinks = [ 'website', 'discord', 'roblox' ];
+```
+
+### User cards
+
+Username links open a profile card on click. This is off by default and requires FloatingUI:
+
+```php
+wfLoadExtension( 'FloatingUI' );
+$wgIntegratedProfilesEnableUserCards = true;
 ```
 
 ### Language interwikis
@@ -234,6 +244,32 @@ action=query&list=integratedprofileavatar&ipauser=Wlft|Wlft2|Wlft3
 <!-- mitosis? -->
 
 Returns a list of `{ user, avatar_url, has_custom_avatar }`. Unknown names are warned and omitted.
+
+### Getting hover-card payloads
+
+Query quick information about a user's profile.
+
+#### For extensions
+
+```php
+if ( ExtensionRegistry::getInstance()->isLoaded( 'IntegratedProfiles' ) ) {
+	$profiles = MediaWikiServices::getInstance()
+		->get( 'IntegratedProfiles.ProfileService' );
+	$card = $profiles->get_card_payload( $user, $viewer );
+	// Or alternatively, for many users in a batch:
+	// $profiles->get_card_payloads_for_users( $users, $viewer );
+}
+```
+
+#### Action API
+
+You can query hover-card payloads for no more than 50 usernames.
+
+```
+action=query&list=integratedprofilecard&ipcuser=Wlft|Wlft2|Wlft3
+```
+
+Returns a list of `{ user, user_id, real_name, about, edit_count, registration, avatar_url, has_custom_avatar, banner, banner_url, is_private }`. `banner` is a preset id (`accent`, `ocean`, `sunset`, `forest`, `midnight`, `ember`, `sand`, `aurora`) or `custom`. `banner_url` is set only for `custom`. Unknown names are warned and omitted. When `is_private` is true, extras are empty (`banner` falls back to `accent`).
 
 ---
 

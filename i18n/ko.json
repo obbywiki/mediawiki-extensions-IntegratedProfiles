@@ -6,5 +6,7 @@
 	},
 	
 	"integratedprofiles-edit-count": "$1 편집",
-	"integratedprofiles-joined": "가입일 $1"
+	"integratedprofiles-joined": "가입일 $1",
+	"integratedprofiles-user-card-edits": "편집",
+	"integratedprofiles-user-card-joined": "가입일"
 }

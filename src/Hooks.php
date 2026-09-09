@@ -2,6 +2,7 @@
 
 namespace MediaWiki\Extension\IntegratedProfiles;
 
+use ExtensionRegistry;
 use MediaWiki\Output\Hook\BeforePageDisplayHook;
 use MediaWiki\Output\Hook\LanguageLinksHook;
 use MediaWiki\Output\Hook\OutputPageBodyAttributesHook;
@@ -170,6 +171,7 @@ class Hooks implements
 	/** @inheritDoc */
 	public function onBeforePageDisplay( $out, $skin ): void {
 		$this->prepare_header_avatar( $out, $skin );
+		$this->load_user_cards( $out );
 
 		$title = $out->getTitle();
 		if ( !$title ) {
@@ -234,6 +236,29 @@ class Hooks implements
 			),
 			$links
 		);
+	}
+
+	/**
+	 * Sitewide profile cards (on-click + positioned by FloatingUI).
+	 *
+	 * @param \MediaWiki\Output\OutputPage $out
+	 */
+	private function load_user_cards( $out ): void {
+		if ( !(bool)$out->getConfig()->get( 'IntegratedProfilesEnableUserCards' ) ) {
+			return;
+		}
+		if ( !ExtensionRegistry::getInstance()->isLoaded( 'FloatingUI' ) ) {
+			return;
+		}
+
+		$out->addModuleStyles( [ 'ext.floatingUI.init.styles' ] );
+		$out->addModules( [ 'ext.IntegratedProfiles.userCards' ] );
+		$out->addJsConfigVars( [
+			'wgIntegratedProfilesCards' => [
+				'color' => (string)$out->getConfig()->get( 'IntegratedProfilesColor' ),
+				'avatar_border_radius' => (string)$out->getConfig()->get( 'IntegratedProfilesAvatarBorderRadius' )
+			]
+		] );
 	}
 
 	/**
