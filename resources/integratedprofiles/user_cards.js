@@ -844,11 +844,13 @@ function show_card( link ) {
 	link.dataset.ipUser = user_name;
 	open_link = link;
 	link.setAttribute( 'aria-expanded', 'true' );
+	link.setAttribute( 'aria-haspopup', 'dialog' );
 
 	const root = ensure_card_root();
 	show_card_skeleton( user_name );
 	root.setAttribute( 'aria-label', user_name );
 	document.body.append( root );
+	root.focus();
 	root.classList.add( VISIBLE_CLASS );
 
 	cleanup_auto_update = f.autoUpdate( link, root, update_position );
@@ -876,8 +878,12 @@ function hide_card() {
 	}
 
 	if ( open_link ) {
-		open_link.removeAttribute( 'aria-expanded' );
+		const previous = open_link;
+		previous.setAttribute( 'aria-expanded', 'false' );
+
 		open_link = null;
+
+		if ( card_root && card_root.contains( document.activeElement ) ) { previous.focus(); }
 	}
 
 	if ( card_root ) {
