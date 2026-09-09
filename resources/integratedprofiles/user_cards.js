@@ -776,7 +776,7 @@ function ensure_card_root() {
 
 	inner.append( content, card_arrow );
 	card_root.append( inner );
-	
+
 	return card_root;
 }
 
