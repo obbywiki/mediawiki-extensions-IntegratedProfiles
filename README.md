@@ -259,7 +259,7 @@ You can query hover-card payloads for no more than 50 usernames.
 action=query&list=integratedprofilecard&ipcuser=Wlft|Wlft2|Wlft3
 ```
 
-Returns a list of `{ user, user_id, real_name, about, edit_count, registration, avatar_url, has_custom_avatar, is_private }`. Unknown names are warned and omitted. When `is_private` is true, only `user` / avatar fields are provided.
+Returns a list of `{ user, user_id, real_name, about, edit_count, registration, avatar_url, has_custom_avatar, banner, banner_url, is_private }`. `banner` is a preset id (`accent`, `ocean`, `sunset`, `forest`, `midnight`, `ember`, `sand`, `aurora`) or `custom`. `banner_url` is set only for `custom`. Unknown names are warned and omitted. When `is_private` is true, extras are empty (`banner` falls back to `accent`).
 
 ---
 

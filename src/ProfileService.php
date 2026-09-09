@@ -247,6 +247,7 @@ class ProfileService {
 	 * @param User $subject Profile owner
 	 * @param UserIdentity $viewer Requesting user
 	 * @param array{avatar_url: string, has_custom_avatar: bool}|null $avatar_info Prefetched avatar row
+	 * @param array{banner_url: string, has_custom_banner: bool}|null $banner_info Prefetched banner row
 	 * @return array{
 	 *   user: string,
 	 *   user_id: int,
@@ -256,10 +257,17 @@ class ProfileService {
 	 *   registration: ?string,
 	 *   avatar_url: string,
 	 *   has_custom_avatar: bool,
+	 *   banner: string,
+	 *   banner_url: string,
 	 *   is_private: bool
 	 * }
 	 */
-	public function get_card_payload( User $subject, UserIdentity $viewer, ?array $avatar_info = null ): array {
+	public function get_card_payload(
+		User $subject,
+		UserIdentity $viewer,
+		?array $avatar_info = null,
+		?array $banner_info = null
+	): array {
 		$avatar = $avatar_info ?? $this->avatar_service->get_avatar_info_for_user( $subject );
 		$can_view = $this->can_view_details( $viewer, $subject );
 
@@ -272,6 +280,8 @@ class ProfileService {
 			'registration' => null,
 			'avatar_url' => $avatar['avatar_url'],
 			'has_custom_avatar' => $avatar['has_custom_avatar'],
+			'banner' => ProfileFields::BANNER_ACCENT,
+			'banner_url' => '',
 			'is_private' => !$can_view
 		];
 
@@ -280,12 +290,22 @@ class ProfileService {
 		}
 
 		$about = $this->user_options_lookup->getOption( $subject, ProfileFields::KEY_ABOUT );
+		$stored_banner = $this->user_options_lookup->getOption( $subject, ProfileFields::KEY_BANNER );
+		$banner = $banner_info ?? $this->banner_service->get_banner_info_for_user( $subject );
+		$banner_mode = $this->resolve_banner_mode(
+			is_string( $stored_banner ) ? $stored_banner : '',
+			$banner['has_custom_banner']
+		);
 		$registration = $this->user_registration_lookup->getFirstRegistration( $subject );
 
 		$card['real_name'] = $subject->getRealName();
 		$card['about'] = is_string( $about ) ? trim( $about ) : '';
 		$card['edit_count'] = (int)$subject->getEditCount();
 		$card['registration'] = is_string( $registration ) && $registration !== '' ? $registration : null;
+		$card['banner'] = $banner_mode;
+		$card['banner_url'] = $banner_mode === ProfileFields::BANNER_CUSTOM
+			? $banner['banner_url']
+			: '';
 
 		return $card;
 	}
@@ -304,6 +324,8 @@ class ProfileService {
 	 *   registration: ?string,
 	 *   avatar_url: string,
 	 *   has_custom_avatar: bool,
+	 *   banner: string,
+	 *   banner_url: string,
 	 *   is_private: bool
 	 * }>
 	 */
