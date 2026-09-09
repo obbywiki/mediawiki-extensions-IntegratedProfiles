@@ -1,7 +1,3 @@
-.ip-user-card-ref + .ext-floatingui-content {
-	display: none;
-}
-
 .ip-user-card {
 	display: block;
 	box-sizing: border-box;
@@ -9,6 +5,10 @@
 	min-height: 4.5rem;
 }
 
-#ext-floatingui-floating:has( .ip-user-card ) .ext-floatingui-floating-content {
+#ip-user-card-floating.ext-floatingui-floating {
+	z-index: 1100;
+}
+
+#ip-user-card-floating .ext-floatingui-floating-content {
 	padding: 0;
 }

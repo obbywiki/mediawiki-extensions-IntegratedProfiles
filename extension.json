@@ -159,7 +159,8 @@
 			],
 			"dependencies": [
 				"mediawiki.Title",
-				"mediawiki.page.ready"
+				"mediawiki.page.ready",
+				"ext.floatingUI"
 			]
 		},
 		"ext.IntegratedProfiles.mastheadTips": {
@@ -167,7 +168,7 @@
 				"resources/integratedprofiles/masthead_tips.js"
 			],
 			"dependencies": [
-				"ext.IntegratedProfiles.userCards"
+				"ext.floatingUI"
 			]
 		},
 		"ext.IntegratedProfiles.pageSidebar": {

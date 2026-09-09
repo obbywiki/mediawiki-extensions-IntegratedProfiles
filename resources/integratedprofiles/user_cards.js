@@ -6,11 +6,26 @@
 const USER_LINK_SELECTOR = 'a.mw-userlink';
 
 /**
- * @return {boolean}
+ * @type {string}
  */
-function is_coarse_preview() {
-	return window.matchMedia( '(hover: none)' ).matches;
-}
+const CARD_ID = 'ip-user-card-floating';
+
+/**
+ * @type {string}
+ */
+const VISIBLE_CLASS = 'ext-floatingui-floating--visible';
+
+/** @type {HTMLElement|null} */
+let card_root = null;
+
+/** @type {HTMLElement|null} */
+let card_arrow = null;
+
+/** @type {HTMLAnchorElement|null} */
+let open_link = null;
+
+/** @type {Function|null} */
+let cleanup_auto_update = null;
 
 /**
  * @param {string} href
@@ -69,7 +84,7 @@ function user_name_from_link( el ) {
 			if ( title && title.getNamespaceId() === ns_ids.user ) {
 				const main = title.getMainText();
 				if ( !main.includes( '/' ) ) { return main; }
-				
+
 				return '';
 			}
 		}
@@ -79,67 +94,213 @@ function user_name_from_link( el ) {
 }
 
 /**
- * @param {HTMLAnchorElement} el
+ * Middle/right buttons and modifier clicks keep native behavior.
+ *
+ * @param {MouseEvent} event
+ * @return {boolean}
  */
-function bind_coarse_click( el ) {
-	el.addEventListener( 'click', ( event ) => {
-		if ( !is_coarse_preview() ) { return; }
+function is_modified_click( event ) {
+	return event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
+}
 
-		event.preventDefault();
-		el.focus( { preventScroll: true } );
-	} );
+/**
+ * @param {EventTarget|null} target
+ * @return {Element|null}
+ */
+function event_element( target ) {
+	if ( target instanceof Element ) { return target; }
+	if ( target && target.parentElement ) { return target.parentElement; }
+
+	return null;
 }
 
 /**
  * @param {Element} el
- * @return {boolean}
+ * @return {HTMLAnchorElement|null}
  */
-function should_skip_link( el ) {
-	if ( !( el instanceof HTMLAnchorElement ) ) { return true; }
-	if ( el.dataset.ipUserCard === '1' ) { return true; }
-	if ( !el.getAttribute( 'href' ) ) { return true; }
-	if ( el.closest( '#ext-floatingui-floating' ) ) { return true; }
-	if ( el.closest( '.ip-user-card' ) ) { return true; }
+function user_link_from_target( el ) {
+	const link = el.closest( USER_LINK_SELECTOR );
+	if ( !( link instanceof HTMLAnchorElement ) ) { return null; }
+	if ( !link.getAttribute( 'href' ) ) { return null; }
+	if ( card_root && card_root.contains( link ) ) { return null; }
 
-	return false;
+	return link;
 }
 
 /**
- * @param {HTMLAnchorElement} el
+ * @param {number} value
+ * @return {number}
  */
-function ensure_empty_tip( el ) {
-	const next = el.nextElementSibling;
-	if ( next && next.classList.contains( 'ext-floatingui-content' ) ) { return; }
+function round_by_dpr( value ) {
+	const dpr = window.devicePixelRatio || 1;
 
-	const content = document.createElement( 'span' );
-	content.className = 'ext-floatingui-content';
-	content.setAttribute( 'aria-hidden', 'true' );
+	return Math.round( value * dpr ) / dpr;
+}
+
+/**
+ * @return {Object|null}
+ */
+function floating_dom() {
+	return window.FloatingUIDOM || null;
+}
+
+/**
+ * @return {HTMLElement}
+ */
+function ensure_card_root() {
+	if ( card_root ) { return card_root; }
+
+	card_root = document.createElement( 'div' );
+	card_root.id = CARD_ID;
+	card_root.className = 'ext-floatingui-floating';
+	card_root.setAttribute( 'role', 'dialog' );
+	card_root.setAttribute( 'tabindex', '-1' );
+
+	const inner = document.createElement( 'div' );
+	inner.className = 'ext-floatingui-floating-inner';
+
+	const content = document.createElement( 'div' );
+	content.className = 'ext-floatingui-floating-content';
 
 	const card = document.createElement( 'span' );
 	card.className = 'ip-user-card';
 	content.append( card );
-	el.after( content );
+
+	card_arrow = document.createElement( 'div' );
+	card_arrow.className = 'ext-floatingui-floating-arrow';
+
+	inner.append( content, card_arrow );
+	card_root.append( inner );
+	return card_root;
+}
+
+function update_position() {
+	const f = floating_dom();
+	if ( !f || !open_link || !card_root || !card_arrow ) { return; }
+
+	const reference_el = open_link;
+	const floating_el = card_root;
+	const arrow_el = card_arrow;
+
+	f.computePosition( reference_el, floating_el, {
+		placement: 'bottom-start',
+		middleware: [
+			f.offset( 8 ),
+			f.autoPlacement( {
+				allowedPlacements: [ 'top', 'bottom', 'top-start', 'bottom-start' ]
+			} ),
+			f.shift( { padding: 16 } ),
+			f.arrow( { element: arrow_el, padding: 4 } )
+		]
+	} ).then( ( { x, y, placement, middlewareData } ) => {
+		if ( open_link !== reference_el ) { return; }
+
+		Object.assign( floating_el.style, {
+			transform: 'translate(' + round_by_dpr( x ) + 'px,' + round_by_dpr( y ) + 'px)'
+		} );
+		floating_el.dataset.mwExtFloatinguiPlacement = placement;
+
+		if ( !middlewareData.arrow ) { return; }
+
+		const arrow_x = middlewareData.arrow.x;
+		const arrow_y = middlewareData.arrow.y;
+		const static_side = {
+			top: 'bottom',
+			right: 'left',
+			bottom: 'top',
+			left: 'right'
+		}[ placement.split( '-' )[ 0 ] ];
+
+		Object.assign( arrow_el.style, {
+			left: typeof arrow_x === 'number' ? round_by_dpr( arrow_x ) + 'px' : '',
+			top: typeof arrow_y === 'number' ? round_by_dpr( arrow_y ) + 'px' : '',
+			right: '',
+			bottom: '',
+			[ static_side ]: '-4px'
+		} );
+	} );
 }
 
 /**
- * @param {Element} el
+ * @param {HTMLAnchorElement} link
  */
-function bind_user_link( el ) {
-	if ( should_skip_link( el ) ) { return; }
+function show_card( link ) {
+	const f = floating_dom();
+	if ( !f ) { return; }
 
-	const user_name = user_name_from_link( el );
+	if ( open_link === link ) { return; }
+
+	hide_card();
+
+	const user_name = user_name_from_link( link );
 	if ( !user_name ) { return; }
 
-	el.dataset.ipUserCard = '1';
-	el.dataset.ipUser = user_name;
-	el.classList.add( 'ext-floatingui-reference', 'ip-user-card-ref' );
-	ensure_empty_tip( el );
-	bind_coarse_click( el );
+	link.dataset.ipUser = user_name;
+	open_link = link;
+	link.setAttribute( 'aria-expanded', 'true' );
+
+	const root = ensure_card_root();
+	root.setAttribute( 'aria-label', user_name );
+	document.body.append( root );
+	root.classList.add( VISIBLE_CLASS );
+	
+	cleanup_auto_update = f.autoUpdate( link, root, update_position );
+	update_position();
 }
 
-function bind_user_links() {
-	document.querySelectorAll( USER_LINK_SELECTOR ).forEach( bind_user_link );
+function hide_card() {
+	if ( cleanup_auto_update ) {
+		cleanup_auto_update();
+		cleanup_auto_update = null;
+	}
+
+	if ( open_link ) {
+		open_link.removeAttribute( 'aria-expanded' );
+		open_link = null;
+	}
+
+	if ( card_root ) {
+		card_root.classList.remove( VISIBLE_CLASS );
+		card_root.remove();
+	}
 }
 
-bind_user_links();
-mw.loader.using( 'ext.floatingUI' );
+/**
+ * @param {MouseEvent} event
+ */
+function on_click( event ) {
+	if ( is_modified_click( event ) ) { return; }
+
+	const target = event_element( event.target );
+	if ( !target ) { return; }
+
+	if ( card_root && card_root.contains( target ) ) { return; }
+
+	const link = user_link_from_target( target );
+	if ( !link || !user_name_from_link( link ) ) {
+		if ( open_link ) { hide_card(); }
+
+		return;
+	}
+
+	event.preventDefault();
+	if ( open_link === link ) {
+		hide_card();
+
+		return;
+	}
+
+	show_card( link );
+}
+
+/**
+ * @param {KeyboardEvent} event
+ */
+function on_keydown( event ) {
+	if ( event.key !== 'Escape' || !open_link ) { return; }
+
+	hide_card();
+}
+
+document.addEventListener( 'click', on_click );
+document.addEventListener( 'keydown', on_keydown );

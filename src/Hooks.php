@@ -239,7 +239,7 @@ class Hooks implements
 	}
 
 	/**
-	 * Sitewide username hover cards.
+	 * Sitewide profile cards (on-click + positioned by FloatingUI).
 	 *
 	 * @param \MediaWiki\Output\OutputPage $out
 	 */

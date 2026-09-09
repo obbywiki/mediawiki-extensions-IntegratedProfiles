@@ -46,7 +46,7 @@ class ProfileHandler {
 		$use_floating_ui = ExtensionRegistry::getInstance()->isLoaded( 'FloatingUI' );
 		if ( $use_floating_ui ) {
 			$out->addModuleStyles( 'ext.floatingUI.init.styles' );
-			$out->addModules( [ 'ext.IntegratedProfiles.mastheadTips' ] );
+			$out->addModules( [ 'ext.floatingUI', 'ext.IntegratedProfiles.mastheadTips' ] );
 		}
 
 		$joined = '';
