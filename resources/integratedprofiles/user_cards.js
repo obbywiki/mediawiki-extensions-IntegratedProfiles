@@ -347,45 +347,85 @@ function force_reflow( el ) {
 }
 
 /**
+ * @param {HTMLImageElement} img
+ * @return {boolean}
+ */
+function image_is_cached( img ) {
+	return img.complete && img.naturalWidth > 0;
+}
+
+/**
+ * @param {HTMLElement} el
+ * @param {string} ready_class
+ * @param {string} instant_class
+ * @param {boolean} instant
+ * @param {function(): boolean} is_stale
+ */
+function reveal_ready( el, ready_class, instant_class, instant, is_stale ) {
+	if ( is_stale() ) { return; }
+
+	if ( instant ) {
+		el.classList.add( instant_class, ready_class );
+		return;
+	}
+
+	el.classList.remove( instant_class );
+	force_reflow( el );
+	requestAnimationFrame( () => {
+		if ( is_stale() ) { return; }
+
+		el.classList.add( ready_class );
+	} );
+}
+
+/**
  * @param {HTMLElement} banner
  * @param {CardPayload} payload
  */
 function apply_banner( banner, payload ) {
 	const token = ++banner_token;
-	banner.className = 'ip-user-card__banner';
+	banner.className = 'ip-user-card__banner ip-user-card__banner--instant';
 	banner.style.removeProperty( '--ip-user-card-banner-image' );
 
 	/**
-	 * @return {void}
+	 * @param {boolean} instant
 	 */
-	function reveal() {
+	function reveal( instant ) {
 		if ( token !== banner_token ) { return; }
 
-		force_reflow( banner );
-		requestAnimationFrame( () => {
-			if ( token !== banner_token ) { return; }
-
-			banner.classList.add( 'ip-user-card__banner--ready' );
-		} );
+		reveal_ready(
+			banner,
+			'ip-user-card__banner--ready',
+			'ip-user-card__banner--instant',
+			instant,
+			() => token !== banner_token
+		);
 	}
 
 	let mode = payload.banner || 'accent';
 	if ( mode === 'custom' && payload.banner_url ) {
 		const img = new Image();
+		img.onerror = function () {
+			if ( token !== banner_token ) { return; }
+
+			banner.classList.add( 'ip-user-card__banner--accent' );
+			reveal( true );
+		};
+		img.src = payload.banner_url;
+		if ( image_is_cached( img ) ) {
+			banner.classList.add( 'ip-user-card__banner--custom' );
+			banner.style.setProperty( '--ip-user-card-banner-image', css_url( payload.banner_url ) );
+			reveal( true );
+			return;
+		}
+
 		img.onload = function () {
 			if ( token !== banner_token ) { return; }
 
 			banner.classList.add( 'ip-user-card__banner--custom' );
 			banner.style.setProperty( '--ip-user-card-banner-image', css_url( payload.banner_url ) );
-			reveal();
+			reveal( false );
 		};
-		img.onerror = function () {
-			if ( token !== banner_token ) { return; }
-
-			banner.classList.add( 'ip-user-card__banner--accent' );
-			reveal();
-		};
-		img.src = payload.banner_url;
 		return;
 	}
 
@@ -394,7 +434,7 @@ function apply_banner( banner, payload ) {
 	}
 
 	banner.classList.add( 'ip-user-card__banner--' + mode );
-	reveal();
+	reveal( true );
 }
 
 function apply_card_chrome() {
@@ -411,36 +451,48 @@ function apply_card_chrome() {
  */
 function set_avatar_src( avatar, url ) {
 	const token = ++avatar_token;
+	avatar.classList.add( 'ip-user-card__avatar--instant' );
 	avatar.classList.remove( 'ip-user-card__avatar--ready' );
 
 	/**
-	 * @return {void}
+	 * @param {boolean} instant
 	 */
-	function reveal() {
+	function reveal( instant ) {
 		if ( token !== avatar_token ) { return; }
 
-		force_reflow( avatar );
-		requestAnimationFrame( () => {
-			if ( token !== avatar_token ) { return; }
-
-			avatar.classList.add( 'ip-user-card__avatar--ready' );
-		} );
+		reveal_ready(
+			avatar,
+			'ip-user-card__avatar--ready',
+			'ip-user-card__avatar--instant',
+			instant,
+			() => token !== avatar_token
+		);
 	}
 
-	avatar.onload = reveal;
+	avatar.onload = null;
 	avatar.onerror = function () {
 		if ( token !== avatar_token ) { return; }
 
 		avatar.onerror = null;
 		avatar.src = default_avatar_url();
-		if ( avatar.complete && avatar.naturalWidth ) {
-			reveal();
+		if ( image_is_cached( avatar ) ) {
+			reveal( true );
+			return;
 		}
+
+		avatar.onload = function () {
+			reveal( false );
+		};
 	};
 	avatar.src = url;
-	if ( avatar.complete && avatar.naturalWidth ) {
-		reveal();
+	if ( image_is_cached( avatar ) ) {
+		reveal( true );
+		return;
 	}
+
+	avatar.onload = function () {
+		reveal( false );
+	};
 }
 
 /**

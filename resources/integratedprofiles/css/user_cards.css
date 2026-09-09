@@ -33,6 +33,10 @@
 	transition: opacity 0.4s ease;
 }
 
+.ip-user-card__banner--instant {
+	transition: none;
+}
+
 .ip-user-card__banner.ip-user-card__banner--ready {
 	opacity: 1;
 }
@@ -128,9 +132,9 @@
 	cursor: pointer;
 }
 
-.ip-user-card__user-name:hover,
-.ip-user-card__user-name:focus {
-	color: #fff !important;
+a.ip-user-card__user-name:hover,
+a.ip-user-card__user-name:focus {
+	color: #fff;
 }
 
 .ip-user-card__aka {
@@ -216,6 +220,10 @@
 	background: rgba( 255, 255, 255, 0.16 );
 	opacity: 0;
 	transition: opacity 0.35s ease;
+}
+
+.ip-user-card__avatar--instant {
+	transition: none;
 }
 
 .ip-user-card__avatar.ip-user-card__avatar--ready {
