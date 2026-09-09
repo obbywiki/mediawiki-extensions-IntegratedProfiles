@@ -160,6 +160,7 @@
 			"dependencies": [
 				"mediawiki.Title",
 				"mediawiki.page.ready",
+				"mediawiki.api",
 				"ext.floatingUI"
 			]
 		},

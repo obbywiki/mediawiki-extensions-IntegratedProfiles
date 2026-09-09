@@ -15,8 +15,16 @@ const CARD_ID = 'ip-user-card-floating';
  */
 const VISIBLE_CLASS = 'ext-floatingui-floating--visible';
 
+/**
+ * @type {number}
+ */
+const CACHE_TTL_MS = 30000;
+
 /** @type {HTMLElement|null} */
 let card_root = null;
+
+/** @type {HTMLElement|null} */
+let card_el = null;
 
 /** @type {HTMLElement|null} */
 let card_arrow = null;
@@ -26,6 +34,36 @@ let open_link = null;
 
 /** @type {Function|null} */
 let cleanup_auto_update = null;
+
+/** @type {mw.Api|null} */
+let api = null;
+
+/**
+ * @typedef {Object} CardPayload
+ * @property {string} user
+ * @property {number} user_id
+ * @property {string} real_name
+ * @property {string} about
+ * @property {number} edit_count
+ * @property {string|null} registration
+ * @property {string} avatar_url
+ * @property {boolean} has_custom_avatar
+ * @property {string} banner
+ * @property {string} banner_url
+ * @property {boolean} is_private
+ */
+
+/**
+ * @typedef {Object} CardCacheRow
+ * @property {number} expires
+ * @property {CardPayload} payload
+ */
+
+/** @type {Map<string, CardCacheRow>} */
+const card_cache = new Map();
+
+/** @type {Map<string, Promise<CardPayload>>} */
+const card_inflight = new Map();
 
 /**
  * @param {string} href
@@ -91,6 +129,129 @@ function user_name_from_link( el ) {
 	}
 
 	return ( el.textContent || '' ).replace( /[\u200E\u200F]/g, '' ).trim();
+}
+
+/**
+ * @param {string} user_name
+ * @return {string}
+ */
+function cache_key( user_name ) {
+	const spaced = user_name.replace( /_/g, ' ' ).trim();
+	if ( !spaced ) { return ''; }
+
+	return spaced.charAt( 0 ).toUpperCase() + spaced.slice( 1 );
+}
+
+/**
+ * @return {mw.Api}
+ */
+function get_api() {
+	if ( !api ) {
+		api = new mw.Api( { parameters: { formatversion: 2 } } );
+	}
+
+	return api;
+}
+
+/**
+ * @param {string} user_name
+ * @return {CardPayload|null}
+ */
+function get_cached_card( user_name ) {
+	const key = cache_key( user_name );
+	const row = card_cache.get( key );
+	if ( !row ) { return null; }
+	if ( Date.now() >= row.expires ) {
+		card_cache.delete( key );
+		return null;
+	}
+
+	return row.payload;
+}
+
+/**
+ * @param {string} user_name
+ * @param {CardPayload} payload
+ */
+function set_cached_card( user_name, payload ) {
+	const expires = Date.now() + CACHE_TTL_MS;
+	const row = { expires: expires, payload: payload };
+	const requested = cache_key( user_name );
+	const canonical = cache_key( payload.user || user_name );
+
+	card_cache.set( requested, row );
+	if ( canonical && canonical !== requested ) {
+		card_cache.set( canonical, row );
+	}
+}
+
+/**
+ * Fetches on click. Reuses an in-flight request, then a 30s in-memory cache,
+ * keyed by username for this tab.
+ *
+ * @param {string} user_name
+ * @return {Promise<CardPayload>}
+ */
+function fetch_card_payload( user_name ) {
+	const cached = get_cached_card( user_name );
+	if ( cached ) {
+		return Promise.resolve( cached );
+	}
+
+	const key = cache_key( user_name );
+	const pending = card_inflight.get( key );
+	if ( pending ) {
+		return pending;
+	}
+
+	const request = new Promise( ( resolve, reject ) => {
+		get_api().get( {
+			action: 'query',
+			list: 'integratedprofilecard',
+			ipcuser: user_name
+		} ).done( ( data ) => {
+			const list = ( data.query && data.query.integratedprofilecard ) || [];
+			const payload = list[ 0 ];
+			if ( !payload ) {
+				reject( new Error( 'usernotfound' ) );
+				return;
+			}
+
+			set_cached_card( user_name, payload );
+			resolve( payload );
+		} ).fail( ( code, result ) => {
+			reject( result || code );
+		} );
+	} ).finally( () => {
+		card_inflight.delete( key );
+	} );
+
+	card_inflight.set( key, request );
+	return request;
+}
+
+/**
+ * @param {CardPayload} payload
+ */
+function fill_card( payload ) {
+	if ( !card_el ) { return; }
+
+	card_el.textContent = '';
+	card_el.classList.toggle( 'ip-user-card--private', !!payload.is_private );
+
+	const avatar = document.createElement( 'img' );
+	avatar.className = 'ip-user-card__avatar';
+	avatar.src = payload.avatar_url || '';
+	avatar.alt = '';
+	avatar.width = 48;
+	avatar.height = 48;
+
+	const name = document.createElement( 'span' );
+	name.className = 'ip-user-card__name';
+	name.textContent = payload.user || '';
+
+	card_el.append( avatar, name );
+	update_position();
 }
 
 /**
@@ -165,6 +326,7 @@ function ensure_card_root() {
 	const card = document.createElement( 'span' );
 	card.className = 'ip-user-card';
 	content.append( card );
+	card_el = card;
 
 	card_arrow = document.createElement( 'div' );
 	card_arrow.className = 'ext-floatingui-floating-arrow';
@@ -240,12 +402,30 @@ function show_card( link ) {
 	link.setAttribute( 'aria-expanded', 'true' );
 
 	const root = ensure_card_root();
+	if ( card_el ) {
+		card_el.textContent = '';
+		card_el.classList.remove( 'ip-user-card--private' );
+	}
 	root.setAttribute( 'aria-label', user_name );
 	document.body.append( root );
 	root.classList.add( VISIBLE_CLASS );
-	
+
 	cleanup_auto_update = f.autoUpdate( link, root, update_position );
 	update_position();
+
+	const cached = get_cached_card( user_name );
+	if ( cached ) {
+		fill_card( cached );
+		return;
+	}
+
+	fetch_card_payload( user_name ).then( ( payload ) => {
+		if ( open_link !== link ) { return; }
+
+		fill_card( payload );
+	} ).catch( () => {
+		// a later click can retry
+	} );
 }
 
 function hide_card() {
