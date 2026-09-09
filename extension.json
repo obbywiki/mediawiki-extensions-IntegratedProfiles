@@ -150,12 +150,24 @@
 				"resources/integratedprofiles/css/ip.css"
 			]
 		},
+		"ext.IntegratedProfiles.userCards": {
+			"scripts": [
+				"resources/integratedprofiles/user_cards.js"
+			],
+			"styles": [
+				"resources/integratedprofiles/css/user_cards.css"
+			],
+			"dependencies": [
+				"mediawiki.Title",
+				"mediawiki.page.ready"
+			]
+		},
 		"ext.IntegratedProfiles.mastheadTips": {
 			"scripts": [
 				"resources/integratedprofiles/masthead_tips.js"
 			],
 			"dependencies": [
-				"ext.floatingUI"
+				"ext.IntegratedProfiles.userCards"
 			]
 		},
 		"ext.IntegratedProfiles.pageSidebar": {
