@@ -242,6 +242,84 @@ class ProfileService {
 	}
 
 	/**
+	 * Lightweight mini-profile payload.
+	 *
+	 * @param User $subject Profile owner
+	 * @param UserIdentity $viewer Requesting user
+	 * @param array{avatar_url: string, has_custom_avatar: bool}|null $avatar_info Prefetched avatar row
+	 * @return array{
+	 *   user: string,
+	 *   user_id: int,
+	 *   real_name: string,
+	 *   about: string,
+	 *   edit_count: int,
+	 *   registration: ?string,
+	 *   avatar_url: string,
+	 *   has_custom_avatar: bool,
+	 *   is_private: bool
+	 * }
+	 */
+	public function get_card_payload( User $subject, UserIdentity $viewer, ?array $avatar_info = null ): array {
+		$avatar = $avatar_info ?? $this->avatar_service->get_avatar_info_for_user( $subject );
+		$can_view = $this->can_view_details( $viewer, $subject );
+
+		$card = [
+			'user' => $subject->getName(),
+			'user_id' => $subject->getId(),
+			'real_name' => '',
+			'about' => '',
+			'edit_count' => 0,
+			'registration' => null,
+			'avatar_url' => $avatar['avatar_url'],
+			'has_custom_avatar' => $avatar['has_custom_avatar'],
+			'is_private' => !$can_view
+		];
+
+		if ( !$can_view ) {
+			return $card;
+		}
+
+		$about = $this->user_options_lookup->getOption( $subject, ProfileFields::KEY_ABOUT );
+		$registration = $this->user_registration_lookup->getFirstRegistration( $subject );
+
+		$card['real_name'] = $subject->getRealName();
+		$card['about'] = is_string( $about ) ? trim( $about ) : '';
+		$card['edit_count'] = (int)$subject->getEditCount();
+		$card['registration'] = is_string( $registration ) && $registration !== '' ? $registration : null;
+
+		return $card;
+	}
+
+	/**
+	 * Card payloads for one or more users.
+	 *
+	 * @param list<User> $subjects
+	 * @param UserIdentity $viewer Requesting user
+	 * @return list<array{
+	 *   user: string,
+	 *   user_id: int,
+	 *   real_name: string,
+	 *   about: string,
+	 *   edit_count: int,
+	 *   registration: ?string,
+	 *   avatar_url: string,
+	 *   has_custom_avatar: bool,
+	 *   is_private: bool
+	 * }>
+	 */
+	public function get_card_payloads_for_users( array $subjects, UserIdentity $viewer ): array {
+		$avatars = $this->avatar_service->get_avatar_info_for_users( $subjects );
+		$cards = [];
+
+		foreach ( $subjects as $subject ) {
+			$name = $subject->getName();
+			$cards[] = $this->get_card_payload( $subject, $viewer, $avatars[$name] ?? null );
+		}
+
+		return $cards;
+	}
+
+	/**
 	 * Resolve a stored page title into a public featured-article descriptor.
 	 *
 	 * @return array{title: string, display_title: string, url: string}|null

@@ -117,6 +117,12 @@
 				"IntegratedProfiles.ProfileService",
 				"IntegratedProfiles.AvatarService"
 			]
+		},
+		"integratedprofilecard": {
+			"class": "MediaWiki\\Extension\\IntegratedProfiles\\Api\\ApiQueryIntegratedProfileCard",
+			"services": [
+				"IntegratedProfiles.ProfileService"
+			]
 		}
 	},
 	"ResourceFileModulePaths": {

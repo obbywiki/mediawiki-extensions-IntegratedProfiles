@@ -235,6 +235,32 @@ action=query&list=integratedprofileavatar&ipauser=Wlft|Wlft2|Wlft3
 
 Returns a list of `{ user, avatar_url, has_custom_avatar }`. Unknown names are warned and omitted.
 
+### Getting hover-card payloads
+
+Query quick information about a user's profile.
+
+#### For extensions
+
+```php
+if ( ExtensionRegistry::getInstance()->isLoaded( 'IntegratedProfiles' ) ) {
+	$profiles = MediaWikiServices::getInstance()
+		->get( 'IntegratedProfiles.ProfileService' );
+	$card = $profiles->get_card_payload( $user, $viewer );
+	// Or alternatively, for many users in a batch:
+	// $profiles->get_card_payloads_for_users( $users, $viewer );
+}
+```
+
+#### Action API
+
+You can query hover-card payloads for no more than 50 usernames.
+
+```
+action=query&list=integratedprofilecard&ipcuser=Wlft|Wlft2|Wlft3
+```
+
+Returns a list of `{ user, user_id, real_name, about, edit_count, registration, avatar_url, has_custom_avatar, is_private }`. Unknown names are warned and omitted. When `is_private` is true, only `user` / avatar fields are provided.
+
 ---
 
 # IntegratedProfiles (Contributing)
