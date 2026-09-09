@@ -349,6 +349,10 @@
 			"value": true,
 			"description": "Show verified NewAuth connections on profiles when NewAuth is loaded."
 		},
+		"IntegratedProfilesEnableUserCards": {
+			"value": false,
+			"description": "When true, show on-click profile cards for username links. Requires the FloatingUI extension."
+		},
 		"IntegratedProfilesAboutMaxLength": {
 			"value": 80,
 			"description": "Maximum length in characters for the about tagline."

@@ -166,6 +166,7 @@ IntegratedProfiles integrates certain functionalities from NewAuth. If you have 
 | `$wgIntegratedProfilesAvatarBorderRadius` | `50%` | Border radius for profile avatars. |
 | `$wgIntegratedProfilesBackend` | `''` | Named entry in `$wgFileBackends`. Empty uses `{UploadDirectory}/ipavatars` and `{UploadDirectory}/ipbanners`. Must already exist if set. See Setup. |
 | `$wgIntegratedProfilesEnableNewAuthPanel` | `true` | Show verified connections when NewAuth is loaded. |
+| `$wgIntegratedProfilesEnableUserCards` | `false` | On-click profile cards for username links. Requires FloatingUI. |
 | `$wgIntegratedProfilesAboutMaxLength` | `80` | Maximum length in characters for the about tagline. |
 | `$wgIntegratedProfilesLinkMaxLength` | `255` | Maximum length in characters for freeform profile link fields. |
 | `$wgIntegratedProfilesEnabledSocialLinks` | `['website','twitter','github','discord','roblox','youtube']` | Only accepts one of the presets. Feel free to request or add any. |
@@ -178,6 +179,15 @@ IntegratedProfiles integrates certain functionalities from NewAuth. If you have 
 
 ```php
 $wgIntegratedProfilesEnabledSocialLinks = [ 'website', 'discord', 'roblox' ];
+```
+
+### User cards
+
+Username links open a profile card on click. This is off by default and requires FloatingUI:
+
+```php
+wfLoadExtension( 'FloatingUI' );
+$wgIntegratedProfilesEnableUserCards = true;
 ```
 
 ### Language interwikis

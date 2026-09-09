@@ -244,6 +244,9 @@ class Hooks implements
 	 * @param \MediaWiki\Output\OutputPage $out
 	 */
 	private function load_user_cards( $out ): void {
+		if ( !(bool)$out->getConfig()->get( 'IntegratedProfilesEnableUserCards' ) ) {
+			return;
+		}
 		if ( !ExtensionRegistry::getInstance()->isLoaded( 'FloatingUI' ) ) {
 			return;
 		}
