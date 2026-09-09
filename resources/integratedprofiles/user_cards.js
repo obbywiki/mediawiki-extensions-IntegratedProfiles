@@ -460,13 +460,7 @@ function set_avatar_src( avatar, url ) {
 	function reveal( instant ) {
 		if ( token !== avatar_token ) { return; }
 
-		reveal_ready(
-			avatar,
-			'ip-user-card__avatar--ready',
-			'ip-user-card__avatar--instant',
-			instant,
-			() => token !== avatar_token
-		);
+		reveal_ready( avatar, 'ip-user-card__avatar--ready', 'ip-user-card__avatar--instant', instant, () => token !== avatar_token );
 	}
 
 	avatar.onload = null;
@@ -477,6 +471,7 @@ function set_avatar_src( avatar, url ) {
 		avatar.src = default_avatar_url();
 		if ( image_is_cached( avatar ) ) {
 			reveal( true );
+
 			return;
 		}
 
@@ -487,6 +482,7 @@ function set_avatar_src( avatar, url ) {
 	avatar.src = url;
 	if ( image_is_cached( avatar ) ) {
 		reveal( true );
+
 		return;
 	}
 
@@ -503,6 +499,7 @@ function set_avatar_src( avatar, url ) {
 function fill_meta_pair( item, value_text, label_text ) {
 	const value = item.querySelector( '.ip-user-card__meta-value' );
 	const label = item.querySelector( '.ip-user-card__meta-label' );
+
 	if ( value ) {
 		value.textContent = value_text;
 	}
@@ -543,29 +540,36 @@ function show_card_skeleton( user_name ) {
 		user_name_el.textContent = user_name;
 		user_name_el.href = profile_url;
 	}
+
 	if ( aka ) {
 		aka.hidden = true;
 		aka.textContent = '';
 	}
+
 	if ( about ) {
 		about.hidden = true;
 		about.textContent = '';
 	}
+
 	if ( edits ) {
 		edits.hidden = false;
 		fill_meta_pair( edits, '', '' );
 	}
+
 	if ( joined ) {
 		joined.hidden = false;
 		fill_meta_pair( joined, '', '' );
 	}
+
 	if ( notice ) {
 		notice.hidden = true;
 		notice.textContent = '';
 	}
+
 	if ( avatar_link instanceof HTMLAnchorElement ) {
 		avatar_link.href = profile_url;
 	}
+
 	if ( avatar instanceof HTMLImageElement ) {
 		avatar.classList.remove( 'ip-user-card__avatar--ready' );
 		avatar.removeAttribute( 'src' );
@@ -610,9 +614,7 @@ function fill_card( payload ) {
 
 	if ( aka ) {
 		aka.hidden = !show_aka;
-		aka.textContent = show_aka ?
-			mw.message( 'integratedprofiles-aka', real_name_text ).text() :
-			'';
+		aka.textContent = show_aka ? mw.message( 'integratedprofiles-aka', real_name_text ).text() : '';
 	}
 
 	if ( about ) {
@@ -633,18 +635,12 @@ function fill_card( payload ) {
 	if ( joined ) {
 		const joined_value = payload.is_private ? '' : format_joined( payload.registration );
 		joined.hidden = !joined_value;
-		fill_meta_pair(
-			joined,
-			joined_value,
-			joined_value ? mw.message( 'integratedprofiles-user-card-joined' ).text() : ''
-		);
+		fill_meta_pair( joined, joined_value, joined_value ? mw.message( 'integratedprofiles-user-card-joined' ).text() : '' );
 	}
 
 	if ( notice ) {
 		notice.hidden = !payload.is_private;
-		notice.textContent = payload.is_private ?
-			mw.message( 'integratedprofiles-private-notice' ).text() :
-			'';
+		notice.textContent = payload.is_private ? mw.message( 'integratedprofiles-private-notice' ).text() : '';
 	}
 
 	if ( avatar_link instanceof HTMLAnchorElement ) {
@@ -780,6 +776,7 @@ function ensure_card_root() {
 
 	inner.append( content, card_arrow );
 	card_root.append( inner );
+	
 	return card_root;
 }
 
