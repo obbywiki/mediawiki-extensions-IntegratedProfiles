@@ -370,7 +370,7 @@
 				"roblox",
 				"youtube"
 			],
-			"merge_strategy": "replace",
+			"merge_strategy": "provide_default",
 			"description": "Catalog IDs of social links this wiki shows and accepts on save. Preference keys stay registered globally. Unknown IDs are ignored; an empty list disables all social links."
 		},
 		"IntegratedProfilesAvatarMaxBytes": {
