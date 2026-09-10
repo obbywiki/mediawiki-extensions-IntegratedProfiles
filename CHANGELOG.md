@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.4.0](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/compare/v0.3.0...v0.4.0) (2026-09-10)
+
+
+### Features
+
+* improve banner upload button ([7e0f437](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/7e0f4376a30183aa4af1054054a0b78467120a9a))
+* improve skin compatibility ([1b34a8a](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/1b34a8a365463d39354c26e114a9466ef9e61371))
+* support mw 1.45 ([d3a6bd5](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/d3a6bd5ab6926bb7d0ad068ff4e66c4fa6095ae2))
+* user card previews ([#12](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/issues/12)) ([e55b60b](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/e55b60b315d36a7224a393dbd064fa5a2ffec59e))
+
+
+### Bug Fixes
+
+* alias missing classes/interfaces for &lt;1.46 ([7be5b35](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/7be5b3532be62462275b36b671ee29b1f92813d4))
+* invalid merge_strategy for wgIntegratedProfilesEnabledSocialLinks ([312b192](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/312b192a22e2b1507abaccc74a35ffbea5eb4bab))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump googleapis/release-please-action from 4 to 5 ([a641ee4](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/a641ee448b58bf299f3ed0b49213f485805b417c))
+
 ## [0.3.0](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/compare/v0.2.0...v0.3.0) (2026-09-02)
 
 
