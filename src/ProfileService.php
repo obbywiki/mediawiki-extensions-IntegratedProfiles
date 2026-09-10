@@ -509,7 +509,7 @@ class ProfileService {
 	 * Sets profile options, with a carve-out for featured articles, which are non-global.
 	 */
 	private function set_profile_option( UserIdentity $user, string $key, string $value ): void {
-		$global_mode = $key === ProfileFields::KEY_FEATURED_ARTICLE ? UserOptionsManager::GLOBAL_IGNORE : UserOptionsManager::GLOBAL_CREATE;
+		$global_mode = $key === ProfileFields::KEY_FEATURED_ARTICLE ? UserOptionsManager::GLOBAL_OVERRIDE : UserOptionsManager::GLOBAL_CREATE;
 
 		$this->user_options_manager->setOption(
 			$user,
