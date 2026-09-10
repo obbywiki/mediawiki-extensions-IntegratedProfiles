@@ -56,6 +56,7 @@ let api = null;
  * @property {boolean} has_custom_avatar
  * @property {string} banner
  * @property {string} banner_url
+ * @property {{ title: string, display_title: string, url: string }|null} [featured_article]
  * @property {boolean} is_private
  */
 
@@ -493,18 +494,51 @@ function set_avatar_src( avatar, url ) {
 
 /**
  * @param {Element} item
- * @param {string} value_text
  * @param {string} label_text
+ * @param {string} value_text
  */
-function fill_meta_pair( item, value_text, label_text ) {
-	const value = item.querySelector( '.ip-user-card__meta-value' );
+function fill_meta_pair( item, label_text, value_text ) {
 	const label = item.querySelector( '.ip-user-card__meta-label' );
+	const value = item.querySelector( '.ip-user-card__meta-value' );
 
+	if ( label ) {
+		label.textContent = label_text;
+	}
 	if ( value ) {
 		value.textContent = value_text;
 	}
-	if ( label ) {
-		label.textContent = label_text;
+}
+
+/**
+ * @param {CardPayload} payload
+ */
+function fill_featured( payload ) {
+	if ( !card_el ) { return; }
+
+	const extras = card_el.querySelector( '.ip-user-card__extras' );
+	const featured = card_el.querySelector( '.ip-user-card__featured' );
+	const title_el = card_el.querySelector( '.ip-user-card__featured-title' );
+	const row = payload.featured_article;
+	const title_text = ( row && ( row.display_title || row.title ) ) || '';
+	const show = !payload.is_private && !!row && !!row.url && !!title_text;
+
+	if ( extras ) { extras.hidden = !show; }
+
+	if ( !( featured instanceof HTMLAnchorElement ) ) { return; }
+
+	featured.hidden = !show;
+	if ( !show || !row || !title_text ) {
+		featured.removeAttribute( 'href' );
+		featured.removeAttribute( 'aria-label' );
+		if ( title_el ) { title_el.textContent = ''; }
+
+		return;
+	}
+
+	featured.href = row.url;
+	featured.setAttribute( 'aria-label', mw.message( 'integratedprofiles-featured-label' ).text() );
+	if ( title_el ) {
+		title_el.textContent = title_text;
 	}
 }
 
@@ -533,6 +567,9 @@ function show_card_skeleton( user_name ) {
 	const edits = card_el.querySelector( '.ip-user-card__meta-item--edits' );
 	const joined = card_el.querySelector( '.ip-user-card__meta-item--joined' );
 	const notice = card_el.querySelector( '.ip-user-card__meta-item--private' );
+	const extras = card_el.querySelector( '.ip-user-card__extras' );
+	const featured = card_el.querySelector( '.ip-user-card__featured' );
+	const featured_title = card_el.querySelector( '.ip-user-card__featured-title' );
 	const avatar = card_el.querySelector( '.ip-user-card__avatar' );
 	const avatar_link = card_el.querySelector( '.ip-user-card__avatar-link' );
 
@@ -564,6 +601,20 @@ function show_card_skeleton( user_name ) {
 	if ( notice ) {
 		notice.hidden = true;
 		notice.textContent = '';
+	}
+
+	if ( extras ) {
+		extras.hidden = true;
+	}
+
+	if ( featured instanceof HTMLAnchorElement ) {
+		featured.hidden = true;
+		featured.removeAttribute( 'href' );
+		featured.removeAttribute( 'aria-label' );
+	}
+
+	if ( featured_title ) {
+		featured_title.textContent = '';
 	}
 
 	if ( avatar_link instanceof HTMLAnchorElement ) {
@@ -627,21 +678,27 @@ function fill_card( payload ) {
 		edits.hidden = !show_edits;
 		fill_meta_pair(
 			edits,
-			show_edits ? format_number( payload.edit_count ) : '',
-			show_edits ? mw.message( 'integratedprofiles-user-card-edits', payload.edit_count ).text() : ''
+			show_edits ? mw.message( 'integratedprofiles-user-card-edits', payload.edit_count ).text() : '',
+			show_edits ? format_number( payload.edit_count ) : ''
 		);
 	}
 
 	if ( joined ) {
 		const joined_value = payload.is_private ? '' : format_joined( payload.registration );
 		joined.hidden = !joined_value;
-		fill_meta_pair( joined, joined_value, joined_value ? mw.message( 'integratedprofiles-user-card-joined' ).text() : '' );
+		fill_meta_pair(
+			joined,
+			joined_value ? mw.message( 'integratedprofiles-user-card-joined' ).text() : '',
+			joined_value
+		);
 	}
 
 	if ( notice ) {
 		notice.hidden = !payload.is_private;
 		notice.textContent = payload.is_private ? mw.message( 'integratedprofiles-private-notice' ).text() : '';
 	}
+
+	fill_featured( payload );
 
 	if ( avatar_link instanceof HTMLAnchorElement ) {
 		avatar_link.href = profile_url;
@@ -745,8 +802,8 @@ function ensure_card_root() {
 	const meta = h( 'div', 'ip-user-card__meta' );
 	const edits_item = h( 'span', 'ip-user-card__meta-item ip-user-card__meta-item--edits' );
 	edits_item.append(
-		h( 'span', 'ip-user-card__meta-value' ),
-		h( 'span', 'ip-user-card__meta-label' )
+		h( 'span', 'ip-user-card__meta-label' ),
+		h( 'span', 'ip-user-card__meta-value' )
 	);
 	const joined_item = h( 'span', 'ip-user-card__meta-item ip-user-card__meta-item--joined' );
 	joined_item.append(
@@ -757,7 +814,20 @@ function ensure_card_root() {
 	private_item.hidden = true;
 	meta.append( edits_item, joined_item, private_item );
 
-	body.append( identity, meta, h( 'div', 'ip-user-card__extras' ) );
+	const extras = h( 'div', 'ip-user-card__extras' );
+	extras.hidden = true;
+	const featured = document.createElement( 'a' );
+	featured.className = 'ip-user-card__featured';
+	featured.hidden = true;
+	const featured_icon = h( 'span', 'ip-user-card__featured-icon' );
+	featured_icon.setAttribute( 'aria-hidden', 'true' );
+	const featured_title = h( 'span', 'ip-user-card__featured-title' );
+	featured.append( featured_icon, featured_title );
+	extras.append( featured );
+
+	const footer = h( 'div', 'ip-user-card__footer' );
+	footer.append( meta, extras );
+	body.append( identity, footer );
 	panel.append( body );
 
 	const avatar_link = document.createElement( 'a' );

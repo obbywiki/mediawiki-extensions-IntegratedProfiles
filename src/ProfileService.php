@@ -259,6 +259,7 @@ class ProfileService {
 	 *   has_custom_avatar: bool,
 	 *   banner: string,
 	 *   banner_url: string,
+	 *   featured_article: ?array{title: string, display_title: string, url: string},
 	 *   is_private: bool
 	 * }
 	 */
@@ -282,6 +283,7 @@ class ProfileService {
 			'has_custom_avatar' => $avatar['has_custom_avatar'],
 			'banner' => ProfileFields::BANNER_ACCENT,
 			'banner_url' => '',
+			'featured_article' => null,
 			'is_private' => !$can_view
 		];
 
@@ -291,6 +293,10 @@ class ProfileService {
 
 		$about = $this->user_options_lookup->getOption( $subject, ProfileFields::KEY_ABOUT );
 		$stored_banner = $this->user_options_lookup->getOption( $subject, ProfileFields::KEY_BANNER );
+		$stored_featured = $this->user_options_lookup->getOption(
+			$subject,
+			ProfileFields::KEY_FEATURED_ARTICLE
+		);
 		$banner = $banner_info ?? $this->banner_service->get_banner_info_for_user( $subject );
 		$banner_mode = $this->resolve_banner_mode(
 			is_string( $stored_banner ) ? $stored_banner : '',
@@ -303,9 +309,10 @@ class ProfileService {
 		$card['edit_count'] = (int)$subject->getEditCount();
 		$card['registration'] = is_string( $registration ) && $registration !== '' ? $registration : null;
 		$card['banner'] = $banner_mode;
-		$card['banner_url'] = $banner_mode === ProfileFields::BANNER_CUSTOM
-			? $banner['banner_url']
-			: '';
+		$card['banner_url'] = $banner_mode === ProfileFields::BANNER_CUSTOM ? $banner['banner_url'] : '';
+		$card['featured_article'] = $this->resolve_featured_article(
+			is_string( $stored_featured ) ? $stored_featured : ''
+		);
 
 		return $card;
 	}
@@ -326,6 +333,7 @@ class ProfileService {
 	 *   has_custom_avatar: bool,
 	 *   banner: string,
 	 *   banner_url: string,
+	 *   featured_article: ?array{title: string, display_title: string, url: string},
 	 *   is_private: bool
 	 * }>
 	 */

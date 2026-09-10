@@ -27,7 +27,7 @@
 	"integratedprofiles-aka": "($1)",
 	"integratedprofiles-edit-count": "$1 {{PLURAL:$1|edit|edits}}",
 	"integratedprofiles-joined": "Joined $1",
-	"integratedprofiles-user-card-edits": "{{PLURAL:$1|edit|edits}}",
+	"integratedprofiles-user-card-edits": "{{PLURAL:$1|Edit|Edits}}",
 	"integratedprofiles-user-card-joined": "Joined",
 	"integratedprofiles-avatar-alt": "Profile avatar",
 	"integratedprofiles-avatar-edit": "Change avatar",

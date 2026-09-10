@@ -1,9 +1,10 @@
 .ip-user-card {
 	--ip-user-card-accent: #5288f1;
-	--ip-user-card-avatar-size: 4.75rem;
+	--ip-user-card-avatar-size: 5.5rem;
 	--ip-user-card-avatar-radius: 50%;
-	--ip-user-card-overlap-y: 1.15rem;
-	--ip-user-card-avatar-left: 0.85rem;
+	--ip-user-card-overlap-y: 1.85rem;
+	--ip-user-card-avatar-left: 0.9rem;
+	--ip-user-card-avatar-gap: 0.8rem;
 	box-sizing: border-box;
 	position: relative;
 	width: 26rem;
@@ -17,11 +18,10 @@
 	position: relative;
 	display: flex;
 	flex-direction: column;
-	min-height: 5.75rem;
+	min-height: 6.85rem;
 	overflow: hidden;
 	border-radius: 0.5rem;
 	background: #2a2a2a;
-	box-shadow: 0 8px 24px rgba( 0, 0, 0, 0.28 );
 }
 
 .ip-user-card__banner {
@@ -101,12 +101,16 @@
 	flex: 1 1 auto;
 	flex-direction: column;
 	box-sizing: border-box;
-	min-height: 5.75rem;
-	padding: 0.7rem 1rem 0.7rem calc( var( --ip-user-card-avatar-left ) + var( --ip-user-card-avatar-size ) + 0.75rem );
+	min-height: 6.85rem;
+	padding: 0.75rem 1.1rem 0.7rem calc( var( --ip-user-card-avatar-left ) + var( --ip-user-card-avatar-size ) + var( --ip-user-card-avatar-gap ) );
 }
 
 .ip-user-card__identity {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
 	min-width: 0;
+	min-height: calc( var( --ip-user-card-avatar-size ) - var( --ip-user-card-overlap-y ) );
 }
 
 .ip-user-card__name-line {
@@ -122,7 +126,7 @@
 .ip-user-card__user-name:visited {
 	min-width: 0;
 	overflow: hidden;
-	font-size: 1.15rem;
+	font-size: 1.25rem;
 	font-weight: bold;
 	line-height: 1.25;
 	color: #fff;
@@ -157,16 +161,25 @@ a.ip-user-card__user-name:focus {
 	white-space: nowrap;
 }
 
+.ip-user-card__footer {
+	margin-top: auto;
+	margin-left: calc( -1 * ( var( --ip-user-card-avatar-size ) + var( --ip-user-card-avatar-gap ) ) );
+	padding-top: 0.55rem;
+}
+
 .ip-user-card__meta {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: baseline;
-	gap: 0.65rem 0.95rem;
-	margin-top: auto;
-	margin-left: calc( -1 * ( var( --ip-user-card-avatar-size ) + 0.75rem ) );
-	padding-top: 0.7rem;
+	gap: 0.35rem 1rem;
 	font-size: 0.75rem;
 	line-height: 1.3;
+}
+
+.ip-user-card__meta-item {
+	display: inline-flex;
+	align-items: baseline;
+	gap: 0.28em;
 }
 
 .ip-user-card__meta-label {
@@ -175,15 +188,7 @@ a.ip-user-card__user-name:focus {
 
 .ip-user-card__meta-value {
 	color: #fff;
-	font-weight: 500;
-}
-
-.ip-user-card__meta-item--edits .ip-user-card__meta-label {
-	margin-left: 0.28em;
-}
-
-.ip-user-card__meta-item--joined .ip-user-card__meta-label {
-	margin-right: 0.28em;
+	font-weight: 600;
 }
 
 .ip-user-card__meta-item--private {
@@ -192,12 +197,56 @@ a.ip-user-card__user-name:focus {
 
 .ip-user-card__meta-item[ hidden ],
 .ip-user-card__aka[ hidden ],
-.ip-user-card__about[ hidden ] {
+.ip-user-card__about[ hidden ],
+.ip-user-card__extras[ hidden ],
+.ip-user-card__featured[ hidden ] {
 	display: none;
 }
 
-.ip-user-card__extras:empty {
-	display: none;
+.ip-user-card__extras {
+	margin-top: 0.45rem;
+}
+
+.ip-user-card__featured,
+.ip-user-card__featured:link,
+.ip-user-card__featured:visited {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
+	max-width: 100%;
+	color: #fff;
+	font-size: 0.8rem;
+	font-weight: 650;
+	line-height: 1.3;
+	text-decoration: none;
+}
+
+.ip-user-card__featured:hover,
+.ip-user-card__featured:focus {
+	color: #fff;
+	text-decoration: underline;
+}
+
+.ip-user-card__featured-icon {
+	display: block;
+	flex-shrink: 0;
+	width: 0.8rem;
+	height: 0.8rem;
+	background-color: rgba( 255, 255, 255, 0.82 );
+	mask-image: url( "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'%3E%3Cpath d='M5 1a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2zm0 3h5v1H5zm0 2h5v1H5zm0 2h5v1H5zm10 7H5v-1h10zm0-2H5v-1h10zm0-2H5v-1h10zm0-2h-4V4h4z'%3E%3C/path%3E%3C/svg%3E" );
+	-webkit-mask-size: contain;
+	mask-size: contain;
+	-webkit-mask-repeat: no-repeat;
+	mask-repeat: no-repeat;
+	-webkit-mask-position: center;
+	mask-position: center;
+}
+
+.ip-user-card__featured-title {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 .ip-user-card__avatar-link {
@@ -208,6 +257,7 @@ a.ip-user-card__user-name:focus {
 	display: block;
 	width: var( --ip-user-card-avatar-size );
 	height: var( --ip-user-card-avatar-size );
+	border-radius: var( --ip-user-card-avatar-radius );
 	cursor: pointer;
 }
 
@@ -218,6 +268,7 @@ a.ip-user-card__user-name:focus {
 	object-fit: cover;
 	border-radius: var( --ip-user-card-avatar-radius );
 	background: rgba( 255, 255, 255, 0.16 );
+	box-shadow: 0 0 0 0.18rem #2a2a2a;
 	opacity: 0;
 	transition: opacity 0.35s ease;
 }
@@ -247,6 +298,7 @@ a.ip-user-card__user-name:focus {
 
 .ip-user-card--skeleton .ip-user-card__avatar {
 	background: rgba( 255, 255, 255, 0.22 );
+	box-shadow: 0 0 0 0.18rem #2a2a2a;
 	animation: ip-user-card-pulse 1.2s ease-in-out infinite;
 }
 
