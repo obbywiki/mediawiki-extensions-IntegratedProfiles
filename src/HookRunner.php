@@ -46,8 +46,7 @@ class HookRunner implements IntegratedProfilesAfterAvatarHook {
 	 * Allows other extensions (aka. companions) to register additional profile body tabs.
 	 *
 	 * Each tab entry: `[ 'id' => string, 'label' => string, 'weight' => int ]`.
-	 * Core seeds: About (weight 10), Contributions (weight 20).
-	 * Please don't register 'Talk' as it may be used in the future.
+	 * Core seeds: About (weight 10), Talk (weight 15), Contributions (weight 20).
 	 *
 	 * @param list<array{id?: string, label?: string, weight?: int}> &$tabs
 	 * @param array<string, mixed> $profile Profile payload
@@ -59,7 +58,7 @@ class HookRunner implements IntegratedProfilesAfterAvatarHook {
 	/**
 	 * Fills HTML for a tab when it is the active tab (requires onIntegratedProfilesGetTabs to be called first).
 	 *
-	 * @param string $tab_id Active tab id (not about/contributions)
+	 * @param string $tab_id Active tab id (not about/talk/contributions)
 	 * @param string &$html Mutable panel HTML
 	 * @param array<string, mixed> $profile Profile payload
 	 * @param IContextSource $context Request context

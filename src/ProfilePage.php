@@ -26,24 +26,44 @@ class ProfilePage extends Article {
 	public function view() {
 		$context = $this->getContext();
 		$out = $context->getOutput();
+		$is_talk = $this->getTitle()->getNamespace() === NS_USER_TALK;
+		$user_name = $this->subject_user->getName();
+		$about_page_url = Title::makeTitle( NS_USER, $user_name )->getLocalURL();
 
 		$iptab = ProfileTabs::sanitize_tab_id(
 			(string)$context->getRequest()->getVal( ProfileTabs::QUERY_PARAM, '' )
 		);
 		if ( $iptab === ProfileTabs::ID_CONTRIBUTIONS ) {
 			$out->redirect(
-				SpecialPage::getTitleFor( 'Contributions', $this->subject_user->getName() )->getLocalURL()
+				SpecialPage::getTitleFor( 'Contributions', $user_name )->getLocalURL()
 			);
 
 			return;
 		}
 
-		$chrome = $this->profile_chrome->render_to_output( $context, $this->subject_user, $this->getTitle()->getLocalURL() );
+		if ( $iptab === ProfileTabs::ID_TALK && !$is_talk ) {
+			$out->redirect( Title::makeTitle( NS_USER_TALK, $user_name )->getLocalURL() );
+
+			return;
+		}
+
+		if ( $iptab === ProfileTabs::ID_ABOUT && $is_talk ) {
+			$out->redirect( $about_page_url );
+
+			return;
+		}
+
+		$chrome = $this->profile_chrome->render_to_output(
+			$context,
+			$this->subject_user,
+			$about_page_url,
+			$is_talk ? ProfileTabs::ID_TALK : null
+		);
 
 		$active = $chrome['active'];
 		$payload = $chrome['payload'];
 
-		if ( $active !== ProfileTabs::ID_ABOUT ) {
+		if ( $active !== ProfileTabs::ID_ABOUT && $active !== ProfileTabs::ID_TALK ) {
 			$panel = '';
 			$this->hook_runner->onIntegratedProfilesRenderTab( $active, $panel, $payload, $context );
 

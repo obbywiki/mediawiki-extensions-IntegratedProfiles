@@ -29,7 +29,7 @@ class ProfileHandler {
 	 * @param IContextSource $context Request context
 	 * @param User $subject_user Profile owner
 	 * @param string $about_page_url Canonical about-tab URL
-	 * @param string|null $forced_active Force active tab id (e.g. contributions on Special:Contributions)
+	 * @param string|null $forced_active Force active tab id (e.g. contributions on Special:Contributions, talk on User_talk)
 	 * @return array{active: string, payload: array<string, mixed>}
 	 */
 	public function render_to_output( IContextSource $context, User $subject_user, string $about_page_url, ?string $forced_active = null ): array {
@@ -92,6 +92,7 @@ class ProfileHandler {
 		$show_manage_connections = $is_owner && $connections_enabled;
 
 		$contributions_url = SpecialPage::getTitleFor( 'Contributions', $subject_user->getName() )->getLocalURL();
+		$talk_url = Title::makeTitle( NS_USER_TALK, $subject_user->getName() )->getLocalURL();
 		$preferences_url = $this->resolve_connections_preferences_url( $context );
 
 		$render_payload = $payload;
@@ -159,9 +160,10 @@ class ProfileHandler {
 		$tab_state = $this->profile_tabs->build( $iptab, $about_page_url,
 			[
 				'about' => $context->msg( 'integratedprofiles-tab-about' )->text(),
+				'talk' => $context->msg( 'integratedprofiles-tab-talk' )->text(),
 				'contributions' => $context->msg( 'integratedprofiles-tab-contributions' )->text()
 			],
-			$payload, $contributions_url, $forced_active
+			$payload, $contributions_url, $talk_url, $forced_active
 		);
 
 		$out->addHTML(

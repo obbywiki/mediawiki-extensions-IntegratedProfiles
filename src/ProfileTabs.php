@@ -11,6 +11,7 @@ class ProfileTabs {
 	public const SERVICE_NAME = 'IntegratedProfiles.ProfileTabs';
 	public const QUERY_PARAM = 'iptab';
 	public const ID_ABOUT = 'about';
+	public const ID_TALK = 'talk';
 	public const ID_CONTRIBUTIONS = 'contributions';
 
 	public function __construct(
@@ -23,12 +24,17 @@ class ProfileTabs {
 	 *
 	 * @see onIntegratedProfilesGetTabs in HookRunner.php for documentation.
 	 */
-	public function build( string $iptab, string $page_local_url, array $labels, array $profile, string $contributions_url = '', ?string $forced_active = null ): array {
+	public function build( string $iptab, string $page_local_url, array $labels, array $profile, string $contributions_url = '', string $talk_url = '', ?string $forced_active = null ): array {
 		$tabs = [
 			[
 				'id' => self::ID_ABOUT,
 				'label' => (string)( $labels['about'] ?? 'About' ),
 				'weight' => 10
+			],
+			[
+				'id' => self::ID_TALK,
+				'label' => (string)( $labels['talk'] ?? 'Talk' ),
+				'weight' => 15
 			],
 			[
 				'id' => self::ID_CONTRIBUTIONS,
@@ -44,6 +50,7 @@ class ProfileTabs {
 			$iptab,
 			$page_local_url,
 			$contributions_url,
+			$talk_url,
 			$forced_active
 		);
 	}
@@ -56,7 +63,7 @@ class ProfileTabs {
 	 *
 	 * @see onIntegratedProfilesGetTabs in HookRunner.php for documentation.
 	 */
-	public static function resolve( array $tabs, string $iptab, string $page_local_url, string $contributions_url = '', ?string $forced_active = null ): array {
+	public static function resolve( array $tabs, string $iptab, string $page_local_url, string $contributions_url = '', string $talk_url = '', ?string $forced_active = null ): array {
 		$tabs = self::normalize_and_sort( $tabs );
 
 		$requested = self::sanitize_tab_id( $iptab );
@@ -69,7 +76,7 @@ class ProfileTabs {
 				$active = $forced;
 			}
 		} elseif ( $requested !== '' && self::has_tab_id( $tabs, $requested ) ) {
-			if ( !( $requested === self::ID_CONTRIBUTIONS && $contributions_url !== '' ) ) {
+			if ( !self::has_dedicated_url( $requested, $contributions_url, $talk_url ) ) {
 				$active = $requested;
 			}
 		}
@@ -79,6 +86,8 @@ class ProfileTabs {
 			$id = $tab['id'];
 			if ( $id === self::ID_CONTRIBUTIONS && $contributions_url !== '' ) {
 				$url = $contributions_url;
+			} elseif ( $id === self::ID_TALK && $talk_url !== '' ) {
+				$url = $talk_url;
 			} else {
 				$url = self::tab_url( $page_local_url, $id );
 			}
@@ -97,6 +106,7 @@ class ProfileTabs {
 
 	/**
 	 * Returns the local URL for a tab. The About tab is special, and doesn't use the `iptab` query parameter (for crawlability).
+	 * Talk and Contributions also skip `iptab` when a dedicated URL is passed to resolve().
 	 */
 	public static function tab_url( string $page_local_url, string $tab_id ): string {
 		$tab_id = self::sanitize_tab_id( $tab_id );
@@ -160,6 +170,10 @@ class ProfileTabs {
 		}
 
 		return $tab_id;
+	}
+
+	private static function has_dedicated_url( string $id, string $contributions_url, string $talk_url ): bool {
+		return ( $id === self::ID_CONTRIBUTIONS && $contributions_url !== '' ) || ( $id === self::ID_TALK && $talk_url !== '' );
 	}
 
 	/**
