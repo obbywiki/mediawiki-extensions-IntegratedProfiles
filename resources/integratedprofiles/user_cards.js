@@ -826,7 +826,7 @@ function ensure_card_root() {
 	extras.append( featured );
 
 	const footer = h( 'div', 'ip-user-card__footer' );
-	footer.append( meta, extras );
+	footer.append( extras, meta );
 	body.append( identity, footer );
 	panel.append( body );
 
