@@ -268,7 +268,6 @@ a.ip-user-card__user-name:focus {
 	object-fit: cover;
 	border-radius: var( --ip-user-card-avatar-radius );
 	background: rgba( 255, 255, 255, 0.16 );
-	box-shadow: 0 0 0 0.18rem #2a2a2a;
 	opacity: 0;
 	transition: opacity 0.35s ease;
 }
