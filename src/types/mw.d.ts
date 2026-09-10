@@ -2,6 +2,7 @@ import type { App } from 'vue';
 
 export type ProfileFieldsMap = {
 	'ip-about': string;
+	'ip-location': string;
 	'ip-featured-article': string;
 	'ip-website': string;
 	'ip-twitter': string;

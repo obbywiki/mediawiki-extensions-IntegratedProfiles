@@ -24,7 +24,7 @@ class ProfileRenderer {
 	 * @param bool $can_edit Whether to show edit controls
 	 * @param array $messages Already-localized message strings
 	 *   (aka, edit_count, joined, avatar_alt, avatar_edit, edit, you, featured_label,
-	 *   wiki_profiles_label, wiki_profile_labels, connection_labels, connection_verified,
+	 *   location_label, wiki_profiles_label, wiki_profile_labels, connection_labels, connection_verified,
 	 *   private_notice)
 	 * @param string $contributions_url Local URL to Special:Contributions
 	 * @param bool $use_floating_ui When Extension:FloatingUI is loaded, emit
@@ -67,6 +67,20 @@ class ProfileRenderer {
 		}
 
 		return $this->process_template( 'featured_article', $view );
+	}
+
+	/**
+	 * Compact location row under the featured article / above the masthead tagline.
+	 *
+	 * @param array $messages Localized strings (location_label)
+	 */
+	public function render_location( string $location, array $messages ): string {
+		$view = $this->build_location_view( $location, $messages );
+		if ( $view === null ) {
+			return '';
+		}
+
+		return $this->process_template( 'location', $view );
 	}
 
 	/**
@@ -173,10 +187,15 @@ class ProfileRenderer {
 		}
 
 		$featured = null;
+		$location = null;
 		$about_view = [ 'about_html' => '', 'has_wiki_profiles' => false, 'wiki_profiles_label' => '', 'wiki_profile_items' => [] ];
 
 		if ( !$is_private ) {
 			$featured = $this->build_featured_article_view( is_array( $payload['featured_article'] ?? null ) ? $payload['featured_article'] : null, $messages );
+			$location = $this->build_location_view(
+				trim( (string)( $payload['fields'][ ProfileFields::KEY_LOCATION ] ?? '' ) ),
+				$messages
+			);
 
 			$about_view = $this->build_about_block_view(
 				trim( (string)( $payload['fields']['ip-about'] ?? '' ) ),
@@ -238,6 +257,7 @@ class ProfileRenderer {
 			'edit_label' => (string)( $messages['edit'] ?? 'Edit profile' ),
 
 			'featured' => $featured,
+			'location' => $location,
 
 			'has_about_block' => $about_view['about_html'] !== '' || $about_view['has_wiki_profiles'],
 			'about_html' => $about_view['about_html'],
@@ -370,6 +390,22 @@ class ProfileRenderer {
 		return [
 			'label' => (string)( $messages['featured_label'] ?? 'Featured article' ),
 			'url' => $url,
+			'display' => $display
+		];
+	}
+
+	/**
+	 * @param array $messages
+	 * @return array{label: string, display: string}|null
+	 */
+	private function build_location_view( string $location, array $messages ): ?array {
+		$display = trim( $location );
+		if ( $display === '' ) {
+			return null;
+		}
+
+		return [
+			'label' => (string)( $messages['location_label'] ?? 'Location' ),
 			'display' => $display
 		];
 	}

@@ -185,6 +185,33 @@
 					</div>
 
 					<div class="ip-editor__field">
+						<label for="ip-field-location">
+							{{ msg( 'integratedprofiles-field-location' ) }}
+						</label>
+						<input
+							id="ip-field-location"
+							v-model="draft['ip-location']"
+							class="cdx-text-input__input"
+							type="text"
+							:maxlength="about_max"
+							:disabled="busy"
+							:placeholder="msg( 'integratedprofiles-field-location-placeholder' )"
+						>
+						<div class="ip-editor__field-meta">
+							<p class="ip-editor__help">
+								{{ msg( 'integratedprofiles-field-location-help' ) }}
+							</p>
+							<span
+								class="ip-editor__char-count"
+								:class="{ 'ip-editor__char-count--warn': location_remaining <= 10 }"
+								aria-live="polite"
+							>
+								{{ location_length }}/{{ about_max }}
+							</span>
+						</div>
+					</div>
+
+					<div class="ip-editor__field">
 						<label for="ip-field-featured-article">
 							{{ msg( 'integratedprofiles-field-featured-article' ) }}
 						</label>
@@ -569,6 +596,7 @@ function normalize_visibility( value: string | undefined ): string {
 
 const draft = reactive<ProfileFieldsMap>( {
 	'ip-about': field_or_empty( props.config.fields && props.config.fields[ 'ip-about' ] ),
+	'ip-location': field_or_empty( props.config.fields && props.config.fields[ 'ip-location' ] ),
 	'ip-featured-article': field_or_empty( props.config.fields && props.config.fields[ 'ip-featured-article' ] ),
 	'ip-website': field_or_empty( props.config.fields && props.config.fields[ 'ip-website' ] ),
 	'ip-twitter': field_or_empty( props.config.fields && props.config.fields[ 'ip-twitter' ] ),
@@ -648,6 +676,7 @@ function social_maxlength( entry: EnabledSocialLink ): number {
 function build_save_fields(): Partial<ProfileFieldsMap> {
 	const payload: Partial<ProfileFieldsMap> = {
 		'ip-about': draft[ 'ip-about' ],
+		'ip-location': draft[ 'ip-location' ],
 		'ip-featured-article': draft[ 'ip-featured-article' ],
 		'ip-banner': draft[ 'ip-banner' ],
 		'ip-hide-connections': draft[ 'ip-hide-connections' ],
@@ -669,6 +698,8 @@ function build_save_fields(): Partial<ProfileFieldsMap> {
 
 const about_length = computed( () => ( draft[ 'ip-about' ] || '' ).length );
 const about_remaining = computed( () => about_max.value - about_length.value );
+const location_length = computed( () => ( draft[ 'ip-location' ] || '' ).length );
+const location_remaining = computed( () => about_max.value - location_length.value );
 const banner_presets = computed( () => {
 	if ( props.config.banner_presets && props.config.banner_presets.length ) {
 		return props.config.banner_presets;

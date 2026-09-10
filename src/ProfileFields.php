@@ -8,6 +8,7 @@ namespace MediaWiki\Extension\IntegratedProfiles;
 class ProfileFields {
 
 	public const KEY_ABOUT = 'ip-about';
+	public const KEY_LOCATION = 'ip-location';
 	public const KEY_FEATURED_ARTICLE = 'ip-featured-article';
 	public const KEY_WEBSITE = 'ip-website';
 	public const KEY_TWITTER = 'ip-twitter';
@@ -112,6 +113,7 @@ class ProfileFields {
 	/** @var list<string> */
 	public const KEYS = [
 		self::KEY_ABOUT,
+		self::KEY_LOCATION,
 		self::KEY_FEATURED_ARTICLE,
 		self::KEY_WEBSITE,
 		self::KEY_TWITTER,
@@ -444,6 +446,10 @@ class ProfileFields {
 			return $value;
 		}
 
+		if ( $key === self::KEY_LOCATION ) {
+			return $this->sanitize_location_value( $value );
+		}
+
 		if ( $key === self::KEY_FEATURED_ARTICLE ) {
 			if ( $value === '' ) {
 				return '';
@@ -501,6 +507,16 @@ class ProfileFields {
 			self::SOCIAL_TYPE_YOUTUBE_URL => $this->sanitize_youtube_url( $value ),
 			default => null,
 		};
+	}
+	
+	private function sanitize_location_value( string $value ): ?string {
+		$value = preg_replace( '/[\x00-\x1f\x7f]/u', '', $value ) ?? $value;
+		$value = trim( preg_replace( '/\s+/u', ' ', $value ) ?? $value );
+		if ( mb_strlen( $value ) > $this->about_max_length ) {
+			return null;
+		}
+
+		return $value;
 	}
 
 	private function sanitize_url_value( string $value ): ?string {

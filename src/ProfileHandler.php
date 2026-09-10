@@ -68,6 +68,7 @@ class ProfileHandler {
 			'you' => $context->msg( 'integratedprofiles-you' )->text(),
 
 			'featured_label' => $context->msg( 'integratedprofiles-featured-label' )->text(),
+			'location_label' => $context->msg( 'integratedprofiles-location-label' )->text(),
 			'wiki_profiles_label' => $context->msg( 'integratedprofiles-wiki-profiles-label' )->text(),
 
 			'wiki_profile_labels' => [

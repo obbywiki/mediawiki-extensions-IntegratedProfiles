@@ -283,6 +283,7 @@ export function apply_payload_to_dom( profile: ProfilePayload ): void {
 
 	sync_banner_dom( profile );
 	sync_featured_article_dom( profile );
+	sync_location_dom( profile );
 	sync_about_block_dom( profile );
 
 	let links_el = document.querySelector( '.ip-links' ) as HTMLUListElement | null;
@@ -538,4 +539,57 @@ function sync_featured_article_dom( profile: ProfilePayload ): void {
 
 	section.appendChild( icon );
 	section.appendChild( link );
+}
+
+/**
+ * Syncs the location row after a profile save.
+ *
+ * @param {ProfilePayload} profile Saved profile payload from the write API
+ */
+function sync_location_dom( profile: ProfilePayload ): void {
+	const location = ( ( profile.fields && profile.fields[ 'ip-location' ] ) || '' ).trim();
+	const existing = document.querySelector( '.ip-location' ) as HTMLElement | null;
+	const label = msg( 'integratedprofiles-location-label' );
+
+	if ( location === '' ) {
+		if ( existing ) {
+			existing.remove();
+		}
+
+		return;
+	}
+
+	let section = existing;
+	if ( !section ) {
+		const masthead = document.querySelector( '.ip-masthead' );
+		if ( !masthead ) { return; }
+
+		section = document.createElement( 'section' );
+		section.className = 'ip-location';
+
+		const featured = masthead.querySelector( '.ip-featured' );
+		const about = masthead.querySelector( '.ip-about-block' ) || masthead.querySelector( '.ip-about' );
+		const editor = document.getElementById( 'integratedprofiles-editor-root' );
+		const before = featured ? featured.nextSibling : ( about || editor );
+
+		if ( before ) {
+			masthead.insertBefore( section, before );
+		} else {
+			masthead.appendChild( section );
+		}
+	}
+
+	section.setAttribute( 'aria-label', label );
+	section.textContent = '';
+
+	const icon = document.createElement( 'span' );
+	icon.className = 'ip-location__icon';
+	icon.setAttribute( 'aria-hidden', 'true' );
+
+	const text = document.createElement( 'span' );
+	text.className = 'ip-location__text';
+	text.textContent = location;
+
+	section.appendChild( icon );
+	section.appendChild( text );
 }

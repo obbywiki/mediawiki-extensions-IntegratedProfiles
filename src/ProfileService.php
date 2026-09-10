@@ -253,6 +253,7 @@ class ProfileService {
 	 *   user_id: int,
 	 *   real_name: string,
 	 *   about: string,
+	 *   location: string,
 	 *   edit_count: int,
 	 *   registration: ?string,
 	 *   avatar_url: string,
@@ -277,6 +278,7 @@ class ProfileService {
 			'user_id' => $subject->getId(),
 			'real_name' => '',
 			'about' => '',
+			'location' => '',
 			'edit_count' => 0,
 			'registration' => null,
 			'avatar_url' => $avatar['avatar_url'],
@@ -292,6 +294,7 @@ class ProfileService {
 		}
 
 		$about = $this->user_options_lookup->getOption( $subject, ProfileFields::KEY_ABOUT );
+		$location = $this->user_options_lookup->getOption( $subject, ProfileFields::KEY_LOCATION );
 		$stored_banner = $this->user_options_lookup->getOption( $subject, ProfileFields::KEY_BANNER );
 		$stored_featured = $this->user_options_lookup->getOption(
 			$subject,
@@ -306,6 +309,7 @@ class ProfileService {
 
 		$card['real_name'] = $subject->getRealName();
 		$card['about'] = is_string( $about ) ? trim( $about ) : '';
+		$card['location'] = is_string( $location ) ? trim( $location ) : '';
 		$card['edit_count'] = (int)$subject->getEditCount();
 		$card['registration'] = is_string( $registration ) && $registration !== '' ? $registration : null;
 		$card['banner'] = $banner_mode;
@@ -327,6 +331,7 @@ class ProfileService {
 	 *   user_id: int,
 	 *   real_name: string,
 	 *   about: string,
+	 *   location: string,
 	 *   edit_count: int,
 	 *   registration: ?string,
 	 *   avatar_url: string,

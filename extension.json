@@ -55,6 +55,7 @@
 		"GlobalPreferences": {
 			"AutoPrefs": [
 				"ip-about",
+				"ip-location",
 				"ip-website",
 				"ip-twitter",
 				"ip-github",
@@ -171,6 +172,7 @@
 				"integratedprofiles-user-card-edits",
 				"integratedprofiles-user-card-joined",
 				"integratedprofiles-featured-label",
+				"integratedprofiles-location-label",
 				"integratedprofiles-avatar-alt",
 				"integratedprofiles-private-notice"
 			]
@@ -251,6 +253,10 @@
 				"integratedprofiles-field-about",
 				"integratedprofiles-field-about-help",
 				"integratedprofiles-field-about-placeholder",
+				"integratedprofiles-field-location",
+				"integratedprofiles-field-location-help",
+				"integratedprofiles-field-location-placeholder",
+				"integratedprofiles-location-label",
 				"integratedprofiles-field-featured-article",
 				"integratedprofiles-field-featured-article-help",
 				"integratedprofiles-field-featured-article-placeholder",
