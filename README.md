@@ -219,22 +219,6 @@ Add both directions, e.g. `en` = `https://wiki.local/$1` and `ko` = `https://ko.
 
 Please see better hook documentation at https://www.mediawiki.org/wiki/Extension:IntegratedProfiles.
 
-### IntegratedProfilesGetTabs
-
-Companions can add, reorder, or remove profile tabs. Each entry is `[ 'id' => string, 'label' => string, 'weight' => int ]`. Core seeds: About (`about`, weight 10), Talk (`talk`, weight 15), Contributions (`contributions`, weight 20).
-
-For example, to hide the default Talk tab:
-
-```php
-$wgHooks['IntegratedProfilesGetTabs'][] = static function ( array &$tabs, array $profile ): void {
-	$tabs = array_values( array_filter( $tabs, static function ( $tab ) {
-		return ( $tab['id'] ?? '' ) !== 'talk';
-	} ) );
-};
-```
-
-Companion IDs are filled by `IntegratedProfilesRenderTab` when that tab is active. For more, see https://www.mediawiki.org/wiki/Extension:IntegratedProfiles.
-
 ## Misc
 
 ### Getting avatars
