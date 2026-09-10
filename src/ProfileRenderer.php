@@ -24,7 +24,7 @@ class ProfileRenderer {
 	 * @param bool $can_edit Whether to show edit controls
 	 * @param array $messages Already-localized message strings
 	 *   (aka, edit_count, joined, avatar_alt, avatar_edit, edit, you, featured_label,
-	 *   location_label, wiki_profiles_label, wiki_profile_labels, connection_labels, connection_verified,
+	 *   location_label, website_label, wiki_profiles_label, wiki_profile_labels, connection_labels, connection_verified,
 	 *   private_notice)
 	 * @param string $contributions_url Local URL to Special:Contributions
 	 * @param bool $use_floating_ui When Extension:FloatingUI is loaded, emit
@@ -70,7 +70,7 @@ class ProfileRenderer {
 	}
 
 	/**
-	 * Compact location row under the featured article / above the masthead tagline.
+	 * Compact location row in the masthead facts strip.
 	 *
 	 * @param array $messages Localized strings (location_label)
 	 */
@@ -188,6 +188,7 @@ class ProfileRenderer {
 
 		$featured = null;
 		$location = null;
+		$website = null;
 		$about_view = [ 'about_html' => '', 'has_wiki_profiles' => false, 'wiki_profiles_label' => '', 'wiki_profile_items' => [] ];
 
 		if ( !$is_private ) {
@@ -196,6 +197,10 @@ class ProfileRenderer {
 				trim( (string)( $payload['fields'][ ProfileFields::KEY_LOCATION ] ?? '' ) ),
 				$messages
 			);
+			$website_link = is_array( $payload['links'] ?? null ) && is_array( $payload['links']['website'] ?? null )
+				? $payload['links']['website']
+				: null;
+			$website = $this->build_website_view( $website_link, $messages );
 
 			$about_view = $this->build_about_block_view(
 				trim( (string)( $payload['fields']['ip-about'] ?? '' ) ),
@@ -258,6 +263,8 @@ class ProfileRenderer {
 
 			'featured' => $featured,
 			'location' => $location,
+			'website' => $website,
+			'has_facts' => $featured !== null || $location !== null || $website !== null,
 
 			'has_about_block' => $about_view['about_html'] !== '' || $about_view['has_wiki_profiles'],
 			'about_html' => $about_view['about_html'],
@@ -411,6 +418,29 @@ class ProfileRenderer {
 	}
 
 	/**
+	 * @param array{label?: string, url?: string}|null $website
+	 * @param array $messages
+	 * @return array{label: string, url: string, display: string}|null
+	 */
+	private function build_website_view( ?array $website, array $messages ): ?array {
+		if ( $website === null ) {
+			return null;
+		}
+
+		$url = trim( (string)( $website['url'] ?? '' ) );
+		$display = trim( (string)( $website['label'] ?? '' ) );
+		if ( $url === '' || $display === '' ) {
+			return null;
+		}
+
+		return [
+			'label' => (string)( $messages['website_label'] ?? 'Website' ),
+			'url' => $url,
+			'display' => $display
+		];
+	}
+
+	/**
 	 * @param array<string|int, mixed> $links
 	 * @param list<mixed> $connections
 	 * @param array $messages
@@ -428,7 +458,7 @@ class ProfileRenderer {
 			$label = trim( (string)( $link['label'] ?? '' ) );
 			$kind = trim( (string)( $link['kind'] ?? '' ) );
 
-			if ( $label === '' || $kind === '' ) {
+			if ( $label === '' || $kind === '' || $kind === ProfileFields::SOCIAL_WEBSITE ) {
 				continue;
 			}
 

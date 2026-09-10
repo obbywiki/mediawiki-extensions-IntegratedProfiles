@@ -202,21 +202,26 @@ a.ip-user-card__user-name:focus {
 .ip-user-card__about[ hidden ],
 .ip-user-card__extras[ hidden ],
 .ip-user-card__location[ hidden ],
-.ip-user-card__featured[ hidden ] {
+.ip-user-card__featured[ hidden ],
+.ip-user-card__website[ hidden ] {
 	display: none;
 }
 
 .ip-user-card__extras {
 	display: flex;
-	flex-direction: column;
-	align-items: flex-start;
-	gap: 0.25rem;
+	flex-direction: row;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.25rem 0.75rem;
 }
 
 .ip-user-card__location,
 .ip-user-card__featured,
 .ip-user-card__featured:link,
-.ip-user-card__featured:visited {
+.ip-user-card__featured:visited,
+.ip-user-card__website,
+.ip-user-card__website:link,
+.ip-user-card__website:visited {
 	display: inline-flex;
 	align-items: center;
 	gap: 0.35rem;
@@ -229,13 +234,16 @@ a.ip-user-card__user-name:focus {
 }
 
 .ip-user-card__featured:hover,
-.ip-user-card__featured:focus {
+.ip-user-card__featured:focus,
+.ip-user-card__website:hover,
+.ip-user-card__website:focus {
 	color: #fff;
 	text-decoration: underline;
 }
 
 .ip-user-card__location-icon,
-.ip-user-card__featured-icon {
+.ip-user-card__featured-icon,
+.ip-user-card__website-icon {
 	display: block;
 	flex-shrink: 0;
 	width: 0.8rem;
@@ -255,8 +263,14 @@ a.ip-user-card__user-name:focus {
 	mask-image: url( "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'%3E%3Cpath d='M10 1C6.41 1 3.5 3.91 3.5 7.5c0 4.57 6.5 11.5 6.5 11.5s6.5-6.93 6.5-11.5C16.5 3.91 13.59 1 10 1m0 8.75a2.25 2.25 0 1 1 0-4.5 2.25 2.25 0 0 1 0 4.5'%3E%3C/path%3E%3C/svg%3E" );
 }
 
+.ip-user-card__website-icon {
+	-webkit-mask-image: url( "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor' fill-rule='evenodd'%3E%3Cpath d='M10 1a9 9 0 1 1 0 18 9 9 0 0 1 0-18M8.028 11c.1 1.846.473 3.431.97 4.552.295.661.594 1.073.824 1.292.081.077.14.117.178.138a1 1 0 0 0 .178-.138c.23-.22.529-.63.823-1.292.498-1.12.87-2.706.97-4.552zm-4.956 0a7 7 0 0 0 4.122 5.413C6.557 15.001 6.13 13.11 6.025 11zm10.903 0c-.104 2.11-.533 4-1.17 5.413A7 7 0 0 0 16.928 11zm-6.78-7.414A7 7 0 0 0 3.071 9h2.953c.104-2.11.531-4.001 1.17-5.414ZM10 3.016a1 1 0 0 0-.178.14c-.23.22-.53.63-.823 1.292-.498 1.12-.87 2.706-.97 4.552h3.943c-.101-1.846-.473-3.431-.971-4.552-.294-.661-.593-1.073-.823-1.292a1 1 0 0 0-.178-.14m2.805.57c.638 1.413 1.066 3.303 1.17 5.414h2.953a7 7 0 0 0-4.123-5.414'%3E%3C/path%3E%3C/svg%3E" );
+	mask-image: url( "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor' fill-rule='evenodd'%3E%3Cpath d='M10 1a9 9 0 1 1 0 18 9 9 0 0 1 0-18M8.028 11c.1 1.846.473 3.431.97 4.552.295.661.594 1.073.824 1.292.081.077.14.117.178.138a1 1 0 0 0 .178-.138c.23-.22.529-.63.823-1.292.498-1.12.87-2.706.97-4.552zm-4.956 0a7 7 0 0 0 4.122 5.413C6.557 15.001 6.13 13.11 6.025 11zm10.903 0c-.104 2.11-.533 4-1.17 5.413A7 7 0 0 0 16.928 11zm-6.78-7.414A7 7 0 0 0 3.071 9h2.953c.104-2.11.531-4.001 1.17-5.414ZM10 3.016a1 1 0 0 0-.178.14c-.23.22-.53.63-.823 1.292-.498 1.12-.87 2.706-.97 4.552h3.943c-.101-1.846-.473-3.431-.971-4.552-.294-.661-.593-1.073-.823-1.292a1 1 0 0 0-.178-.14m2.805.57c.638 1.413 1.066 3.303 1.17 5.414h2.953a7 7 0 0 0-4.123-5.414'%3E%3C/path%3E%3C/svg%3E" );
+}
+
 .ip-user-card__location-text,
-.ip-user-card__featured-title {
+.ip-user-card__featured-title,
+.ip-user-card__website-text {
 	min-width: 0;
 	overflow: hidden;
 	text-overflow: ellipsis;

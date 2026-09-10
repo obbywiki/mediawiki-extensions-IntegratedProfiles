@@ -282,12 +282,11 @@ export function apply_payload_to_dom( profile: ProfilePayload ): void {
 	}
 
 	sync_banner_dom( profile );
-	sync_featured_article_dom( profile );
-	sync_location_dom( profile );
+	sync_facts_dom( profile );
 	sync_about_block_dom( profile );
 
 	let links_el = document.querySelector( '.ip-links' ) as HTMLUListElement | null;
-	const links = Object.values( profile.links || {} );
+	const links = Object.values( profile.links || {} ).filter( ( link ) => link.kind !== 'website' );
 	const verified_items = links_el ? Array.from( links_el.querySelectorAll( '.ip-links__item--verified' ) ) : [];
 
 	if ( links.length === 0 && verified_items.length === 0 ) {
@@ -485,16 +484,27 @@ export function sync_banner_dom( profile: ProfilePayload ): void {
 }
 
 /**
- * Syncs the featured-article row in sync after a profile save (above .ip-about).
+ * Syncs featured article, location, and website in the wrapping facts row.
  *
  * @param {ProfilePayload} profile Saved profile payload from the write API
  */
-function sync_featured_article_dom( profile: ProfilePayload ): void {
-	const featured = profile.featured_article;
-	const existing = document.querySelector( '.ip-featured' ) as HTMLElement | null;
-	const label = msg( 'integratedprofiles-featured-label' );
+function sync_facts_dom( profile: ProfilePayload ): void {
+	const masthead = document.querySelector( '.ip-masthead' );
+	if ( !masthead ) { return; }
 
-	if ( !featured || !featured.url || !featured.display_title ) {
+	const featured = profile.featured_article;
+	const has_featured = !!( featured && featured.url && featured.display_title );
+	const location = ( ( profile.fields && profile.fields[ 'ip-location' ] ) || '' ).trim();
+	const website = profile.links && profile.links.website;
+	const website_url = website ? ( website.url || '' ).trim() : '';
+	const website_display = website ? ( website.label || '' ).trim() : '';
+	const has_website = website_url !== '' && website_display !== '';
+	const has_facts = has_featured || location !== '' || has_website;
+
+	remove_orphan_fact_rows( masthead );
+
+	const existing = masthead.querySelector( '.ip-facts' ) as HTMLElement | null;
+	if ( !has_facts ) {
 		if ( existing ) {
 			existing.remove();
 		}
@@ -502,27 +512,59 @@ function sync_featured_article_dom( profile: ProfilePayload ): void {
 		return;
 	}
 
-	let section = existing;
-	if ( !section ) {
-		const masthead = document.querySelector( '.ip-masthead' );
-		if ( !masthead ) { return; }
+	let facts = existing;
+	if ( !facts ) {
+		facts = document.createElement( 'div' );
+		facts.className = 'ip-facts';
 
-		section = document.createElement( 'section' );
-		section.className = 'ip-featured';
-
-		const about = masthead.querySelector( '.ip-about' );
+		const about = masthead.querySelector( '.ip-about-block' ) || masthead.querySelector( '.ip-about' );
 		const editor = document.getElementById( 'integratedprofiles-editor-root' );
 		const before = about || editor;
 
 		if ( before ) {
-			masthead.insertBefore( section, before );
+			masthead.insertBefore( facts, before );
 		} else {
-			masthead.appendChild( section );
+			masthead.appendChild( facts );
 		}
 	}
 
-	section.setAttribute( 'aria-label', label );
-	section.textContent = '';
+	facts.textContent = '';
+
+	if ( has_featured && featured ) {
+		facts.appendChild( build_featured_section( featured.url, featured.display_title ) );
+	}
+
+	if ( location !== '' ) {
+		facts.appendChild( build_location_section( location ) );
+	}
+
+	if ( has_website ) {
+		facts.appendChild( build_website_section( website_url, website_display ) );
+	}
+}
+
+/**
+ * Removes leftover fact rows that are not inside `.ip-facts` (pre-save HTML).
+ *
+ * @param {Element} masthead Masthead root
+ */
+function remove_orphan_fact_rows( masthead: Element ): void {
+	for ( const el of masthead.querySelectorAll( '.ip-featured, .ip-location, .ip-website' ) ) {
+		if ( !el.closest( '.ip-facts' ) ) {
+			el.remove();
+		}
+	}
+}
+
+/**
+ * @param {string} url Featured article URL
+ * @param {string} display_title Visible title
+ * @return {HTMLElement}
+ */
+function build_featured_section( url: string, display_title: string ): HTMLElement {
+	const section = document.createElement( 'section' );
+	section.className = 'ip-featured';
+	section.setAttribute( 'aria-label', msg( 'integratedprofiles-featured-label' ) );
 
 	const icon = document.createElement( 'span' );
 	icon.className = 'ip-featured__icon';
@@ -530,57 +572,27 @@ function sync_featured_article_dom( profile: ProfilePayload ): void {
 
 	const link = document.createElement( 'a' );
 	link.className = 'ip-featured__link';
-	link.href = featured.url;
+	link.href = url;
 
 	const title = document.createElement( 'span' );
 	title.className = 'ip-featured__title';
-	title.textContent = featured.display_title;
+	title.textContent = display_title;
 	link.appendChild( title );
 
 	section.appendChild( icon );
 	section.appendChild( link );
+
+	return section;
 }
 
 /**
- * Syncs the location row after a profile save.
- *
- * @param {ProfilePayload} profile Saved profile payload from the write API
+ * @param {string} location Free-form location text
+ * @return {HTMLElement}
  */
-function sync_location_dom( profile: ProfilePayload ): void {
-	const location = ( ( profile.fields && profile.fields[ 'ip-location' ] ) || '' ).trim();
-	const existing = document.querySelector( '.ip-location' ) as HTMLElement | null;
-	const label = msg( 'integratedprofiles-location-label' );
-
-	if ( location === '' ) {
-		if ( existing ) {
-			existing.remove();
-		}
-
-		return;
-	}
-
-	let section = existing;
-	if ( !section ) {
-		const masthead = document.querySelector( '.ip-masthead' );
-		if ( !masthead ) { return; }
-
-		section = document.createElement( 'section' );
-		section.className = 'ip-location';
-
-		const featured = masthead.querySelector( '.ip-featured' );
-		const about = masthead.querySelector( '.ip-about-block' ) || masthead.querySelector( '.ip-about' );
-		const editor = document.getElementById( 'integratedprofiles-editor-root' );
-		const before = featured ? featured.nextSibling : ( about || editor );
-
-		if ( before ) {
-			masthead.insertBefore( section, before );
-		} else {
-			masthead.appendChild( section );
-		}
-	}
-
-	section.setAttribute( 'aria-label', label );
-	section.textContent = '';
+function build_location_section( location: string ): HTMLElement {
+	const section = document.createElement( 'section' );
+	section.className = 'ip-location';
+	section.setAttribute( 'aria-label', msg( 'integratedprofiles-location-label' ) );
 
 	const icon = document.createElement( 'span' );
 	icon.className = 'ip-location__icon';
@@ -592,4 +604,37 @@ function sync_location_dom( profile: ProfilePayload ): void {
 
 	section.appendChild( icon );
 	section.appendChild( text );
+
+	return section;
+}
+
+/**
+ * @param {string} url Website URL
+ * @param {string} display Hostname (or other public label)
+ * @return {HTMLElement}
+ */
+function build_website_section( url: string, display: string ): HTMLElement {
+	const section = document.createElement( 'section' );
+	section.className = 'ip-website';
+	section.setAttribute( 'aria-label', msg( 'integratedprofiles-field-website' ) );
+
+	const icon = document.createElement( 'span' );
+	icon.className = 'ip-website__icon';
+	icon.setAttribute( 'aria-hidden', 'true' );
+
+	const link = document.createElement( 'a' );
+	link.className = 'ip-website__link';
+	link.href = url;
+	link.rel = 'nofollow noopener';
+	link.target = '_blank';
+
+	const text = document.createElement( 'span' );
+	text.className = 'ip-website__text';
+	text.textContent = display;
+	link.appendChild( text );
+
+	section.appendChild( icon );
+	section.appendChild( link );
+
+	return section;
 }

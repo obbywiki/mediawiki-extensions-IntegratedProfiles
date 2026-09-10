@@ -51,6 +51,7 @@ let api = null;
  * @property {string} real_name
  * @property {string} about
  * @property {string} [location]
+ * @property {{ label: string, url: string }|null} [website]
  * @property {number} edit_count
  * @property {string|null} registration
  * @property {string} avatar_url
@@ -567,16 +568,54 @@ function fill_location( payload ) {
 /**
  * @param {CardPayload} payload
  */
+function fill_website( payload ) {
+	if ( !card_el ) { return; }
+
+	const website = card_el.querySelector( '.ip-user-card__website' );
+	const text_el = card_el.querySelector( '.ip-user-card__website-text' );
+	const row = payload.website;
+	const label = ( row && row.label ) || '';
+	const url = ( row && row.url ) || '';
+	const show = !payload.is_private && !!url && !!label;
+
+	if ( !( website instanceof HTMLAnchorElement ) ) { return; }
+
+	website.hidden = !show;
+	if ( !show ) {
+		website.removeAttribute( 'href' );
+		website.removeAttribute( 'aria-label' );
+		website.removeAttribute( 'rel' );
+		website.removeAttribute( 'target' );
+		if ( text_el ) { text_el.textContent = ''; }
+
+		return;
+	}
+
+	website.href = url;
+	website.rel = 'nofollow noopener';
+	website.target = '_blank';
+	website.setAttribute( 'aria-label', mw.message( 'integratedprofiles-field-website' ).text() );
+
+	if ( text_el ) { text_el.textContent = label; }
+}
+
+/**
+ * @param {CardPayload} payload
+ */
 function fill_extras( payload ) {
 	if ( !card_el ) { return; }
 
-	fill_location( payload );
 	fill_featured( payload );
+	fill_location( payload );
+	fill_website( payload );
 
 	const extras = card_el.querySelector( '.ip-user-card__extras' );
-	const location_el = card_el.querySelector( '.ip-user-card__location' );
 	const featured = card_el.querySelector( '.ip-user-card__featured' );
-	const show = !!( location_el && !location_el.hidden ) || !!( featured && !featured.hidden );
+	const location_el = card_el.querySelector( '.ip-user-card__location' );
+	const website = card_el.querySelector( '.ip-user-card__website' );
+	const show = !!( featured && !featured.hidden ) ||
+		!!( location_el && !location_el.hidden ) ||
+		!!( website && !website.hidden );
 	if ( extras ) {
 		extras.hidden = !show;
 	}
@@ -612,6 +651,8 @@ function show_card_skeleton( user_name ) {
 	const location_text = card_el.querySelector( '.ip-user-card__location-text' );
 	const featured = card_el.querySelector( '.ip-user-card__featured' );
 	const featured_title = card_el.querySelector( '.ip-user-card__featured-title' );
+	const website = card_el.querySelector( '.ip-user-card__website' );
+	const website_text = card_el.querySelector( '.ip-user-card__website-text' );
 	const avatar = card_el.querySelector( '.ip-user-card__avatar' );
 	const avatar_link = card_el.querySelector( '.ip-user-card__avatar-link' );
 
@@ -666,6 +707,18 @@ function show_card_skeleton( user_name ) {
 
 	if ( featured_title ) {
 		featured_title.textContent = '';
+	}
+
+	if ( website instanceof HTMLAnchorElement ) {
+		website.hidden = true;
+		website.removeAttribute( 'href' );
+		website.removeAttribute( 'aria-label' );
+		website.removeAttribute( 'rel' );
+		website.removeAttribute( 'target' );
+	}
+
+	if ( website_text ) {
+		website_text.textContent = '';
 	}
 
 	if ( avatar_link instanceof HTMLAnchorElement ) {
@@ -867,12 +920,6 @@ function ensure_card_root() {
 
 	const extras = h( 'div', 'ip-user-card__extras' );
 	extras.hidden = true;
-	const location_el = h( 'span', 'ip-user-card__location' );
-	location_el.hidden = true;
-	const location_icon = h( 'span', 'ip-user-card__location-icon' );
-	location_icon.setAttribute( 'aria-hidden', 'true' );
-	const location_text = h( 'span', 'ip-user-card__location-text' );
-	location_el.append( location_icon, location_text );
 	const featured = document.createElement( 'a' );
 	featured.className = 'ip-user-card__featured';
 	featured.hidden = true;
@@ -880,7 +927,20 @@ function ensure_card_root() {
 	featured_icon.setAttribute( 'aria-hidden', 'true' );
 	const featured_title = h( 'span', 'ip-user-card__featured-title' );
 	featured.append( featured_icon, featured_title );
-	extras.append( location_el, featured );
+	const location_el = h( 'span', 'ip-user-card__location' );
+	location_el.hidden = true;
+	const location_icon = h( 'span', 'ip-user-card__location-icon' );
+	location_icon.setAttribute( 'aria-hidden', 'true' );
+	const location_text = h( 'span', 'ip-user-card__location-text' );
+	location_el.append( location_icon, location_text );
+	const website = document.createElement( 'a' );
+	website.className = 'ip-user-card__website';
+	website.hidden = true;
+	const website_icon = h( 'span', 'ip-user-card__website-icon' );
+	website_icon.setAttribute( 'aria-hidden', 'true' );
+	const website_text = h( 'span', 'ip-user-card__website-text' );
+	website.append( website_icon, website_text );
+	extras.append( featured, location_el, website );
 
 	const footer = h( 'div', 'ip-user-card__footer' );
 	footer.append( extras, meta );

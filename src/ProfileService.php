@@ -254,6 +254,7 @@ class ProfileService {
 	 *   real_name: string,
 	 *   about: string,
 	 *   location: string,
+	 *   website: ?array{label: string, url: string},
 	 *   edit_count: int,
 	 *   registration: ?string,
 	 *   avatar_url: string,
@@ -279,6 +280,7 @@ class ProfileService {
 			'real_name' => '',
 			'about' => '',
 			'location' => '',
+			'website' => null,
 			'edit_count' => 0,
 			'registration' => null,
 			'avatar_url' => $avatar['avatar_url'],
@@ -318,6 +320,19 @@ class ProfileService {
 			is_string( $stored_featured ) ? $stored_featured : ''
 		);
 
+		$website_raw = $this->user_options_lookup->getOption( $subject, ProfileFields::KEY_WEBSITE );
+		$website_links = $this->fields->build_public_links( [
+			ProfileFields::KEY_WEBSITE => is_string( $website_raw ) ? $website_raw : '',
+		] );
+		$website = $website_links[ ProfileFields::SOCIAL_WEBSITE ] ?? null;
+		if ( is_array( $website ) ) {
+			$website_label = trim( (string)( $website['label'] ?? '' ) );
+			$website_url = trim( (string)( $website['url'] ?? '' ) );
+			$card['website'] = $website_label !== '' && $website_url !== ''
+				? [ 'label' => $website_label, 'url' => $website_url ]
+				: null;
+		}
+
 		return $card;
 	}
 
@@ -332,6 +347,7 @@ class ProfileService {
 	 *   real_name: string,
 	 *   about: string,
 	 *   location: string,
+	 *   website: ?array{label: string, url: string},
 	 *   edit_count: int,
 	 *   registration: ?string,
 	 *   avatar_url: string,

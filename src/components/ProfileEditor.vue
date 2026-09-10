@@ -229,6 +229,27 @@
 						</p>
 					</div>
 
+					<div
+						v-if="website_enabled"
+						class="ip-editor__field"
+					>
+						<label for="ip-field-website">
+							{{ msg( 'integratedprofiles-field-website' ) }}
+						</label>
+						<input
+							id="ip-field-website"
+							v-model="draft['ip-website']"
+							class="cdx-text-input__input"
+							type="url"
+							:maxlength="link_max"
+							:disabled="busy"
+							:placeholder="msg( 'integratedprofiles-field-website-placeholder' )"
+						>
+						<p class="ip-editor__help">
+							{{ msg( 'integratedprofiles-field-website-help' ) }}
+						</p>
+					</div>
+
 					<div class="ip-editor__field">
 						<span
 							id="ip-field-visibility-label"
@@ -273,6 +294,7 @@
 			</fieldset>
 
 			<fieldset
+				v-if="bundle_social_links.length || show_wiki_profiles"
 				class="ip-editor__section"
 				aria-labelledby="ip-section-links"
 			>
@@ -285,27 +307,6 @@
 				</h3>
 
 				<div class="ip-editor__fields">
-					<div
-						v-if="website_enabled"
-						class="ip-editor__field"
-					>
-						<label for="ip-field-website">
-							{{ msg( 'integratedprofiles-field-website' ) }}
-						</label>
-						<input
-							id="ip-field-website"
-							v-model="draft['ip-website']"
-							class="cdx-text-input__input"
-							type="url"
-							:maxlength="link_max"
-							:disabled="busy"
-							:placeholder="msg( 'integratedprofiles-field-website-placeholder' )"
-						>
-						<p class="ip-editor__help">
-							{{ msg( 'integratedprofiles-field-website-help' ) }}
-						</p>
-					</div>
-
 					<details
 						v-if="bundle_social_links.length"
 						class="ip-editor__social-bundle"
