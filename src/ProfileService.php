@@ -179,6 +179,10 @@ class ProfileService {
 	 * @return array<string, mixed>
 	 */
 	public function get_payload( User $subject, ?UserIdentity $viewer = null ): array {
+		if ( $viewer !== null && !$this->can_view_details( $viewer, $subject ) ) {
+			return $this->get_restricted_payload( $subject );
+		}
+
 		$field_values = $this->read_fields( $subject );
 		$groups = array_values( array_filter(
 			$this->user_group_manager->getUserGroups( $subject ),
@@ -204,7 +208,7 @@ class ProfileService {
 			$connections
 		);
 
-		$payload = [
+		return [
 			'user_id' => $subject->getId(),
 			'central_id' => $this->subject_ids->central_id_for( $subject ),
 			'user_name' => $subject->getName(),
@@ -228,20 +232,8 @@ class ProfileService {
 			'banner_url' => $banner['banner_url'],
 			'has_custom_banner' => $banner['has_custom_banner'],
 			'connections' => $connections,
-			'ui' => [
-				'color' => (string)$this->options->get( 'IntegratedProfilesColor' ),
-				'avatar_border_radius' => (string)$this->options->get(
-					'IntegratedProfilesAvatarBorderRadius'
-				),
-			],
+			'ui' => $this->payload_ui(),
 		];
-
-		// Mutation callers omit $viewer and must receive the full payload.
-		if ( $viewer !== null && !$this->can_view_details( $viewer, $subject ) ) {
-			return ProfileFields::scrub_private_payload( $payload );
-		}
-
-		return $payload;
 	}
 
 	/**
@@ -541,6 +533,39 @@ class ProfileService {
 			$value,
 			$global_mode
 		);
+	}
+
+	/**
+	 * Avatar + identity only. Skips groups, banner, NewAuth, featured article, and field assembly.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function get_restricted_payload( User $subject ): array {
+		$avatar = $this->avatar_service->get_avatar_info_for_user( $subject );
+
+		return ProfileFields::scrub_private_payload( [
+			'user_id' => $subject->getId(),
+			'central_id' => $this->subject_ids->central_id_for( $subject ),
+			'user_name' => $subject->getName(),
+			'fields' => [
+				ProfileFields::KEY_VISIBILITY => $this->get_visibility( $subject ),
+			],
+			'avatar_url' => $avatar['avatar_url'],
+			'has_custom_avatar' => $avatar['has_custom_avatar'],
+			'ui' => $this->payload_ui(),
+		] );
+	}
+
+	/**
+	 * @return array{color: string, avatar_border_radius: string}
+	 */
+	private function payload_ui(): array {
+		return [
+			'color' => (string)$this->options->get( 'IntegratedProfilesColor' ),
+			'avatar_border_radius' => (string)$this->options->get(
+				'IntegratedProfilesAvatarBorderRadius'
+			),
+		];
 	}
 
 	/**
