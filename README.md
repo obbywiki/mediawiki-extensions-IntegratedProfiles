@@ -1,6 +1,7 @@
 # IntegratedProfiles (Usage)
 
 ![IntegratedProfiles Preview](./docs/images/image.png)
+> Screenshot taken on the Citizen skin while using IntegratedProfiles v0.5.0.
 
 > [!WARNING]  
 > IntegratedProfiles is currently in BETA.
@@ -18,7 +19,7 @@ IntegratedProfiles implements user profiles, similar to Fandom and UserProfilesV
 ### Suggestions
 
 * FloatingUI
-* One of the following supported skins: `Citizen`, `Vector-2022`
+* One of the following supported skins: `Citizen`, `Vector-2022` (or any Codex-compatible skin)
 
 ### Install
 
