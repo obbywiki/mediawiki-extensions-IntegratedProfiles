@@ -349,11 +349,11 @@
 	"config": {
 		"IntegratedProfilesColor": {
 			"value": "#5288F1",
-			"description": "IntegratedProfiles accent color."
+			"description": "DEPRECATED: IntegratedProfiles accent color."
 		},
 		"IntegratedProfilesAvatarBorderRadius": {
 			"value": "50%",
-			"description": "Border radius for profile avatars."
+			"description": "DEPRECATED: Border radius for profile avatars."
 		},
 		"IntegratedProfilesBackend": {
 			"value": "",
