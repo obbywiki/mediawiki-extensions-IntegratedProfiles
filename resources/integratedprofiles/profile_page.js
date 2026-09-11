@@ -1,17 +1,112 @@
 'use strict';
 
-function open_editor() {
-	const mount_root = document.getElementById( 'integratedprofiles-editor-root' );
-	if ( !mount_root || mount_root.dataset.ipMounted === '1' ) { return; }
-	if ( !mw.IntegratedProfiles || typeof mw.IntegratedProfiles.mount_editor !== 'function' ) { return; }
+const APP_MODULE = 'ext.IntegratedProfiles.app';
 
-	const edit_button = document.getElementById( 'integratedprofiles-edit' );
-	if ( edit_button ) {
-		edit_button.hidden = true;
+/** @type {Promise<void>|null} */
+let app_load = null;
+
+/**
+ * Loads the Vue editor application once while sharing in-flight work across Edit/avatar clicks.
+ *
+ * @return {Promise<void>}
+ */
+function load_app() {
+	if ( !app_load ) {
+		app_load = mw.loader.using( APP_MODULE ).catch( ( err ) => {
+			app_load = null;
+			throw err;
+		} );
 	}
 
-	mw.IntegratedProfiles.mount_editor( mount_root );
-	mount_root.dataset.ipMounted = '1';
+	return app_load;
+}
+
+/**
+ * @param {HTMLButtonElement|null} trigger
+ * @param {boolean} busy
+ */
+function set_trigger_busy( trigger, busy ) {
+	if ( !trigger ) {
+		return;
+	}
+
+	trigger.disabled = busy;
+	if ( busy ) {
+		trigger.setAttribute( 'aria-busy', 'true' );
+	} else {
+		trigger.removeAttribute( 'aria-busy' );
+	}
+}
+
+/**
+ * Prefetches the editor app when the user is likely to open it.
+ *
+ * @param {HTMLElement|null} trigger
+ */
+function prefetch_app( trigger ) {
+	if ( !trigger || trigger.dataset.ipPrefetch === '1' ) {
+		return;
+	}
+
+	trigger.dataset.ipPrefetch = '1';
+	trigger.addEventListener( 'pointerenter', load_app, { once: true } );
+	trigger.addEventListener( 'focus', load_app, { once: true } );
+}
+
+function open_editor() {
+	const mount_root = document.getElementById( 'integratedprofiles-editor-root' );
+	if ( !mount_root || mount_root.dataset.ipMounted === '1' ) {
+		return;
+	}
+
+	const edit_button = document.getElementById( 'integratedprofiles-edit' );
+	set_trigger_busy( edit_button, true );
+
+	load_app().then( () => {
+		if (
+			!mw.IntegratedProfiles ||
+			typeof mw.IntegratedProfiles.mount_editor !== 'function'
+		) {
+			set_trigger_busy( edit_button, false );
+			return;
+		}
+
+		if ( mount_root.dataset.ipMounted === '1' ) {
+			set_trigger_busy( edit_button, false );
+			return;
+		}
+
+		if ( edit_button ) {
+			edit_button.hidden = true;
+		}
+		set_trigger_busy( edit_button, false );
+
+		mw.IntegratedProfiles.mount_editor( mount_root );
+		mount_root.dataset.ipMounted = '1';
+	} ).catch( () => {
+		set_trigger_busy( edit_button, false );
+	} );
+}
+
+/**
+ * @param {HTMLButtonElement} avatar_button
+ */
+function open_avatar_modal( avatar_button ) {
+	set_trigger_busy( avatar_button, true );
+
+	load_app().then( () => {
+		set_trigger_busy( avatar_button, false );
+		if (
+			!mw.IntegratedProfiles ||
+			typeof mw.IntegratedProfiles.open_avatar_modal !== 'function'
+		) {
+			return;
+		}
+
+		mw.IntegratedProfiles.open_avatar_modal( avatar_button );
+	} ).catch( () => {
+		set_trigger_busy( avatar_button, false );
+	} );
 }
 
 /**
@@ -54,6 +149,7 @@ function bind_edit_button() {
 	if ( !edit_button || edit_button.dataset.ipBound === '1' ) { return; }
 
 	edit_button.dataset.ipBound = '1';
+	prefetch_app( edit_button );
 	edit_button.addEventListener( 'click', () => {
 		const mount_root = document.getElementById( 'integratedprofiles-editor-root' );
 		if ( mount_root ) {
@@ -69,15 +165,9 @@ function bind_avatar_edit_button() {
 	if ( !avatar_button || avatar_button.dataset.ipBound === '1' ) { return; }
 
 	avatar_button.dataset.ipBound = '1';
+	prefetch_app( avatar_button );
 	avatar_button.addEventListener( 'click', () => {
-		if (
-			!mw.IntegratedProfiles ||
-			typeof mw.IntegratedProfiles.open_avatar_modal !== 'function'
-		) {
-			return;
-		}
-
-		mw.IntegratedProfiles.open_avatar_modal( avatar_button );
+		open_avatar_modal( avatar_button );
 	} );
 }
 

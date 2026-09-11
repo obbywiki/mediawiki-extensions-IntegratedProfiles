@@ -138,16 +138,6 @@
 			]
 		},
 		"ext.IntegratedProfiles.styles": {
-			"class": "MediaWiki\\ResourceLoader\\CodexModule",
-			"codexStyleOnly": true,
-			"codexComponents": [
-				"CdxButton",
-				"CdxDialog",
-				"CdxField",
-				"CdxMessage",
-				"CdxTextArea",
-				"CdxTextInput"
-			],
 			"styles": [
 				"resources/integratedprofiles/css/ip.css"
 			]
@@ -193,8 +183,19 @@
 			]
 		},
 		"ext.IntegratedProfiles.app": {
+			"class": "MediaWiki\\ResourceLoader\\CodexModule",
+			"codexStyleOnly": true,
+			"codexComponents": [
+				"CdxButton",
+				"CdxDialog",
+				"CdxTextArea",
+				"CdxTextInput"
+			],
 			"scripts": [
 				"resources/dist/integratedprofiles-app.js"
+			],
+			"styles": [
+				"resources/integratedprofiles/css/ip_editor.css"
 			],
 			"dependencies": [
 				"ext.IntegratedProfiles.styles",
@@ -328,11 +329,13 @@
 			]
 		},
 		"ext.IntegratedProfiles.profile": {
+			"class": "MediaWiki\\ResourceLoader\\CodexModule",
+			"codexStyleOnly": true,
+			"codexComponents": [
+				"CdxButton"
+			],
 			"scripts": [
 				"resources/integratedprofiles/profile_page.js"
-			],
-			"dependencies": [
-				"ext.IntegratedProfiles.app"
 			]
 		}
 	},
