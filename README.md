@@ -164,7 +164,6 @@ IntegratedProfiles integrates certain functionalities from NewAuth. If you have 
 | Config | Default | Purpose |
 |--------|---------|---------|
 | `$wgIntegratedProfilesBackend` | `''` | Named entry in `$wgFileBackends`. Empty uses `{UploadDirectory}/ipavatars` and `{UploadDirectory}/ipbanners`. Must already exist if set. See Setup. |
-| `$wgIntegratedProfilesEnableNewAuthPanel` | `true` | Show verified connections when NewAuth is loaded. |
 | `$wgIntegratedProfilesEnableUserCards` | `false` | On-click profile cards for username links. Requires FloatingUI. |
 | `$wgIntegratedProfilesAboutMaxLength` | `80` | Maximum length in characters for the about tagline. |
 | `$wgIntegratedProfilesLinkMaxLength` | `255` | Maximum length in characters for freeform profile link fields. |
@@ -173,6 +172,16 @@ IntegratedProfiles integrates certain functionalities from NewAuth. If you have 
 | `$wgIntegratedProfilesEnableAnimatedAvatars` | `true` | When false, reject all animated avatar uploads regardless of user rights. Existing GIFs will still be displayed. |
 | `$wgIntegratedProfilesBannerMaxBytes` | `4194304` | Maximum banner upload size in bytes (default 4 MiB). |
 | `$wgIntegratedProfilesLanguageInterwikis` | `[]` | Language interwiki prefixes to inject on user/user talk pages (e.g. ["en","ko","ja"]). Skips the wiki content language and $wgLocalInterwikis. See below. |
+
+### Local settings
+
+Some settings can only be applied globally, as modifying them on one wiki would affect every wiki regardless. The following settings are recommended to be set per-wiki:
+
+* `$wgIntegratedProfilesEnabledSocialLinks`
+* `$wgIntegratedProfilesLanguageInterwikis`
+* `$wgIntegratedProfilesEnableUserCards`
+
+The rest should be global or farm-wide.
 
 ### Social links
 
