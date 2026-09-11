@@ -268,16 +268,21 @@ class Hooks implements
 	 * @param \MediaWiki\Skin\Skin $skin
 	 */
 	private function prepare_header_avatar( $out, $skin ): void {
+		if ( $skin->getSkinName() !== 'citizen' ) {
+			return;
+		}
+
 		$user = $out->getUser();
-		$central_id = $user->isRegistered() ? $this->profile_service->get_subject_ids()->central_id_for( $user ) : 0;
-		$local_id = $user->isRegistered() ? $user->getId() : 0;
+		if ( !$user->isRegistered() ) {
+			return;
+		}
 
 		$url = HeaderAvatar::resolve_url(
 			$skin->getSkinName(),
-			$user->isRegistered(),
-			$central_id,
+			true,
+			$this->profile_service->get_subject_ids()->central_id_for( $user ),
 			$this->avatar_service,
-			$local_id
+			$user->getId()
 		);
 		if ( $url === null ) {
 			return;
