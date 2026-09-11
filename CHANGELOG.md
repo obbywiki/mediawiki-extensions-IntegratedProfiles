@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.5.0](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/compare/v0.4.0...v0.5.0) (2026-09-11)
+
+
+### Features
+
+* **cards:** add shadow to user-card__panel ([bfb0987](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/bfb09873bead7b20cc7da054562d2ba59e858957))
+* **cards:** move extras above meta ([f23aa6e](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/f23aa6ef51f960e841cf76e1ec2b57f8533b4632))
+* **cards:** remove box-shadow from avatar ([97a091e](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/97a091ea981e84c5e6bba08ff5d27872234155ce))
+* default talk tab ([00d93a2](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/00d93a2457335e0846b1e30e652c103bb34e500e))
+* improve user card previews layout ([0ca107a](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/0ca107af61b18e8382c6be60904396ce0dfaf2db))
+* override old featured article globals ([ec27f4d](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/ec27f4d27db06c3bb9eb7744f4bde4185070e3f6))
+* profile location option ([e3783f9](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/e3783f96010054e62697c2e023de1b2f03b15f8f))
+* reorganize extra data into ip-facts + move website link into ip-facts ([77f6fb2](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/77f6fb24a7f0be0707e262ec63dab36501d6d5f9))
+* support optional pronouns display ([a057e1b](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/a057e1b9bcd26db03b6eb510c8a30e70f5314639))
+* tighten masthead margin ([dba559f](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/dba559ff67e947b0f8345e37f34ee9875a19e56c))
+
+
+### Bug Fixes
+
+* minor styling improvements ([b6f2d58](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/b6f2d58ad49dcfb969da36098a8ffe6f81de83af))
+
 ## [0.4.0](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/compare/v0.3.0...v0.4.0) (2026-09-10)
 
 
