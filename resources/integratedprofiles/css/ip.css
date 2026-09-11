@@ -1316,18 +1316,12 @@
 }
 
 .ip-editor__header {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	justify-content: space-between;
-	gap: 0.65rem 0.85rem;
 	padding: 1.1rem 1.25rem 1rem;
 	border-bottom: 0;
 	background: transparent;
 }
 
 .ip-editor__title {
-	flex: 1 1 auto;
 	margin: 0;
 	min-width: 0;
 	font-size: 1.125rem;
@@ -1340,7 +1334,7 @@
 	display: flex;
 	flex-direction: column;
 	gap: 0.75rem;
-	padding: 0 0.85rem 0.85rem;
+	padding: 0 0.85rem 0.5rem;
 	min-width: 0;
 }
 
@@ -1411,27 +1405,50 @@
 	min-width: 0;
 }
 
+/* STICKY + SETTLE */
+.ip-editor__footer {
+	position: sticky;
+	bottom: 0;
+	z-index: 3;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 0.65rem 0.85rem;
+	margin: 0;
+	padding: 0.85rem 1.25rem;
+	background-color: var( --background-color-base );
+	border-top: 1px solid var( --border-color-subtle );
+	border-radius: 0 0 var( --border-radius-large ) var( --border-radius-large );
+	box-shadow: 0 -4px 4px -4px rgba( 0, 0, 0, 0.25 );
+	transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, padding-top 0.2s ease;
+}
+
+.ip-editor__footer--settled {
+	padding-top: 1.35rem;
+	background-color: var( --background-color-neutral-subtle );
+	background-image: linear-gradient(
+		180deg,
+		color-mix( in srgb, var( --background-color-base ) 58%, var( --background-color-neutral-subtle ) ) 0,
+		var( --background-color-neutral-subtle ) 1.25rem
+	);
+	border-top-color: transparent;
+	box-shadow: none;
+}
+
+.ip-editor__footer-sentinel {
+	height: 1px;
+	margin: 0;
+	pointer-events: none;
+}
+
 .ip-editor__actions {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
-	justify-content: space-between;
-	gap: 0.625rem;
-	margin: 0 0.85rem 0.85rem;
-	padding: 0.85rem 1.1rem;
-	border: 1px solid var( --border-color-subtle );
-	border-radius: 0.625rem;
-	background: var( --background-color-base );
-}
-
-.ip-editor__actions--header {
-	flex: 0 0 auto;
-	margin: 0;
-	padding: 0;
-	border: 0;
-	border-radius: 0;
-	background: transparent;
 	justify-content: flex-end;
+	gap: 0.625rem;
+	margin-inline-start: auto;
 }
 
 .ip-editor__field {
@@ -1847,11 +1864,15 @@
 }
 
 .ip-editor__message {
-	margin: 0 0.85rem 0.75rem;
-	padding: 0.75rem 1rem;
-	border-radius: 0.5rem;
+	flex: 0 1 auto;
+	margin: 0;
+	min-width: 0;
+	max-width: 100%;
+	padding: 0.45rem 0.75rem;
+	border-radius: var( --border-radius-base, 0.5rem );
 	font-size: 0.875rem;
 	line-height: 1.45;
+	overflow-wrap: anywhere;
 }
 
 .ip-editor__message--error {
@@ -2174,19 +2195,20 @@ body.ip-banner-modal-open {
 
 	.ip-editor__body {
 		padding-inline: 0.65rem;
-		padding-bottom: 0.65rem;
+		padding-bottom: 0.4rem;
 		gap: 0.65rem;
 	}
 
-	.ip-editor__section,
-	.ip-editor__actions,
-	.ip-editor__message {
+	.ip-editor__section {
 		padding-inline: 0.9rem;
 	}
 
-	.ip-editor__actions,
+	.ip-editor__footer {
+		padding-inline: 1rem;
+	}
+
 	.ip-editor__message {
-		margin-inline: 0.65rem;
+		flex: 1 1 100%;
 	}
 
 	.ip-editor__appearance {
@@ -2214,11 +2236,13 @@ body.ip-banner-modal-open {
 		gap: 0.375rem;
 	}
 
-	.ip-editor__actions:not( .ip-editor__actions--header ) {
+	.ip-editor__actions {
+		flex: 1 1 auto;
 		justify-content: stretch;
+		margin-inline-start: 0;
 	}
 
-	.ip-editor__actions:not( .ip-editor__actions--header ) > .cdx-button,
+	.ip-editor__actions > .cdx-button,
 	.ip-avatar-modal__controls > .cdx-button,
 	.ip-banner-modal__controls > .cdx-button,
 	.ip-upload-modal__actions > .cdx-button {
@@ -2232,5 +2256,9 @@ body.ip-banner-modal-open {
 	.ip-masthead__band,
 	.ip-masthead__band--accent {
 		background: var( --ip-accent );
+	}
+
+	.ip-editor__footer--settled {
+		background-image: none;
 	}
 }

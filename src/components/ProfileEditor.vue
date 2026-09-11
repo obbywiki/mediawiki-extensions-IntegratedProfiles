@@ -4,24 +4,6 @@
 			<h2 id="ip-editor-title" class="ip-editor__title">
 				{{ msg( 'integratedprofiles-edit-title' ) }}
 			</h2>
-			<div class="ip-editor__actions ip-editor__actions--header">
-				<button
-					type="button"
-					class="cdx-button"
-					:disabled="busy"
-					@click="on_cancel"
-				>
-					{{ msg( 'integratedprofiles-cancel' ) }}
-				</button>
-				<button
-					type="button"
-					class="cdx-button cdx-button--action-progressive cdx-button--weight-primary"
-					:disabled="busy"
-					@click="on_save"
-				>
-					{{ msg( 'integratedprofiles-save' ) }}
-				</button>
-			</div>
 		</header>
 
 		<div class="ip-editor__body">
@@ -546,39 +528,48 @@
 			</fieldset>
 		</div>
 
-		<p
-			v-if="error_message"
-			class="ip-editor__message ip-editor__message--error"
-			role="alert"
+		<footer
+			class="ip-editor__footer"
+			:class="{ 'ip-editor__footer--settled': footer_settled }"
 		>
-			{{ error_message }}
-		</p>
-		<p
-			v-if="success_message"
-			class="ip-editor__message ip-editor__message--success"
-			role="status"
-		>
-			{{ success_message }}
-		</p>
-
-		<div class="ip-editor__actions">
-			<button
-				type="button"
-				class="cdx-button"
-				:disabled="busy"
-				@click="on_cancel"
+			<p
+				v-if="error_message"
+				class="ip-editor__message ip-editor__message--error"
+				role="alert"
 			>
-				{{ msg( 'integratedprofiles-cancel' ) }}
-			</button>
-			<button
-				type="button"
-				class="cdx-button cdx-button--action-progressive cdx-button--weight-primary"
-				:disabled="busy"
-				@click="on_save"
+				{{ error_message }}
+			</p>
+			<p
+				v-if="success_message"
+				class="ip-editor__message ip-editor__message--success"
+				role="status"
 			>
-				{{ msg( 'integratedprofiles-save' ) }}
-			</button>
-		</div>
+				{{ success_message }}
+			</p>
+			<div class="ip-editor__actions">
+				<button
+					type="button"
+					class="cdx-button"
+					:disabled="busy"
+					@click="on_cancel"
+				>
+					{{ msg( 'integratedprofiles-cancel' ) }}
+				</button>
+				<button
+					type="button"
+					class="cdx-button cdx-button--action-progressive cdx-button--weight-primary"
+					:disabled="busy"
+					@click="on_save"
+				>
+					{{ msg( 'integratedprofiles-save' ) }}
+				</button>
+			</div>
+		</footer>
+		<div
+			ref="footer_sentinel"
+			class="ip-editor__footer-sentinel"
+			aria-hidden="true"
+		/>
 	</section>
 </template>
 
@@ -646,6 +637,9 @@ const draft = reactive<ProfileFieldsMap>( {
 const busy = ref( false );
 const error_message = ref( '' );
 const success_message = ref( '' );
+const footer_settled = ref( false );
+const footer_sentinel = ref<HTMLElement | null>( null );
+let footer_observer: IntersectionObserver | null = null;
 const selected_banner = ref( draft[ 'ip-banner' ] || 'accent' );
 const has_custom_banner = ref( !!props.config.has_custom_banner );
 const banner_url = ref( props.config.banner_url || '' );
@@ -952,13 +946,39 @@ function on_cancel(): void {
 	emit( 'close' );
 }
 
+function sync_footer_settled(): void {
+	const el = footer_sentinel.value;
+	if ( !el ) {
+		return;
+	}
+
+	const rect = el.getBoundingClientRect();
+	footer_settled.value = rect.top < window.innerHeight && rect.bottom > 0;
+}
+
 onMounted( () => {
 	document.addEventListener( 'ip-banner-updated', on_banner_updated );
 	document.addEventListener( 'ip-avatar-updated', on_avatar_updated );
+	sync_footer_settled();
+
+	if ( typeof IntersectionObserver === 'function' && footer_sentinel.value ) {
+		footer_observer = new IntersectionObserver( ( entries ) => {
+			const entry = entries[ 0 ];
+			if ( entry ) {
+				footer_settled.value = entry.isIntersecting;
+			}
+		} );
+		footer_observer.observe( footer_sentinel.value );
+	}
 } );
 
 onUnmounted( () => {
 	document.removeEventListener( 'ip-banner-updated', on_banner_updated );
 	document.removeEventListener( 'ip-avatar-updated', on_avatar_updated );
+
+	if ( footer_observer ) {
+		footer_observer.disconnect();
+		footer_observer = null;
+	}
 } );
 </script>
