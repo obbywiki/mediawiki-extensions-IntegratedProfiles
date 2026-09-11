@@ -67,6 +67,7 @@
 				"ip-fandom",
 				"ip-banner",
 				"ip-hide-connections",
+				"ip-show-pronouns",
 				"ip-visibility"
 			]
 		}
@@ -299,6 +300,10 @@
 				"integratedprofiles-visibility-private-help",
 				"integratedprofiles-field-hide-connections",
 				"integratedprofiles-field-hide-connections-help",
+				"integratedprofiles-field-show-pronouns",
+				"integratedprofiles-field-show-pronouns-help",
+				"integratedprofiles-field-show-pronouns-manage",
+				"integratedprofiles-pronouns",
 				"integratedprofiles-connections-title",
 				"integratedprofiles-connections-manage",
 				"integratedprofiles-connection-discord",
@@ -338,6 +343,7 @@
 	},
 	"DefaultUserOptions": {
 		"ip-hide-connections": 0,
+		"ip-show-pronouns": 0,
 		"ip-visibility": "public"
 	},
 	"config": {

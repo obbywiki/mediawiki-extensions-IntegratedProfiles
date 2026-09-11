@@ -266,6 +266,10 @@ export function sync_config_from_profile( profile: ProfilePayload ): void {
 	if ( profile.has_custom_banner !== undefined ) {
 		live_config.has_custom_banner = !!profile.has_custom_banner;
 	}
+
+	if ( profile.gender ) {
+		live_config.gender = profile.gender;
+	}
 }
 
 /**
@@ -284,6 +288,7 @@ export function apply_payload_to_dom( profile: ProfilePayload ): void {
 	sync_banner_dom( profile );
 	sync_facts_dom( profile );
 	sync_about_block_dom( profile );
+	sync_pronouns_dom( profile );
 
 	let links_el = document.querySelector( '.ip-links' ) as HTMLUListElement | null;
 	const links = Object.values( profile.links || {} ).filter( ( link ) => link.kind !== 'website' );
@@ -453,6 +458,64 @@ function sync_about_block_dom( profile: ProfilePayload ): void {
 	if ( list.childElementCount > 0 ) {
 		block.appendChild( list );
 	}
+}
+
+function is_flag_on( value: string | undefined ): boolean {
+	const normalized = String( value || '' ).toLowerCase().trim();
+
+	return normalized === '1' || normalized === 'true';
+}
+
+function pronouns_display( profile: ProfilePayload ): string {
+	if ( !is_flag_on( profile.fields && profile.fields[ 'ip-show-pronouns' ] ) ) {
+		return '';
+	}
+
+	const gender = ( profile.gender || 'unknown' ).toLowerCase().trim();
+	const gender_param = gender === 'male' || gender === 'female' ? gender : 'unknown';
+
+	return msg( 'integratedprofiles-pronouns', gender_param ).trim();
+}
+
+/**
+ * Syncs pronouns in the identity meta strip after save.
+ *
+ * @param {ProfilePayload} profile Saved profile payload from the write API
+ */
+function sync_pronouns_dom( profile: ProfilePayload ): void {
+	const identity = document.querySelector( '.ip-identity' );
+	if ( !identity || identity.closest( '.ip-masthead--private' ) ) {
+		return;
+	}
+
+	const label = pronouns_display( profile );
+	let meta = identity.querySelector( '.ip-identity__meta' ) as HTMLUListElement | null;
+	let item = identity.querySelector( '.ip-identity__meta-item--pronouns' ) as HTMLLIElement | null;
+
+	if ( label === '' ) {
+		if ( item ) {
+			item.remove();
+		}
+		if ( meta && meta.children.length === 0 ) {
+			meta.remove();
+		}
+
+		return;
+	}
+
+	if ( !meta ) {
+		meta = document.createElement( 'ul' );
+		meta.className = 'ip-identity__meta';
+		identity.appendChild( meta );
+	}
+
+	if ( !item ) {
+		item = document.createElement( 'li' );
+		item.className = 'ip-identity__meta-item ip-identity__meta-item--pronouns';
+		meta.insertBefore( item, meta.firstChild );
+	}
+
+	item.textContent = label;
 }
 
 /**

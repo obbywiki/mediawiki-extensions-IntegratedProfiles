@@ -85,6 +85,7 @@ class ProfileHandler {
 			],
 
 			'private_notice' => $context->msg( 'integratedprofiles-private-notice' )->text(),
+			'pronouns' => $context->msg( 'integratedprofiles-pronouns', $subject_user->getName() )->text(),
 		];
 
 		$is_owner = $viewer->isRegistered() && $viewer->getId() === $subject_user->getId();
@@ -126,6 +127,7 @@ class ProfileHandler {
 					'links' => $payload['links'],
 					'wiki_profiles' => $payload['wiki_profiles'] ?? [],
 					'enabled_social_links' => $this->profile_service->get_fields_helper()->enabled_social_entries(),
+					'gender' => (string)( $payload['gender'] ?? 'unknown' ),
 
 					'avatar_url' => $payload['avatar_url'],
 					'has_custom_avatar' => $payload['has_custom_avatar'],
@@ -139,6 +141,7 @@ class ProfileHandler {
 					'show_connection_privacy' => $connections_enabled,
 
 					'preferences_url' => $preferences_url,
+					'user_preferences_url' => $is_owner ? SpecialPage::getTitleFor( 'Preferences' )->getLocalURL() . '#mw-prefsection-personal-i18n' : '',
 					'connections' => $show_manage_connections ? $this->profile_service->get_connection_links( $subject_user ) : [],
 					'connection_providers' => NewAuthBridge::PROFILE_PROVIDERS,
 

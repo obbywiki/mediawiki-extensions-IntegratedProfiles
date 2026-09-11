@@ -24,8 +24,7 @@ class ProfileRenderer {
 	 * @param bool $can_edit Whether to show edit controls
 	 * @param array $messages Already-localized message strings
 	 *   (aka, edit_count, joined, avatar_alt, avatar_edit, edit, you, featured_label,
-	 *   location_label, website_label, wiki_profiles_label, wiki_profile_labels, connection_labels, connection_verified,
-	 *   private_notice)
+	 *   location_label, website_label, wiki_profiles_label, wiki_profile_labels, connection_labels, connection_verified, private_notice, pronouns)
 	 * @param string $contributions_url Local URL to Special:Contributions
 	 * @param bool $use_floating_ui When Extension:FloatingUI is loaded, emit
 	 *   reference/content pairs instead of native title attributes
@@ -160,6 +159,13 @@ class ProfileRenderer {
 			}
 		}
 
+		$pronouns_label = '';
+		if ( !$is_private && ProfileFields::is_flag_on(
+			(string)( $payload['fields'][ ProfileFields::KEY_SHOW_PRONOUNS ] ?? '0' )
+		) ) {
+			$pronouns_label = trim( (string)( $messages['pronouns'] ?? '' ) );
+		}
+
 		$groups = [];
 		if ( !$is_private ) {
 			$groups = $this->build_group_items( is_array( $payload['groups'] ?? null ) ? $payload['groups'] : [] );
@@ -246,7 +252,8 @@ class ProfileRenderer {
 			'groups' => $groups,
 
 			'private_notice' => $private_notice,
-			'has_meta' => $edit_count_label !== '' || $joined_label !== '',
+			'has_meta' => $pronouns_label !== '' || $edit_count_label !== '' || $joined_label !== '',
+			'pronouns_label' => $pronouns_label,
 			'has_edit_count' => $edit_count_label !== '',
 
 			'edit_count_label' => $edit_count_label,

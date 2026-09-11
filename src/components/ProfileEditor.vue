@@ -290,6 +290,39 @@
 							{{ msg( 'integratedprofiles-field-visibility-help' ) }}
 						</p>
 					</div>
+
+					<div class="ip-editor__field ip-editor__field--toggle">
+						<label class="ip-editor__toggle" for="ip-field-show-pronouns">
+							<span class="ip-editor__toggle-copy">
+								<span class="ip-editor__toggle-label">
+									{{ msg( 'integratedprofiles-field-show-pronouns' ) }}
+								</span>
+								<span class="ip-editor__help">
+									{{ msg( 'integratedprofiles-field-show-pronouns-help' ) }}
+								</span>
+							</span>
+							<span class="ip-editor__toggle-control">
+								<input
+									id="ip-field-show-pronouns"
+									v-model="show_pronouns"
+									class="ip-editor__toggle-input"
+									type="checkbox"
+									role="switch"
+									:disabled="busy"
+								>
+								<span class="ip-editor__toggle-track" aria-hidden="true">
+									<span class="ip-editor__toggle-thumb" />
+								</span>
+							</span>
+						</label>
+						<a
+							v-if="user_preferences_url"
+							class="ip-editor__prefs-link"
+							:href="user_preferences_url"
+						>
+							{{ msg( 'integratedprofiles-field-show-pronouns-manage' ) }}
+						</a>
+					</div>
 				</div>
 			</fieldset>
 
@@ -610,6 +643,7 @@ const draft = reactive<ProfileFieldsMap>( {
 	'ip-fandom': field_or_empty( props.config.fields && props.config.fields[ 'ip-fandom' ] ),
 	'ip-banner': field_or_empty( props.config.fields && props.config.fields[ 'ip-banner' ] ) || 'accent',
 	'ip-hide-connections': flag_or_off( props.config.fields && props.config.fields[ 'ip-hide-connections' ] ),
+	'ip-show-pronouns': flag_or_off( props.config.fields && props.config.fields[ 'ip-show-pronouns' ] ),
 	'ip-visibility': normalize_visibility( props.config.fields && props.config.fields[ 'ip-visibility' ] )
 } );
 
@@ -681,6 +715,7 @@ function build_save_fields(): Partial<ProfileFieldsMap> {
 		'ip-featured-article': draft[ 'ip-featured-article' ],
 		'ip-banner': draft[ 'ip-banner' ],
 		'ip-hide-connections': draft[ 'ip-hide-connections' ],
+		'ip-show-pronouns': draft[ 'ip-show-pronouns' ],
 		'ip-visibility': draft[ 'ip-visibility' ]
 	};
 
@@ -722,10 +757,19 @@ const show_connection_privacy = computed(
 const preferences_url = computed(
 	() => ( props.config.preferences_url || '' ).trim()
 );
+const user_preferences_url = computed(
+	() => ( props.config.user_preferences_url || '' ).trim()
+);
 const hide_connections = computed( {
 	get: () => draft[ 'ip-hide-connections' ] === '1',
 	set: ( value: boolean ) => {
 		draft[ 'ip-hide-connections' ] = value ? '1' : '0';
+	}
+} );
+const show_pronouns = computed( {
+	get: () => draft[ 'ip-show-pronouns' ] === '1',
+	set: ( value: boolean ) => {
+		draft[ 'ip-show-pronouns' ] = value ? '1' : '0';
 	}
 } );
 

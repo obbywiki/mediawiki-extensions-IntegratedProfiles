@@ -15,6 +15,7 @@ export type ProfileFieldsMap = {
 	'ip-fandom': string;
 	'ip-banner': string;
 	'ip-hide-connections': string;
+	'ip-show-pronouns': string;
 	'ip-visibility': string;
 };
 
@@ -60,6 +61,7 @@ export type IntegratedProfilesConfig = {
 	links: Record<string, ProfileLink>;
 	wiki_profiles?: WikiProfile[];
 	enabled_social_links?: EnabledSocialLink[];
+	gender?: string;
 	avatar_url: string;
 	has_custom_avatar: boolean;
 	banner_url?: string;
@@ -72,6 +74,7 @@ export type IntegratedProfilesConfig = {
 	show_manage_connections?: boolean;
 	show_connection_privacy?: boolean;
 	preferences_url?: string;
+	user_preferences_url?: string;
 	connections?: ProfileConnection[];
 	connection_providers?: string[];
 	limits: {
@@ -86,6 +89,7 @@ export type ProfilePayload = {
 	user_id: number;
 	user_name: string;
 	real_name: string;
+	gender?: string;
 	edit_count: number;
 	registration: string | null;
 	groups: string[];

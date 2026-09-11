@@ -209,6 +209,9 @@ class ProfileService {
 			'central_id' => $this->subject_ids->central_id_for( $subject ),
 			'user_name' => $subject->getName(),
 			'real_name' => $subject->getRealName(),
+			'gender' => ProfileFields::normalize_gender(
+				(string)$this->user_options_lookup->getOption( $subject, 'gender', 'unknown' )
+			),
 			'edit_count' => (int)$subject->getEditCount(),
 			'registration' => is_string( $registration ) && $registration !== ''
 				? $registration
@@ -570,7 +573,7 @@ class ProfileService {
 				);
 				continue;
 			}
-			if ( $key === ProfileFields::KEY_HIDE_CONNECTIONS ) {
+			if ( ProfileFields::is_flag_key( $key ) ) {
 				$fields[$key] = ProfileFields::is_flag_on(
 					is_string( $value ) || is_numeric( $value ) ? (string)$value : ''
 				) ? '1' : '0';

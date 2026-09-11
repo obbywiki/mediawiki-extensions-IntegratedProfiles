@@ -530,13 +530,22 @@
 	height: 100%;
 }
 
-.ip-editor__manage-connections {
+.ip-editor__manage-connections,
+.ip-editor__prefs-link {
 	color: var( --color-progressive );
 	text-decoration: none;
 	font-weight: 500;
 }
 
-.ip-editor__manage-connections:hover {
+.ip-editor__prefs-link {
+	display: inline-block;
+	margin-top: 0.45rem;
+	font-size: 0.8125rem;
+	line-height: 1.45;
+}
+
+.ip-editor__manage-connections:hover,
+.ip-editor__prefs-link:hover {
 	text-decoration: underline;
 }
 

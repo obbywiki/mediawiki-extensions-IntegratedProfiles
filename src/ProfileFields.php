@@ -21,6 +21,7 @@ class ProfileFields {
 	public const KEY_FANDOM = 'ip-fandom';
 	public const KEY_BANNER = 'ip-banner';
 	public const KEY_HIDE_CONNECTIONS = 'ip-hide-connections';
+	public const KEY_SHOW_PRONOUNS = 'ip-show-pronouns';
 	public const KEY_VISIBILITY = 'ip-visibility';
 
 	// if you want to add/request a new social link, you MUST include a string const AS WELL AS an item in SOCIAL_CATALOG even if it won't be used (yet)
@@ -126,11 +127,13 @@ class ProfileFields {
 		self::KEY_FANDOM,
 		self::KEY_BANNER,
 		self::KEY_HIDE_CONNECTIONS,
+		self::KEY_SHOW_PRONOUNS,
 		self::KEY_VISIBILITY,
 	];
 
 	private const FLAG_KEYS = [
 		self::KEY_HIDE_CONNECTIONS => true,
+		self::KEY_SHOW_PRONOUNS => true,
 	];
 
 	// temporarily disabled
@@ -231,12 +234,32 @@ class ProfileFields {
 	}
 
 	/**
-	 * Returns whether a stored 0/1 pref flag is on.
+	 * Returns a stored 0/1 pref flag as a boolean.
 	 */
 	public static function is_flag_on( string $value ): bool {
 		$value = strtolower( trim( $value ) );
 
 		return $value === '1' || $value === 'true';
+	}
+
+	/**
+	 * Whether this key is stored as a 0/1 pref flag.
+	 */
+	public static function is_flag_key( string $key ): bool {
+		return isset( self::FLAG_KEYS[$key] );
+	}
+
+	/**
+	 * Normalizes MediaWiki's public gender preference (male / female / unknown).
+	 */
+	public static function normalize_gender( string $value ): string {
+		$value = strtolower( trim( $value ) );
+
+		if ( $value === 'male' || $value === 'female' ) {
+			return $value;
+		}
+
+		return 'unknown';
 	}
 
 	/**
@@ -254,6 +277,7 @@ class ProfileFields {
 
 		$payload['is_private'] = true;
 		$payload['real_name'] = '';
+		$payload['gender'] = 'unknown';
 		$payload['edit_count'] = 0;
 		$payload['registration'] = null;
 		$payload['groups'] = [];
@@ -508,7 +532,7 @@ class ProfileFields {
 			default => null,
 		};
 	}
-	
+
 	private function sanitize_location_value( string $value ): ?string {
 		$value = preg_replace( '/[\x00-\x1f\x7f]/u', '', $value ) ?? $value;
 		$value = trim( preg_replace( '/\s+/u', ' ', $value ) ?? $value );
