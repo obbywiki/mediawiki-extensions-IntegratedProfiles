@@ -376,7 +376,12 @@
 	margin: 0;
 }
 
-.ip-identity__meta-item + .ip-identity__meta-item::before {
+.ip-identity__meta-item:empty,
+.ip-identity__meta-item[ hidden ] {
+	display: none;
+}
+
+.ip-identity__meta-item:not( :empty ):not( [hidden] ) ~ .ip-identity__meta-item:not( :empty ):not( [hidden] )::before {
 	content: '·';
 	margin-right: 0.75rem;
 	color: var( --color-placeholder );

@@ -512,9 +512,10 @@ function sync_pronouns_dom( profile: ProfilePayload ): void {
 	if ( !item ) {
 		item = document.createElement( 'li' );
 		item.className = 'ip-identity__meta-item ip-identity__meta-item--pronouns';
-		meta.insertBefore( item, meta.firstChild );
+		meta.appendChild( item );
 	}
 
+	item.hidden = false;
 	item.textContent = label;
 }
 
