@@ -253,6 +253,7 @@
 				"integratedprofiles-banner-preset-sand",
 				"integratedprofiles-banner-preset-aurora",
 				"integratedprofiles-banner-preset-custom",
+				"integratedprofiles-banner-wiki-label",
 				"integratedprofiles-field-about",
 				"integratedprofiles-field-about-help",
 				"integratedprofiles-field-about-placeholder",
@@ -401,6 +402,10 @@
 		"IntegratedProfilesBannerMaxBytes": {
 			"value": 4194304,
 			"description": "Maximum banner upload size in bytes (default 4 MiB)."
+		},
+		"IntegratedProfilesBannerPresetImages": {
+			"value": [],
+			"description": "Map of banner preset id to image URL (http(s) or site-relative). Behavior depends on setup. TODO"
 		},
 		"IntegratedProfilesLanguageInterwikis": {
 			"value": [],

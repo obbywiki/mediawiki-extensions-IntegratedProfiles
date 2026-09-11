@@ -406,7 +406,7 @@ function apply_banner( banner, payload ) {
 	}
 
 	let mode = payload.banner || 'accent';
-	if ( mode === 'custom' && payload.banner_url ) {
+	if ( payload.banner_url ) {
 		const img = new Image();
 		img.onerror = function () {
 			if ( token !== banner_token ) { return; }

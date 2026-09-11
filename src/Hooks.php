@@ -106,7 +106,7 @@ class Hooks implements
 			// noglobals
 
 			// featured article is obviously nonglobal because it references a local page
-			if ( $key === ProfileFields::KEY_FEATURED_ARTICLE ) {
+			if ( $key === ProfileFields::KEY_FEATURED_ARTICLE || $key === ProfileFields::KEY_BANNER_WIKI ) {
 				$preferences[$key]['noglobal'] = true;
 			}
 		}

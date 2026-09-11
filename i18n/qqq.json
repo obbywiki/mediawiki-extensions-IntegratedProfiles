@@ -64,6 +64,7 @@
 	"integratedprofiles-banner-preset-sand": "Label for the sand gradient banner preset.",
 	"integratedprofiles-banner-preset-aurora": "Label for the aurora gradient banner preset.",
 	"integratedprofiles-banner-preset-custom": "Label for the custom uploaded banner option.",
+	"integratedprofiles-banner-wiki-label": "Label for the wiki-local banner preset row in the profile editor. Parameters:\n* $1 - site name",
 	"integratedprofiles-field-about": "Label for the short masthead tagline preference.",
 	"integratedprofiles-field-about-help": "Help text for the short masthead tagline (longer prose lives on the user page).",
 	"integratedprofiles-field-about-placeholder": "Placeholder for the tagline field in the profile editor.",

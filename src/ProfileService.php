@@ -28,13 +28,16 @@ class ProfileService {
 		'IntegratedProfilesAboutMaxLength',
 		'IntegratedProfilesLinkMaxLength',
 		'IntegratedProfilesEnableAnimatedAvatars',
-		'IntegratedProfilesEnabledSocialLinks'
+		'IntegratedProfilesEnabledSocialLinks',
+		'IntegratedProfilesBannerPresetImages'
 	];
 
 	private readonly ProfileFields $fields;
 
 	/** @var array<string, ?User> Request-local map of username => registered user (null for misses) */
 	private array $users_by_name = [];
+	
+	private readonly BannerPresets $banner_presets;
 
 	public function __construct(
 		private readonly ServiceOptions $options,
@@ -50,15 +53,23 @@ class ProfileService {
 		private readonly UserRegistrationLookup $user_registration_lookup,
 	) {
 		$options->assertRequiredOptions( self::CONSTRUCTOR_OPTIONS );
+		$this->banner_presets = new BannerPresets(
+			(array)$options->get( 'IntegratedProfilesBannerPresetImages' )
+		);
 		$this->fields = new ProfileFields(
 			(int)$options->get( 'IntegratedProfilesAboutMaxLength' ),
 			(int)$options->get( 'IntegratedProfilesLinkMaxLength' ),
-			(array)$options->get( 'IntegratedProfilesEnabledSocialLinks' )
+			(array)$options->get( 'IntegratedProfilesEnabledSocialLinks' ),
+			$this->banner_presets
 		);
 	}
 
 	public function get_fields_helper(): ProfileFields {
 		return $this->fields;
+	}
+
+	public function get_banner_presets(): BannerPresets {
+		return $this->banner_presets;
 	}
 
 	public function get_permissions(): ProfilePermissions {
@@ -248,7 +259,11 @@ class ProfileService {
 			),
 			'avatar_url' => $avatar['avatar_url'],
 			'has_custom_avatar' => $avatar['has_custom_avatar'],
-			'banner_url' => $banner['banner_url'],
+			'banner_url' => $this->resolve_banner_paint_url(
+				(string)( $field_values[ ProfileFields::KEY_BANNER ] ?? '' ),
+				(string)( $field_values[ ProfileFields::KEY_BANNER_WIKI ] ?? '' ),
+				$banner
+			),
 			'has_custom_banner' => $banner['has_custom_banner'],
 			'connections' => $connections,
 			'ui' => $this->payload_ui(),
@@ -312,6 +327,10 @@ class ProfileService {
 		$about = $this->user_options_lookup->getOption( $subject, ProfileFields::KEY_ABOUT );
 		$location = $this->user_options_lookup->getOption( $subject, ProfileFields::KEY_LOCATION );
 		$stored_banner = $this->user_options_lookup->getOption( $subject, ProfileFields::KEY_BANNER );
+		$stored_wiki_banner = $this->user_options_lookup->getOption(
+			$subject,
+			ProfileFields::KEY_BANNER_WIKI
+		);
 		$stored_featured = $this->user_options_lookup->getOption(
 			$subject,
 			ProfileFields::KEY_FEATURED_ARTICLE
@@ -329,7 +348,11 @@ class ProfileService {
 		$card['edit_count'] = (int)$subject->getEditCount();
 		$card['registration'] = is_string( $registration ) && $registration !== '' ? $registration : null;
 		$card['banner'] = $banner_mode;
-		$card['banner_url'] = $banner_mode === ProfileFields::BANNER_CUSTOM ? $banner['banner_url'] : '';
+		$card['banner_url'] = $this->resolve_banner_paint_url(
+			$banner_mode,
+			is_string( $stored_wiki_banner ) ? $stored_wiki_banner : '',
+			$banner
+		);
 		$card['featured_article'] = $this->resolve_featured_article(
 			is_string( $stored_featured ) ? $stored_featured : ''
 		);
@@ -512,6 +535,7 @@ class ProfileService {
 			ProfileFields::KEY_BANNER,
 			ProfileFields::BANNER_CUSTOM
 		);
+		$this->set_profile_option( $subject, ProfileFields::KEY_BANNER_WIKI, '' );
 		$this->user_options_manager->saveOptions( $subject );
 
 		return Status::newGood( $this->get_payload( $subject ) );
@@ -531,6 +555,7 @@ class ProfileService {
 			ProfileFields::KEY_BANNER,
 			ProfileFields::BANNER_ACCENT
 		);
+		$this->set_profile_option( $subject, ProfileFields::KEY_BANNER_WIKI, '' );
 		$this->user_options_manager->saveOptions( $subject );
 
 		return Status::newGood( $this->get_payload( $subject ) );
@@ -541,10 +566,14 @@ class ProfileService {
 	}
 
 	/**
-	 * Sets profile options, with a carve-out for featured articles, which are non-global.
+	 * Sets profile options, with a carve-out for featured articles and wiki banners, which are non-global.
 	 */
 	private function set_profile_option( UserIdentity $user, string $key, string $value ): void {
-		$global_mode = $key === ProfileFields::KEY_FEATURED_ARTICLE ? UserOptionsManager::GLOBAL_OVERRIDE : UserOptionsManager::GLOBAL_CREATE;
+		$local_keys = [
+			ProfileFields::KEY_FEATURED_ARTICLE => true,
+			ProfileFields::KEY_BANNER_WIKI => true,
+		];
+		$global_mode = isset( $local_keys[$key] ) ? UserOptionsManager::GLOBAL_OVERRIDE : UserOptionsManager::GLOBAL_CREATE;
 
 		$this->user_options_manager->setOption(
 			$user,
@@ -599,6 +628,20 @@ class ProfileService {
 	}
 
 	/**
+	 * @param array{banner_url: string, has_custom_banner: bool} $banner
+	 */
+	private function resolve_banner_paint_url( string $global_mode, string $wiki_id, array $banner ): string {
+		$resolved = $this->banner_presets->resolve(
+			$global_mode,
+			$wiki_id,
+			$banner['has_custom_banner'],
+			$banner['banner_url']
+		);
+
+		return $resolved['url'];
+	}
+
+	/**
 	 * @return array<string, string>
 	 */
 	private function read_fields( User $subject ): array {
@@ -609,20 +652,32 @@ class ProfileService {
 				$fields[$key] = ProfileFields::normalize_banner(
 					is_string( $value ) ? $value : ''
 				);
+
 				continue;
 			}
+
+			if ( $key === ProfileFields::KEY_BANNER_WIKI ) {
+				$fields[$key] = $this->banner_presets->normalize_wiki_id(
+					is_string( $value ) ? $value : ''
+				);
+
+				continue;
+			}
+
 			if ( $key === ProfileFields::KEY_VISIBILITY ) {
 				$fields[$key] = ProfileFields::normalize_visibility(
 					is_string( $value ) ? $value : ''
 				);
+
 				continue;
 			}
+
 			if ( ProfileFields::is_flag_key( $key ) ) {
-				$fields[$key] = ProfileFields::is_flag_on(
-					is_string( $value ) || is_numeric( $value ) ? (string)$value : ''
-				) ? '1' : '0';
+				$fields[$key] = ProfileFields::is_flag_on( is_string( $value ) || is_numeric( $value ) ? (string)$value : '' ) ? '1' : '0';
+				
 				continue;
 			}
+
 			$fields[$key] = is_string( $value ) ? $value : '';
 		}
 		return $fields;

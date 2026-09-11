@@ -594,6 +594,23 @@
 	height: var( --ip-editor-avatar-size );
 }
 
+.ip-editor__banner-wiki {
+	margin-top: 0.85rem;
+}
+
+.ip-editor__banner-wiki-label {
+	margin: 0 0 0.4rem;
+	font-size: 0.8125rem;
+	font-weight: 600;
+	color: var( --color-emphasized );
+}
+
+.ip-editor__banner-presets--wiki {
+	height: 3.25rem;
+	grid-template-columns: repeat( auto-fill, minmax( 3.25rem, 1fr ) );
+	grid-template-rows: minmax( 0, 1fr );
+}
+
 .ip-editor__label--sr {
 	position: absolute;
 	width: 1px;

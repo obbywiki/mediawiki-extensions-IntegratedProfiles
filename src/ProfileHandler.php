@@ -113,6 +113,7 @@ class ProfileHandler {
 		$out->addHTML( $html );
 
 		if ( $can_edit ) {
+			$banner_presets = $this->profile_service->get_banner_presets();
 			$out->addModules( [ 'ext.IntegratedProfiles.profile' ] );
 			$out->addJsConfigVars( [
 				'wgIntegratedProfiles' => [
@@ -134,6 +135,8 @@ class ProfileHandler {
 					'banner_url' => $payload['banner_url'] ?? '',
 					'has_custom_banner' => $payload['has_custom_banner'] ?? false,
 					'banner_presets' => ProfileFields::BANNER_GRADIENT_PRESETS,
+					'banner_preset_images' => $banner_presets->images(),
+					'banner_presets_split' => $banner_presets->is_split(),
 
 					'ui' => $payload['ui'],
 

@@ -532,18 +532,22 @@ export function sync_banner_dom( profile: ProfilePayload ): void {
 	let mode = ( ( profile.fields && profile.fields[ 'ip-banner' ] ) || 'accent' ).trim();
 	const banner_url = ( profile.banner_url || '' ).trim();
 
-	if ( mode === 'custom' && banner_url === '' ) {
+	if ( banner_url !== '' ) {
+		band.className = 'ip-masthead__band ip-masthead__band--custom';
+		if ( masthead ) {
+			masthead.style.setProperty( '--ip-banner-image', 'url(' + banner_url + ')' );
+		}
+		return;
+	}
+
+	if ( mode === 'custom' ) {
 		mode = 'accent';
 	}
 
 	band.className = 'ip-masthead__band ip-masthead__band--' + mode;
 
 	if ( masthead ) {
-		if ( mode === 'custom' && banner_url !== '' ) {
-			masthead.style.setProperty( '--ip-banner-image', 'url(' + banner_url + ')' );
-		} else {
-			masthead.style.removeProperty( '--ip-banner-image' );
-		}
+		masthead.style.removeProperty( '--ip-banner-image' );
 	}
 }
 
