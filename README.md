@@ -7,7 +7,7 @@
 > IntegratedProfiles is currently in BETA.
 
 
-IntegratedProfiles implements user profiles, similar to Fandom and UserProfilesV2, but with the focus of integration, meaning any other extension add things on top of it.
+IntegratedProfiles implements modern and extensible user profiles with the added focus of integration, meaning any other extension can add onto it.
 
 ## Installation
 
