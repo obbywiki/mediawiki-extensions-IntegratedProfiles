@@ -553,12 +553,12 @@
 					:disabled="busy"
 					@click="on_cancel"
 				>
-					{{ msg( 'integratedprofiles-cancel' ) }}
+					{{ dismiss_label }}
 				</button>
 				<button
 					type="button"
 					class="cdx-button cdx-button--action-progressive cdx-button--weight-primary"
-					:disabled="busy"
+					:disabled="busy || !has_changes"
 					@click="on_save"
 				>
 					{{ msg( 'integratedprofiles-save' ) }}
@@ -722,6 +722,51 @@ function build_save_fields(): Partial<ProfileFieldsMap> {
 	return payload;
 }
 
+function clone_save_fields(): Partial<ProfileFieldsMap> {
+	return Object.assign( {}, build_save_fields() );
+}
+
+function field_snapshot_value(
+	fields: Partial<ProfileFieldsMap>,
+	key: string
+): string {
+	return fields[ key as keyof ProfileFieldsMap ] || '';
+}
+
+const saved_fields = ref<Partial<ProfileFieldsMap>>( clone_save_fields() );
+
+function remember_saved_fields( patch?: Partial<ProfileFieldsMap> ): void {
+	if ( patch ) {
+		saved_fields.value = Object.assign( {}, saved_fields.value, patch );
+		return;
+	}
+
+	saved_fields.value = clone_save_fields();
+}
+
+const has_changes = computed( () => {
+	const current = build_save_fields();
+	const baseline = saved_fields.value;
+	const keys = new Set( [
+		...Object.keys( current ),
+		...Object.keys( baseline )
+	] );
+
+	for ( const key of keys ) {
+		if ( field_snapshot_value( current, key ) !== field_snapshot_value( baseline, key ) ) {
+			return true;
+		}
+	}
+
+	return false;
+} );
+
+const dismiss_label = computed( () => (
+	has_changes.value ?
+		msg( 'integratedprofiles-cancel' ) :
+		msg( 'integratedprofiles-modal-close' )
+) );
+
 const about_length = computed( () => ( draft[ 'ip-about' ] || '' ).length );
 const about_remaining = computed( () => about_max.value - about_length.value );
 const location_length = computed( () => ( draft[ 'ip-location' ] || '' ).length );
@@ -880,6 +925,7 @@ async function on_select_banner( preset_id: string ): Promise<void> {
 
 		apply_payload_to_dom( profile );
 		sync_banner_from_profile( profile );
+		remember_saved_fields( { 'ip-banner': draft[ 'ip-banner' ] } );
 	} catch ( err ) {
 		error_message.value = err instanceof Error ? err.message : msg( 'integratedprofiles-save-error' );
 	} finally {
@@ -892,6 +938,7 @@ function on_banner_updated( event: Event ): void {
 
 	if ( custom.detail ) {
 		sync_banner_from_profile( custom.detail );
+		remember_saved_fields( { 'ip-banner': draft[ 'ip-banner' ] } );
 	}
 }
 
@@ -904,6 +951,10 @@ function on_avatar_updated( event: Event ): void {
 }
 
 async function on_save(): Promise<void> {
+	if ( busy.value || !has_changes.value ) {
+		return;
+	}
+
 	busy.value = true;
 	error_message.value = '';
 	success_message.value = '';
@@ -916,6 +967,7 @@ async function on_save(): Promise<void> {
 
 		apply_payload_to_dom( profile );
 		sync_banner_from_profile( profile );
+		remember_saved_fields();
 		success_message.value = msg( 'integratedprofiles-save-success' );
 	} catch ( err ) {
 		error_message.value = err instanceof Error ?
