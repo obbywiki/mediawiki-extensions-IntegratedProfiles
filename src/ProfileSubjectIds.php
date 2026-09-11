@@ -12,6 +12,9 @@ class ProfileSubjectIds {
 
 	public const SERVICE_NAME = 'IntegratedProfiles.ProfileSubjectIds';
 
+	/** @var array<int, int> Request-local map of local user id => resolved central id */
+	private array $central_ids_by_local = [];
+
 	public function __construct(
 		private readonly CentralIdLookup $central_id_lookup,
 	) {
@@ -23,24 +26,27 @@ class ProfileSubjectIds {
 			return 0;
 		}
 
-		$central_id = $this->central_id_lookup->centralIdFromLocalUser( $user, CentralIdLookup::AUDIENCE_RAW );
-		if ( $central_id > 0 ) {
-			return $central_id;
+		if ( isset( $this->central_ids_by_local[$local_id] ) ) {
+			return $this->central_ids_by_local[$local_id];
 		}
 
-		$name = $user->getName();
-		if ( $name !== '' ) {
-			$central_id = $this->central_id_lookup->centralIdFromName(
-				$name,
-				CentralIdLookup::AUDIENCE_RAW
-			);
-			
-			if ( $central_id > 0 ) {
-				return $central_id;
+		$central_id = $this->central_id_lookup->centralIdFromLocalUser( $user, CentralIdLookup::AUDIENCE_RAW );
+		if ( $central_id <= 0 ) {
+			$name = $user->getName();
+			if ( $name !== '' ) {
+				$central_id = $this->central_id_lookup->centralIdFromName(
+					$name,
+					CentralIdLookup::AUDIENCE_RAW
+				);
 			}
 		}
 
-		return $local_id;
+		if ( $central_id <= 0 ) {
+			$central_id = $local_id;
+		}
+
+		$this->central_ids_by_local[$local_id] = $central_id;
+		return $central_id;
 	}
 
 	public function local_id_for( UserIdentity $user ): int {
