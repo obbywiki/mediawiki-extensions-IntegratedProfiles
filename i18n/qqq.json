@@ -32,7 +32,7 @@
 	"integratedprofiles-user-card-joined": "Label before the registration date on the user card.",
 	"integratedprofiles-avatar-alt": "Alt text for the avatar image.",
 	"integratedprofiles-avatar-edit": "Button to change the avatar.",
-	"integratedprofiles-avatar-change": "Short button label under the avatar preview in the appearance editor.",
+	"integratedprofiles-avatar-change": "Short hint under the avatar preview in the appearance editor. Keep short; it wraps under the avatar.",
 	"integratedprofiles-avatar-upload": "Upload avatar control label.",
 	"integratedprofiles-avatar-choose": "Button label for selecting an avatar image when none is set.",
 	"integratedprofiles-avatar-replace": "Button label for selecting a replacement avatar image.",

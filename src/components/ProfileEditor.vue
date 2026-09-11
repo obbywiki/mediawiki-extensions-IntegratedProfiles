@@ -39,51 +39,47 @@
 
 				<div class="ip-editor__appearance">
 					<div class="ip-editor__appearance-avatar">
-						<span id="ip-avatar-label" class="ip-editor__sublabel">
-							{{ msg( 'integratedprofiles-avatar-edit' ) }}
-						</span>
 						<button
 							type="button"
-							class="ip-editor__avatar-preview"
+							class="ip-editor__avatar-button"
 							:disabled="busy"
-							aria-labelledby="ip-avatar-label"
+							:aria-label="msg( 'integratedprofiles-avatar-edit' )"
 							@click="on_open_avatar_modal"
 						>
-							<img
-								class="ip-editor__avatar-preview-image"
-								:src="avatar_preview_url"
-								:alt="msg( 'integratedprofiles-avatar-alt' )"
-								width="96"
-								height="96"
-							>
-							<span class="ip-editor__avatar-overlay" aria-hidden="true">
-								<svg
-									class="ip-editor__avatar-overlay-icon"
-									viewBox="0 0 20 20"
-									focusable="false"
+							<span class="ip-editor__avatar-preview">
+								<img
+									class="ip-editor__avatar-preview-image"
+									:src="avatar_preview_url"
+									:alt="msg( 'integratedprofiles-avatar-alt' )"
+									width="128"
+									height="128"
 								>
-									<path
-										fill="currentColor"
-										d="M2.6 14.3v3.1h3.1l8.9-8.9-3.1-3.1z M12.2 4.7l2.1-2.1a1.2 1.2 0 0 1 1.7 0l1.4 1.4 a1.2 1.2 0 0 1 0 1.7l-2.1 2.1z"
-									/>
-								</svg>
+								<span class="ip-editor__avatar-overlay" aria-hidden="true">
+									<svg
+										class="ip-editor__avatar-overlay-icon"
+										viewBox="0 0 20 20"
+										focusable="false"
+									>
+										<path
+											fill="currentColor"
+											d="M2.6 14.3v3.1h3.1l8.9-8.9-3.1-3.1z M12.2 4.7l2.1-2.1a1.2 1.2 0 0 1 1.7 0l1.4 1.4 a1.2 1.2 0 0 1 0 1.7l-2.1 2.1z"
+										/>
+									</svg>
+								</span>
+							</span>
+							<span class="ip-editor__avatar-hint" aria-hidden="true">
+								{{ msg( 'integratedprofiles-avatar-change' ) }}
 							</span>
 						</button>
 					</div>
 
+					<div class="ip-editor__appearance-divider" aria-hidden="true" />
+
 					<div class="ip-editor__appearance-banners">
-						<div class="ip-editor__banner-heading">
-							<span id="ip-banner-presets-label" class="ip-editor__sublabel">
-								{{ msg( 'integratedprofiles-banner-label' ) }}
-							</span>
-							<p class="ip-editor__help">
-								{{ msg( 'integratedprofiles-banner-help' ) }}
-							</p>
-						</div>
 						<ul
 							class="ip-editor__banner-presets"
 							role="listbox"
-							aria-labelledby="ip-banner-presets-label"
+							:aria-label="msg( 'integratedprofiles-banner-label' )"
 						>
 							<li
 								v-for="preset_id in banner_presets"
