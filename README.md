@@ -163,8 +163,8 @@ IntegratedProfiles integrates certain functionalities from NewAuth. If you have 
 
 | Config | Default | Purpose |
 |--------|---------|---------|
-| `$wgIntegratedProfilesColor` | `#5288F1` | IntegratedProfiles accent color. |
-| `$wgIntegratedProfilesAvatarBorderRadius` | `50%` | Border radius for profile avatars. |
+<!-- | `$wgIntegratedProfilesColor` | `#5288F1` | IntegratedProfiles accent color. | -->
+<!-- | `$wgIntegratedProfilesAvatarBorderRadius` | `50%` | Border radius for profile avatars. | -->
 | `$wgIntegratedProfilesBackend` | `''` | Named entry in `$wgFileBackends`. Empty uses `{UploadDirectory}/ipavatars` and `{UploadDirectory}/ipbanners`. Must already exist if set. See Setup. |
 | `$wgIntegratedProfilesEnableNewAuthPanel` | `true` | Show verified connections when NewAuth is loaded. |
 | `$wgIntegratedProfilesEnableUserCards` | `false` | On-click profile cards for username links. Requires FloatingUI. |
