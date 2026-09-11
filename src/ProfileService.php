@@ -33,6 +33,9 @@ class ProfileService {
 
 	private readonly ProfileFields $fields;
 
+	/** @var array<string, ?User> Request-local map of username => registered user (null for misses) */
+	private array $users_by_name = [];
+
 	public function __construct(
 		private readonly ServiceOptions $options,
 		private readonly ProfilePermissions $permissions,
@@ -85,9 +88,8 @@ class ProfileService {
 			return null;
 		}
 
-		$root = $title->getRootText();
-		$user = $this->user_factory->newFromName( $root );
-		if ( !$user || !$user->isRegistered() || !$user->isNamed() ) {
+		$user = $this->resolve_user_by_name( $title->getRootText() );
+		if ( !$user || !$user->isNamed() ) {
 			return null;
 		}
 
@@ -98,10 +100,27 @@ class ProfileService {
 	 * Resolve a registered subject by username for APIs.
 	 */
 	public function resolve_user_by_name( string $username ): ?User {
-		$user = $this->user_factory->newFromName( $username );
-		if ( !$user || !$user->isRegistered() ) {
+		$key = strtr( $username, '_', ' ' );
+		if ( $key === '' ) {
 			return null;
 		}
+
+		if ( array_key_exists( $key, $this->users_by_name ) ) {
+			return $this->users_by_name[$key];
+		}
+
+		$user = $this->user_factory->newFromName( $username );
+		if ( !$user || !$user->isRegistered() ) {
+			$this->users_by_name[$key] = null;
+			return null;
+		}
+
+		$this->users_by_name[$key] = $user;
+		$canonical = $user->getName();
+		if ( $canonical !== $key ) {
+			$this->users_by_name[$canonical] = $user;
+		}
+
 		return $user;
 	}
 
