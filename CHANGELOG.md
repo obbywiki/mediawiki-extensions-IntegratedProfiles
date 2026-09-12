@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.6.1](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/compare/v0.6.0...v0.6.1) (2026-09-12)
+
+
+### Miscellaneous Chores
+
+* disable md,i18n lints ([b461795](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/b46179511d4de7775990d92d2c0f2f47a4b94884))
+* enable i18n lint ([8cd40f3](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/8cd40f3ed5c7dbba0accfa50d8a926b728a22be0))
+* enable md lint ([33835dc](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/33835dcd2b69b66d3871067cfa2822d3be4e8e5e))
+* fix style lints and re-enable ([f09caaa](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/f09caaa31db4377ee0fcc70558c1d389710bbe7e))
+* re-enable php lint ci ([3026d70](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/3026d70e4ae933ba6c02c6e033a44392fcdf4f5d))
+* re-enable php lint ci ([dd3eb98](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/dd3eb98fd6a9d9ba47edac8c4c5d750d57d967d4))
+* rename lint:css script to lint:styles ([b8afdf3](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/b8afdf3268560b5da9985a115ad20d08d0bedf2d))
+
 ## [0.6.0](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/compare/v0.5.0...v0.6.0) (2026-09-12)
 
 
