@@ -203,6 +203,7 @@ On a single wiki these replace the gradient presets. Users without a custom uplo
 
 * If a banner's preset ID is removed, every user who was using that banner is defaulted to `$wgIntegratedProfilesBannerPresetDefault` or the first preset.
 * After a banner preset is removed, it will no longer be useable. But, if it was ever re-added, the banner will appear on users whom have not changed their wiki banner after it was removed.
+** This supports seasonal banners!
 
 ### Social links
 
@@ -234,6 +235,28 @@ Each wiki skips its own content language (`$wgLanguageCode` and `$wgLocalInterwi
 **Note**: If a prefix is missing from that wiki’s `interwiki` table, MediaWiki treats `en:User:Name` as a local title and the language menu stays on the current host (`https://ko.wiki.local/en:User:TestUser` instead of `https://wiki.local/User:TestUser`). 
 
 Add both directions, e.g. `en` = `https://wiki.local/$1` and `ko` = `https://ko.wiki.local/$1`.
+
+### User cards [EXPERIMENTAL]
+
+User card previews are experimental and opt-in. Use `$wgIntegratedProfilesEnableUserCards` to enable this feature on your wiki.
+
+Additionally, as user cards are on-click, you may want to remove redlinks from empty user page URLs. You can achieve these by putting the following in your `MediaWiki:Common.js` file:
+
+```js
+mw.hook('wikipage.content').add(function ($content) {
+  $content.find('a.new[href*="User:"]').each(function () {
+    var $link = $(this);
+    var href = $link.attr('href');
+
+    if (href) {
+		$link.attr( 'href', href.replace(/[?&]action=edit(&redlink=1)?/g, '') );
+    //  $link.attr( 'href', href.replace(/[?&]veaction=edit(&redlink=1)?/g, '') ); // if you replace edit links with VE links
+    };
+  });
+});
+```
+
+---
 
 ## Rights
 
