@@ -24,7 +24,7 @@ class ProfileRenderer {
 	 * @param bool $can_edit Whether to show edit controls
 	 * @param array $messages Already-localized message strings
 	 *   (aka, edit_count, joined, avatar_alt, avatar_edit, edit, you, featured_label,
-	 *   location_label, website_label, wiki_profiles_label, wiki_profile_labels, connection_labels, connection_verified, private_notice, pronouns)
+	 *   location_label, website_label, wiki_profiles_label, about_more, about_less, wiki_profile_labels, connection_labels, connection_verified, private_notice, pronouns)
 	 * @param string $contributions_url Local URL to Special:Contributions
 	 * @param bool $use_floating_ui When Extension:FloatingUI is loaded, emit
 	 *   reference/content pairs instead of native title attributes
@@ -46,7 +46,7 @@ class ProfileRenderer {
 	 */
 	public function render_about_block( string $about, array $wiki_profiles, array $messages, bool $use_floating_ui = false ): string {
 		$view = $this->build_about_block_view( $about, $wiki_profiles, $messages, $use_floating_ui );
-		if ( $view['about_html'] === '' && !$view['has_wiki_profiles'] ) {
+		if ( !$view['has_about'] && !$view['has_wiki_profiles'] ) {
 			return '';
 		}
 
@@ -197,7 +197,15 @@ class ProfileRenderer {
 		$featured = null;
 		$location = null;
 		$website = null;
-		$about_view = [ 'about_html' => '', 'has_wiki_profiles' => false, 'wiki_profiles_label' => '', 'wiki_profile_items' => [] ];
+		$about_view = [
+			'has_about' => false,
+			'about_text' => '',
+			'about_more' => '',
+			'about_less' => '',
+			'has_wiki_profiles' => false,
+			'wiki_profiles_label' => '',
+			'wiki_profile_items' => []
+		];
 
 		if ( !$is_private ) {
 			$featured = $this->build_featured_article_view( is_array( $payload['featured_article'] ?? null ) ? $payload['featured_article'] : null, $messages );
@@ -275,8 +283,11 @@ class ProfileRenderer {
 			'website' => $website,
 			'has_facts' => $featured !== null || $location !== null || $website !== null,
 
-			'has_about_block' => $about_view['about_html'] !== '' || $about_view['has_wiki_profiles'],
-			'about_html' => $about_view['about_html'],
+			'has_about_block' => $about_view['has_about'] || $about_view['has_wiki_profiles'],
+			'has_about' => $about_view['has_about'],
+			'about_text' => $about_view['about_text'],
+			'about_more' => $about_view['about_more'],
+			'about_less' => $about_view['about_less'],
 
 			'has_wiki_profiles' => $about_view['has_wiki_profiles'],
 			'wiki_profiles_label' => $about_view['wiki_profiles_label'],
@@ -316,14 +327,17 @@ class ProfileRenderer {
 	 * @param list<array{kind?: string, username?: string, url?: string}> $wiki_profiles
 	 * @param array $messages
 	 * @param bool $use_floating_ui Soft-dep FloatingUI tips for wiki chips
-	 * @return array{about_html: string, has_wiki_profiles: bool, wiki_profiles_label: string, wiki_profile_items: list<array<string, mixed>>}
+	 * @return array{has_about: bool, about_text: string, about_more: string, about_less: string, has_wiki_profiles: bool, wiki_profiles_label: string, wiki_profile_items: list<array<string, mixed>>}
 	 */
 	private function build_about_block_view( string $about, array $wiki_profiles, array $messages, bool $use_floating_ui ): array {
 		$wiki_profile_items = ProfileFields::SHOW_WIKI_PROFILES ? $this->build_wiki_profile_items( $wiki_profiles, $messages, $use_floating_ui ) : [];
-		$about_html = $about === '' ? '' : nl2br( htmlspecialchars( $about, ENT_QUOTES, 'UTF-8' ), false );
+		$about_text = trim( $about );
 
 		return [
-			'about_html' => $about_html,
+			'has_about' => $about_text !== '',
+			'about_text' => $about_text,
+			'about_more' => (string)( $messages['about_more'] ?? 'More' ),
+			'about_less' => (string)( $messages['about_less'] ?? 'Less' ),
 			'has_wiki_profiles' => $wiki_profile_items !== [],
 			'wiki_profiles_label' => (string)( $messages['wiki_profiles_label'] ?? 'Wiki profiles' ),
 			'wiki_profile_items' => $wiki_profile_items

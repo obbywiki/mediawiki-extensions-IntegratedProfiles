@@ -165,7 +165,7 @@ IntegratedProfiles integrates certain functionalities from NewAuth. If you have 
 |--------|---------|---------|
 | `$wgIntegratedProfilesBackend` | `''` | Named entry in `$wgFileBackends`. Empty uses `{UploadDirectory}/ipavatars` and `{UploadDirectory}/ipbanners`. Must already exist if set. See Setup. |
 | `$wgIntegratedProfilesEnableUserCards` | `false` | On-click profile cards for username links. Requires FloatingUI. |
-| `$wgIntegratedProfilesAboutMaxLength` | `80` | Maximum length in characters for the about tagline. |
+| `$wgIntegratedProfilesAboutMaxLength` | `300` | Maximum length in characters for the about tagline. |
 | `$wgIntegratedProfilesLinkMaxLength` | `255` | Maximum length in characters for freeform profile link fields. |
 | `$wgIntegratedProfilesEnabledSocialLinks` | `['website','twitter','github','discord','roblox','youtube']` | Only accepts one of the presets. Feel free to request or add any. |
 | `$wgIntegratedProfilesAvatarMaxBytes` | `2097152` | Maximum avatar upload size in bytes (default 2 MiB). |

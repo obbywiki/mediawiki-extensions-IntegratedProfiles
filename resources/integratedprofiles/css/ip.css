@@ -644,18 +644,116 @@
 }
 
 .ip-about {
+	--ip-about-line-height: 1.4;
 	margin: 0;
 	padding: 0;
 	border: 0;
+}
+
+.ip-about__text {
+	margin: 0;
+	padding: 0;
 	color: var( --color-subtle );
 	font-size: 0.9375rem;
-	line-height: 1.4;
+	line-height: var( --ip-about-line-height );
 	white-space: pre-wrap;
+	overflow-wrap: break-word;
 	display: -webkit-box;
 	-webkit-box-orient: vertical;
-	-webkit-line-clamp: 2;
-	line-clamp: 2;
+	-webkit-line-clamp: 20;
+	line-clamp: 20;
 	overflow: hidden;
+}
+
+.client-js .ip-about:not( .ip-about--expanded ) .ip-about__text {
+	-webkit-line-clamp: 3;
+	line-clamp: 3;
+}
+
+.client-js .ip-about--clamped:not( .ip-about--expanded ) .ip-about__text,
+.client-js .ip-about--capped.ip-about--expanded .ip-about__text {
+	-webkit-mask-image: linear-gradient( to bottom, #000 0%, #000 calc( 100% - 1.4em ), transparent 100% );
+	mask-image: linear-gradient( to bottom, #000 0%, #000 calc( 100% - 1.4em ), transparent 100% );
+}
+
+.ip-about__text--measure {
+	position: absolute;
+	top: 0;
+	left: -10000px;
+	display: block;
+	height: auto;
+	overflow: visible;
+	visibility: hidden;
+	-webkit-line-clamp: unset;
+	line-clamp: unset;
+	-webkit-mask-image: none;
+	mask-image: none;
+}
+
+.ip-about__toggle {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.15rem;
+	margin: 0.15rem 0 0;
+	padding: 0.1rem 0;
+	border: 0;
+	background: transparent;
+	color: var( --color-progressive, #36c );
+	font: inherit;
+	font-size: 0.8125rem;
+	font-weight: var( --font-weight-medium, 500 );
+	letter-spacing: 0.04em;
+	line-height: 1.2;
+	text-transform: uppercase;
+	cursor: pointer;
+}
+
+.ip-about__toggle[ hidden ] {
+	display: none;
+}
+
+.ip-about__toggle:hover {
+	color: var( --color-progressive--hover, #447ff5 );
+}
+
+.ip-about__toggle:focus {
+	outline: 0;
+}
+
+.ip-about__toggle:focus-visible {
+	border-radius: var( --border-radius-base, 0.25rem );
+	outline: 2px solid var( --color-progressive, #36c );
+	outline-offset: 2px;
+}
+
+.ip-about__toggle-icon {
+	width: 0.875rem;
+	height: 0.875rem;
+	flex: 0 0 auto;
+	pointer-events: none;
+	transition: transform 0.15s ease;
+}
+
+.ip-about--expanded .ip-about__toggle-icon {
+	transform: rotate( 180deg );
+}
+
+.ip-about__toggle-less {
+	display: none;
+}
+
+.ip-about--expanded .ip-about__toggle-more {
+	display: none;
+}
+
+.ip-about--expanded .ip-about__toggle-less {
+	display: inline;
+}
+
+@media ( prefers-reduced-motion: reduce ) {
+	.ip-about__toggle-icon {
+		transition: none;
+	}
 }
 
 /* currently disabled */

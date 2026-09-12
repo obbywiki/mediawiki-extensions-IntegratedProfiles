@@ -147,6 +147,8 @@ class ProfileFields {
 		self::KEY_FANDOM => 'https://community.fandom.com/wiki/',
 	];
 
+	public const LOCATION_MAX_LENGTH = 80;
+
 	private const HANDLE_PATTERN = '/^[A-Za-z0-9._-]{1,64}$/';
 
 	private const DISCORD_USERNAME_PATTERN = '/^[a-z0-9_]{2,32}$/';
@@ -162,7 +164,7 @@ class ProfileFields {
 	 * @param list<mixed>|null $enabled_social_links Catalog IDs to show/accept. Null enables the full catalog.
 	 */
 	public function __construct(
-		private readonly int $about_max_length = 500,
+		private readonly int $about_max_length = 1000,
 		private readonly int $link_max_length = 255,
 		?array $enabled_social_links = null,
 		private readonly ?BannerPresets $banner_presets = null
@@ -478,10 +480,7 @@ class ProfileFields {
 		}
 
 		if ( $key === self::KEY_ABOUT ) {
-			if ( mb_strlen( $value ) > $this->about_max_length ) {
-				return null;
-			}
-			return $value;
+			return $this->sanitize_about_value( $value );
 		}
 
 		if ( $key === self::KEY_LOCATION ) {
@@ -547,10 +546,23 @@ class ProfileFields {
 		};
 	}
 
+	private function sanitize_about_value( string $value ): ?string {
+		$value = str_replace( [ "\r\n", "\r" ], "\n", $value );
+		$value = str_replace( "\t", ' ', $value );
+		$value = preg_replace( '/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/u', '', $value ) ?? $value;
+		$value = preg_replace( "/\n{3,}/", "\n\n", $value ) ?? $value;
+		$value = trim( $value );
+		if ( mb_strlen( $value ) > $this->about_max_length ) {
+			return null;
+		}
+
+		return $value;
+	}
+
 	private function sanitize_location_value( string $value ): ?string {
 		$value = preg_replace( '/[\x00-\x1f\x7f]/u', '', $value ) ?? $value;
 		$value = trim( preg_replace( '/\s+/u', ' ', $value ) ?? $value );
-		if ( mb_strlen( $value ) > $this->about_max_length ) {
+		if ( mb_strlen( $value ) > self::LOCATION_MAX_LENGTH ) {
 			return null;
 		}
 

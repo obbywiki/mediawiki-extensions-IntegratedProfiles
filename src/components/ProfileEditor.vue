@@ -207,7 +207,7 @@
 							id="ip-field-about"
 							v-model="draft['ip-about']"
 							class="cdx-text-area__textarea"
-							rows="2"
+							rows="4"
 							:maxlength="about_max"
 							:disabled="busy"
 							:placeholder="msg( 'integratedprofiles-field-about-placeholder' )"
@@ -235,7 +235,7 @@
 							v-model="draft['ip-location']"
 							class="cdx-text-input__input"
 							type="text"
-							:maxlength="about_max"
+							:maxlength="location_max"
 							:disabled="busy"
 							:placeholder="msg( 'integratedprofiles-field-location-placeholder' )"
 						>
@@ -248,7 +248,7 @@
 								:class="{ 'ip-editor__char-count--warn': location_remaining <= 10 }"
 								aria-live="polite"
 							>
-								{{ location_length }}/{{ about_max }}
+								{{ location_length }}/{{ location_max }}
 							</span>
 						</div>
 					</div>
@@ -755,7 +755,8 @@ social_links_open.value = bundle_social_links.value.some(
 	( entry ) => Boolean( draft[ entry.key ] )
 );
 
-const about_max = computed( () => ( props.config.limits && props.config.limits.about ) || 80 );
+const about_max = computed( () => ( props.config.limits && props.config.limits.about ) || 300 );
+const location_max = 80;
 const link_max = computed( () => ( props.config.limits && props.config.limits.link ) || 255 );
 
 function social_input_type( entry: EnabledSocialLink ): string {
@@ -905,7 +906,7 @@ const dismiss_label = computed( () => (
 const about_length = computed( () => ( draft[ 'ip-about' ] || '' ).length );
 const about_remaining = computed( () => about_max.value - about_length.value );
 const location_length = computed( () => ( draft[ 'ip-location' ] || '' ).length );
-const location_remaining = computed( () => about_max.value - location_length.value );
+const location_remaining = computed( () => location_max - location_length.value );
 const custom_swatch_style = computed( () => {
 	if ( !custom_banner_url.value ) { return {}; }
 

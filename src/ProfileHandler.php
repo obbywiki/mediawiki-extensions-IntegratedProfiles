@@ -43,6 +43,11 @@ class ProfileHandler {
 		$out->addModuleStyles( [ 'ext.IntegratedProfiles.styles' ] );
 		$out->addModules( [ 'ext.IntegratedProfiles.pageSidebar' ] );
 
+		$about_text = trim( (string)( $payload['fields'][ ProfileFields::KEY_ABOUT ] ?? '' ) );
+		if ( $about_text !== '' ) {
+			$out->addModules( [ 'ext.IntegratedProfiles.aboutExpand' ] );
+		}
+
 		$use_floating_ui = ExtensionRegistry::getInstance()->isLoaded( 'FloatingUI' );
 		if ( $use_floating_ui ) {
 			$out->addModuleStyles( 'ext.floatingUI.init.styles' );
@@ -71,6 +76,8 @@ class ProfileHandler {
 			'location_label' => $context->msg( 'integratedprofiles-location-label' )->text(),
 			'website_label' => $context->msg( 'integratedprofiles-field-website' )->text(),
 			'wiki_profiles_label' => $context->msg( 'integratedprofiles-wiki-profiles-label' )->text(),
+			'about_more' => $context->msg( 'integratedprofiles-about-more' )->text(),
+			'about_less' => $context->msg( 'integratedprofiles-about-less' )->text(),
 
 			'wiki_profile_labels' => [
 				'mediawiki' => $context->msg( 'integratedprofiles-field-mediawiki' )->text(),

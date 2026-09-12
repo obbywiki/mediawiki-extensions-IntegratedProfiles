@@ -70,6 +70,8 @@
 	"integratedprofiles-field-about": "Tagline",
 	"integratedprofiles-field-about-help": "Write something short about yourself.",
 	"integratedprofiles-field-about-placeholder": "A short line about you",
+	"integratedprofiles-about-more": "More",
+	"integratedprofiles-about-less": "Less",
 	"integratedprofiles-field-location": "Location",
 	"integratedprofiles-field-location-help": "A place to show on your profile.",
 	"integratedprofiles-field-location-placeholder": "City, country, or anywhere",

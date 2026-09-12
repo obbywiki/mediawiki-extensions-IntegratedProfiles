@@ -372,6 +372,82 @@ const WIKI_PROFILE_LABEL_KEYS: Record<string, string> = {
 	fandom: 'integratedprofiles-field-fandom',
 };
 
+function about_toggle_icon(): SVGSVGElement {
+	const svg = document.createElementNS( 'http://www.w3.org/2000/svg', 'svg' );
+	svg.setAttribute( 'class', 'ip-about__toggle-icon' );
+	svg.setAttribute( 'viewBox', '0 0 20 20' );
+	svg.setAttribute( 'aria-hidden', 'true' );
+	svg.setAttribute( 'focusable', 'false' );
+
+	const path = document.createElementNS( 'http://www.w3.org/2000/svg', 'path' );
+	path.setAttribute( 'fill', 'currentColor' );
+	path.setAttribute( 'd', 'M18 7.4 16.6 6 10 12.6 3.4 6 2 7.4l8 8z' ); // cdx
+	svg.appendChild( path );
+
+	return svg;
+}
+
+/**
+ * @param {string} about Plain tagline text
+ * @return {HTMLElement}
+ */
+function build_about_el( about: string ): HTMLElement {
+	const wrap = document.createElement( 'div' );
+	wrap.className = 'ip-about';
+
+	const text = document.createElement( 'div' );
+	text.className = 'ip-about__text';
+	text.id = 'ip-about-text';
+	text.textContent = about;
+
+	const toggle = document.createElement( 'button' );
+	toggle.type = 'button';
+	toggle.className = 'ip-about__toggle';
+	toggle.hidden = true;
+	toggle.setAttribute( 'aria-expanded', 'false' );
+	toggle.setAttribute( 'aria-controls', 'ip-about-text' );
+
+	const more = document.createElement( 'span' );
+	more.className = 'ip-about__toggle-more';
+	more.textContent = msg( 'integratedprofiles-about-more' );
+
+	const less = document.createElement( 'span' );
+	less.className = 'ip-about__toggle-less';
+	less.textContent = msg( 'integratedprofiles-about-less' );
+
+	toggle.appendChild( more );
+	toggle.appendChild( less );
+	toggle.appendChild( about_toggle_icon() );
+
+	wrap.appendChild( text );
+	wrap.appendChild( toggle );
+
+	return wrap;
+}
+
+/**
+ * @param {HTMLElement} block About-block root
+ * @param {string} about Tagline text
+ */
+function enhance_about_block_after_sync( block: HTMLElement, about: string ): void {
+	if ( about === '' ) {
+		return;
+	}
+
+	const run = (): void => {
+		mw.hook( 'integratedprofiles.about' ).fire( block );
+	};
+
+	if ( mw.loader.getState( 'ext.IntegratedProfiles.aboutExpand' ) === 'ready' ) {
+		run();
+		return;
+	}
+
+	void mw.loader.using( 'ext.IntegratedProfiles.aboutExpand' ).then( run, () => {
+		// clamped via css, more button is hidden
+	} );
+}
+
 /**
  * Sync tagline + wiki-platform icon chips under the masthead.
  *
@@ -412,13 +488,13 @@ function sync_about_block_dom( profile: ProfilePayload ): void {
 	block.textContent = '';
 
 	if ( about !== '' ) {
-		const about_el = document.createElement( 'div' );
-		about_el.className = 'ip-about';
-		about_el.textContent = about;
-		block.appendChild( about_el );
+		block.appendChild( build_about_el( about ) );
 	}
 
-	if ( wiki_profiles.length === 0 ) { return; }
+	if ( wiki_profiles.length === 0 ) {
+		enhance_about_block_after_sync( block, about );
+		return;
+	}
 
 	const list = document.createElement( 'ul' );
 	list.className = 'ip-wiki-profiles';
@@ -462,6 +538,8 @@ function sync_about_block_dom( profile: ProfilePayload ): void {
 	if ( list.childElementCount > 0 ) {
 		block.appendChild( list );
 	}
+
+	enhance_about_block_after_sync( block, about );
 }
 
 function is_flag_on( value: string | undefined ): boolean {

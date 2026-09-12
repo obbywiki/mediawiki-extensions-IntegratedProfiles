@@ -177,6 +177,11 @@
 				"ext.floatingUI"
 			]
 		},
+		"ext.IntegratedProfiles.aboutExpand": {
+			"scripts": [
+				"resources/integratedprofiles/about_expand.js"
+			]
+		},
 		"ext.IntegratedProfiles.pageSidebar": {
 			"scripts": [
 				"resources/integratedprofiles/page_sidebar.js"
@@ -259,6 +264,8 @@
 				"integratedprofiles-field-about",
 				"integratedprofiles-field-about-help",
 				"integratedprofiles-field-about-placeholder",
+				"integratedprofiles-about-more",
+				"integratedprofiles-about-less",
 				"integratedprofiles-field-location",
 				"integratedprofiles-field-location-help",
 				"integratedprofiles-field-location-placeholder",
@@ -374,7 +381,7 @@
 			"description": "When true, show on-click profile cards for username links. Requires the FloatingUI extension."
 		},
 		"IntegratedProfilesAboutMaxLength": {
-			"value": 80,
+			"value": 300,
 			"description": "Maximum length in characters for the about tagline."
 		},
 		"IntegratedProfilesLinkMaxLength": {
