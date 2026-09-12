@@ -595,6 +595,7 @@
 }
 
 .ip-editor__banner-wiki {
+	--ip-editor-avatar-size: 8rem;
 	margin-top: 2rem;
 	padding-top: 1.15rem;
 	border-top: 1px solid var( --border-color-subtle );
@@ -644,10 +645,10 @@
 }
 
 .ip-editor__banner-presets--wiki {
-	height: 5.75rem;
-	min-height: 5.75rem;
+	height: var( --ip-editor-avatar-size );
+	min-height: var( --ip-editor-avatar-size );
 	grid-template-columns: repeat( 5, minmax( 0, 1fr ) );
-	grid-template-rows: minmax( 0, 1fr );
+	grid-template-rows: repeat( 2, minmax( 0, 1fr ) );
 }
 
 .ip-editor__banner-presets > li {

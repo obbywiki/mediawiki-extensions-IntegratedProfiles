@@ -407,7 +407,7 @@
 		},
 		"IntegratedProfilesBannerPresetImages": {
 			"value": [],
-			"description": "Map of banner preset id to image URL (http(s) or site-relative)."
+			"description": "Map of banner preset id to image URL (http(s) or site-relative). At most 8 entries are used."
 		},
 		"IntegratedProfilesBannerPresetDefault": {
 			"value": "",

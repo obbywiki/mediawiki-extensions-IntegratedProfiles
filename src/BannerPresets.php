@@ -9,6 +9,8 @@ use ExtensionRegistry;
  */
 class BannerPresets {
 
+	public const MAX_IMAGES = 8;
+
 	/** @var array<string, string> id => sanitized URL */
 	private readonly array $images;
 
@@ -116,6 +118,9 @@ class BannerPresets {
 			}
 
 			$images[$id] = $url;
+			if ( count( $images ) >= self::MAX_IMAGES ) {
+				break;
+			}
 		}
 
 		return $images;

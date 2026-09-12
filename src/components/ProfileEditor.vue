@@ -767,7 +767,7 @@ const banner_preset_images = computed( (): Record<string, string> => {
 	return props.config.banner_preset_images || {};
 } );
 const banner_presets_split = computed( () => Boolean( props.config.banner_presets_split ) );
-const wiki_banner_ids = computed( () => Object.keys( banner_preset_images.value ) );
+const wiki_banner_ids = computed( () => Object.keys( banner_preset_images.value ).slice( 0, 8 ) );
 const has_wiki_presets = computed( () => wiki_banner_ids.value.length > 0 );
 const wiki_banner_default = computed( () => {
 	const configured = ( props.config.banner_preset_default || '' ).trim();
