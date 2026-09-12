@@ -199,6 +199,11 @@ $wgIntegratedProfilesBannerPresetDefault = 'custombanner1'; // only useful for s
 
 On a single wiki these replace the gradient presets. Users without a custom upload get `$wgIntegratedProfilesBannerPresetDefault` if set, otherwise the first map entry. On a farm they appear below the gradients and only apply on that wiki. Do not set the map globally on a farm.
 
+#### Notes
+
+* If a banner's preset ID is removed, every user who was using that banner is defaulted to `$wgIntegratedProfilesBannerPresetDefault` or the first preset.
+* After a banner preset is removed, it will no longer be useable. But, if it was ever re-added, the banner will appear on users whom have not changed their wiki banner after it was removed.
+
 ### Social links
 
 ```php
