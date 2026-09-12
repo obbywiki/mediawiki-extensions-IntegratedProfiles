@@ -16,7 +16,7 @@ function sync_page_sidebar_offset() {
 
 	const body_top = body_content.getBoundingClientRect().top;
 	const tabs_bottom = tabs.getBoundingClientRect().bottom;
-	const offset_px = Math.max( 0, Math.round( tabs_bottom - body_top ) );
+	const offset_px = Math.max( 0, Math.round( tabs_bottom - body_top ) ) + 8;
 
 	sidebar.style.setProperty( '--ip-sidebar-offset', offset_px + 'px' );
 }
