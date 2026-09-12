@@ -161,7 +161,10 @@ class ProfileFields {
 	private readonly array $enabled_social_ids;
 
 	/**
+	 * @param int $about_max_length Max length of the about field
+	 * @param int $link_max_length Max length of link fields
 	 * @param list<mixed>|null $enabled_social_links Catalog IDs to show/accept. Null enables the full catalog.
+	 * @param BannerPresets|null $banner_presets Banner preset catalog
 	 */
 	public function __construct(
 		private readonly int $about_max_length = 1000,
@@ -624,6 +627,7 @@ class ProfileFields {
 	}
 
 	/**
+	 * @param string $id Social catalog ID
 	 * @param array<string, string> $fields
 	 * @return array{label: string, url: string, kind: string}|null
 	 */

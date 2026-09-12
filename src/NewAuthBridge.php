@@ -8,7 +8,7 @@ use MediaWiki\User\UserIdentity;
 use Throwable;
 
 /**
- * Soft adapter for NewAuth verified OAuth links. 
+ * Soft adapter for NewAuth verified OAuth links.
  * This doesn't do anything without NewAuth installed and configured. Since NewAuth is a private extension, this script isn't well documented because this shouldn't apply to your installation.
  */
 class NewAuthBridge {

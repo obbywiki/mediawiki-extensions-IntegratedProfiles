@@ -18,7 +18,7 @@
 		<exclude-pattern>tests/phpunit/</exclude-pattern>
 	</rule>
 	<file>src</file>
-	<file>tests/phpunit</file> <!-- for future use -->
+	<!-- <file>tests/phpunit</file> -->
 	<arg name="extensions" value="php"/>
 	<arg name="encoding" value="UTF-8"/>
 	<exclude-pattern>vendor/</exclude-pattern>

@@ -109,7 +109,7 @@ class BannerPresets {
 
 			$id = strtolower( trim( $id ) );
 			$url = trim( $url );
-			
+
 			if ( !self::is_id( $id ) || $id === ProfileFields::BANNER_CUSTOM ) {
 				continue;
 			}

@@ -631,6 +631,8 @@ class ProfileService {
 	}
 
 	/**
+	 * @param string $global_mode Stored global banner mode
+	 * @param string $wiki_id Stored wiki-preset ID
 	 * @param array{banner_url: string, has_custom_banner: bool} $banner
 	 */
 	private function resolve_banner_paint_url( string $global_mode, string $wiki_id, array $banner ): string {
@@ -677,7 +679,7 @@ class ProfileService {
 
 			if ( ProfileFields::is_flag_key( $key ) ) {
 				$fields[$key] = ProfileFields::is_flag_on( is_string( $value ) || is_numeric( $value ) ? (string)$value : '' ) ? '1' : '0';
-				
+
 				continue;
 			}
 

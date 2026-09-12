@@ -63,7 +63,7 @@ class BannerValidator {
 			if ( $finfo ) {
 				$mime = finfo_file( $finfo, $path );
 				finfo_close( $finfo );
-				
+
 				if ( is_string( $mime ) && $mime !== '' ) {
 					return $mime;
 				}

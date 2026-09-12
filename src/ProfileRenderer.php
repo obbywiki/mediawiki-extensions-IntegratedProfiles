@@ -71,6 +71,7 @@ class ProfileRenderer {
 	/**
 	 * Compact location row in the masthead facts strip.
 	 *
+	 * @param string $location
 	 * @param array $messages Localized strings (location_label)
 	 */
 	public function render_location( string $location, array $messages ): string {
@@ -425,6 +426,7 @@ class ProfileRenderer {
 	}
 
 	/**
+	 * @param string $location
 	 * @param array $messages
 	 * @return array{label: string, display: string}|null
 	 */

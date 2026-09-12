@@ -29,7 +29,7 @@ class ProfileLanguageLinks {
 		$this->content_language = strtolower( trim( $content_language ) );
 	}
 
-	/** 
+	/**
 	 * Returns the canonical English namespace title for a root User: / User_talk: title.
 	 */
 	public static function canonical_user_title( string $user_name, bool $is_talk ): string {
@@ -103,7 +103,7 @@ class ProfileLanguageLinks {
 		}
 
 		$prefix = strtolower( substr( $link, 0, $pos ) );
-		
+
 		return $prefix !== '' ? $prefix : null;
 	}
 
