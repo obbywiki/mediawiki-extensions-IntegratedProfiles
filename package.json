@@ -8,7 +8,7 @@
 		"typecheck": "vue-tsc --noEmit",
 		"lint": "pnpm lint:js && pnpm lint:css",
 		"lint:js": "eslint resources src",
-		"lint:css": "stylelint \"resources/**/*.css\" \"src/**/*.vue\"",
+		"lint:styles": "stylelint \"resources/**/*.css\" \"src/**/*.vue\"",
 		"test": "vitest run",
 		"test:watch": "vitest"
 	},
