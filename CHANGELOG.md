@@ -1,5 +1,38 @@
 # Changelog
 
+## [0.6.0](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/compare/v0.5.0...v0.6.0) (2026-09-12)
+
+
+### Features
+
+* better support for larger about/tagline prose ([bcbc270](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/bcbc270a0dce3b706d386addbc474afd3e585466))
+* bump sidebar offset to match padding of the about page prose ([9ec3624](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/9ec3624073fa1b1ac0df68fa451aec98d11b09aa))
+* make the editor action strip sticky ([dad988a](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/dad988a01f75d673c8460ec0308c0a740f499f52))
+* revamp appearance section ([426cde2](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/426cde2905006bf33065c7679cab7dacaf3474c9))
+* stateful editor actions ([fb78795](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/fb78795ba97a6145022312609ca67e628776ed3d))
+* wiki-configurable custom banner presets ([#16](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/issues/16)) ([bdaebdf](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/bdaebdf1e69eec93169ff8d034f6d572eefd650d))
+
+
+### Bug Fixes
+
+* minor codex tweak ([ceaa672](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/ceaa67252b1a188be505ba74678f1ff1cb0e2bfa))
+
+
+### Performance Improvements
+
+* check profile visibility before retrieving profile data ([24c443b](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/24c443bf99959cfa9e1de78cd86be0d5bc363df8))
+* fix request duplication on user/user_talk pages by caching local username requests ([052e466](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/052e4664a6505f45cd52f043569c2ca6332ff037))
+* **header:** avoid triggering an id lookup when it isn't applicable anyway ([d3a1c02](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/d3a1c0272a199ed065bdb7ad0b5097e01bc5721d))
+* lazy load the editor app + split masthead/editor css ([7a2e9b6](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/7a2e9b634321fbaf56eef872fcb4749137af051d))
+* optimize central id lookups ([4621fc2](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/4621fc27a92f3fb3f64823410f8dd9dff1cdbece))
+
+
+### Miscellaneous Chores
+
+* add version to composer.json ([62b38f4](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/62b38f4ff6031b293d6a4403063d66c6f19f154e))
+* regen package-lock.json ([1b3c428](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/1b3c42843cfc4284e6570140a38624ccb80a78fd))
+* state deprecated in config descriptions ([4c33bf6](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/4c33bf6e6f6dc7da5fcb2be62dbc6745f63b5e8a))
+
 ## [0.5.0](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/compare/v0.4.0...v0.5.0) (2026-09-11)
 
 
