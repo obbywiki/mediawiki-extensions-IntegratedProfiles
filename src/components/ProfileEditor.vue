@@ -67,7 +67,7 @@
 								v-for="preset_id in banner_presets"
 								:key="preset_id"
 								role="option"
-								:aria-selected="gradient_selected === preset_id"
+								:aria-selected="main_preset_selected( preset_id )"
 							>
 								<button
 									type="button"
@@ -95,6 +95,32 @@
 									:disabled="busy"
 									@click="on_select_banner( 'custom' )"
 								/>
+							</li>
+							<li
+								v-if="replace_gradient_presets && selected_wiki_banner"
+								role="presentation"
+							>
+								<button
+									type="button"
+									class="ip-editor__banner-swatch ip-editor__banner-swatch--add"
+									:aria-label="msg( 'integratedprofiles-banner-wiki-clear' )"
+									:title="msg( 'integratedprofiles-banner-wiki-clear' )"
+									:disabled="busy"
+									@click="on_select_wiki_banner( '' )"
+								>
+									<svg
+										class="ip-editor__banner-add-icon"
+										xmlns="http://www.w3.org/2000/svg"
+										viewBox="0 0 20 20"
+										aria-hidden="true"
+										focusable="false"
+									>
+										<path
+											fill="currentColor"
+											d="M10 1C14.9706 1 19 5.02944 19 10C19 14.9706 14.9706 19 10 19C5.02944 19 1 14.9706 1 10C1 5.02944 5.02944 1 10 1ZM4.39355 5.80566C3.51773 6.97448 3 8.42706 3 10C3 13.866 6.13401 17 10 17C11.5729 17 13.0246 16.4812 14.1934 15.6055L4.39355 5.80566ZM10 3C8.42832 3 6.97692 3.51705 5.80859 4.3916L15.6064 14.1904C16.4811 13.022 17 11.5718 17 10C17 6.13401 13.866 3 10 3Z"
+										/>
+									</svg>
+								</button>
 							</li>
 							<li role="presentation">
 								<button
@@ -763,23 +789,30 @@ function social_maxlength( entry: EnabledSocialLink ): number {
 	return link_max.value;
 }
 
+const banner_preset_images = computed( (): Record<string, string> => {
+	return props.config.banner_preset_images || {};
+} );
+const banner_presets_split = computed( () => Boolean( props.config.banner_presets_split ) );
+const wiki_banner_ids = computed( () => Object.keys( banner_preset_images.value ) );
+const has_wiki_presets = computed( () => wiki_banner_ids.value.length > 0 );
+const replace_gradient_presets = computed(
+	() => has_wiki_presets.value && !banner_presets_split.value
+);
+const show_wiki_banners = computed(
+	() => has_wiki_presets.value && banner_presets_split.value
+);
 const banner_presets = computed( () => {
+	if ( replace_gradient_presets.value ) {
+		return wiki_banner_ids.value;
+	}
 	if ( props.config.banner_presets && props.config.banner_presets.length ) {
 		return props.config.banner_presets;
 	}
 
 	return DEFAULT_BANNER_PRESETS;
 } );
-const banner_preset_images = computed( (): Record<string, string> => {
-	return props.config.banner_preset_images || {};
-} );
-const banner_presets_split = computed( () => Boolean( props.config.banner_presets_split ) );
-const wiki_banner_ids = computed( () => Object.keys( banner_preset_images.value ) );
-const show_wiki_banners = computed(
-	() => banner_presets_split.value && wiki_banner_ids.value.length > 0
-);
 const selected_wiki_banner = computed( () => {
-	if ( !show_wiki_banners.value ) {
+	if ( !has_wiki_presets.value ) {
 		return '';
 	}
 	return draft[ 'ip-banner-wiki' ] || '';
@@ -806,7 +839,7 @@ function build_save_fields(): Partial<ProfileFieldsMap> {
 		'ip-visibility': draft[ 'ip-visibility' ]
 	};
 
-	if ( banner_presets_split.value ) {
+	if ( has_wiki_presets.value ) {
 		payload[ 'ip-banner-wiki' ] = draft[ 'ip-banner-wiki' ];
 	}
 
@@ -952,7 +985,21 @@ const connection_rows = computed( () => {
 } );
 
 function banner_swatch_class( preset_id: string ): ( string | Record<string, boolean> )[] {
-	return [ 'ip-editor__banner-swatch--' + preset_id, { 'ip-editor__banner-swatch--selected': gradient_selected.value === preset_id } ];
+	return [
+		'ip-editor__banner-swatch--' + preset_id,
+		{
+			'ip-editor__banner-swatch--wiki': !!banner_preset_images.value[ preset_id ],
+			'ip-editor__banner-swatch--selected': main_preset_selected( preset_id )
+		}
+	];
+}
+
+function main_preset_selected( preset_id: string ): boolean {
+	if ( replace_gradient_presets.value ) {
+		return selected_wiki_banner.value === preset_id;
+	}
+
+	return gradient_selected.value === preset_id;
 }
 
 function banner_image_style( preset_id: string ): Record<string, string> {
@@ -1031,7 +1078,7 @@ function sync_banner_from_profile( profile: { fields?: { 'ip-banner'?: string; '
 }
 
 async function on_select_banner( preset_id: string ): Promise<void> {
-	if ( busy.value || ( gradient_selected.value === preset_id && !selected_wiki_banner.value ) ) { return; }
+	if ( busy.value || main_preset_selected( preset_id ) ) { return; }
 	if ( preset_id === 'custom' && !has_custom_banner.value ) { return; }
 
 	busy.value = true;
@@ -1039,7 +1086,10 @@ async function on_select_banner( preset_id: string ): Promise<void> {
 	success_message.value = '';
 	try {
 		const fields: Partial<ProfileFieldsMap> = { 'ip-banner': preset_id };
-		if ( banner_presets_split.value ) {
+		if ( replace_gradient_presets.value && preset_id !== 'custom' ) {
+			fields[ 'ip-banner-wiki' ] = preset_id;
+			delete fields[ 'ip-banner' ];
+		} else if ( has_wiki_presets.value ) {
 			fields[ 'ip-banner-wiki' ] = '';
 		}
 		const profile = await save_profile_fields( fields, props.config.user_name );

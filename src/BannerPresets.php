@@ -53,7 +53,7 @@ class BannerPresets {
 		$global_mode = ProfileFields::normalize_banner( $global_mode );
 		$wiki_id = $this->normalize_wiki_id( $wiki_id );
 
-		if ( $this->is_split() && $wiki_id !== '' ) {
+		if ( $wiki_id !== '' ) {
 			$url = $this->url_for( $wiki_id );
 			if ( $url !== '' ) {
 				return [ 'url' => $url ];
