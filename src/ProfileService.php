@@ -29,14 +29,15 @@ class ProfileService {
 		'IntegratedProfilesLinkMaxLength',
 		'IntegratedProfilesEnableAnimatedAvatars',
 		'IntegratedProfilesEnabledSocialLinks',
-		'IntegratedProfilesBannerPresetImages'
+		'IntegratedProfilesBannerPresetImages',
+		'IntegratedProfilesBannerPresetDefault'
 	];
 
 	private readonly ProfileFields $fields;
 
 	/** @var array<string, ?User> Request-local map of username => registered user (null for misses) */
 	private array $users_by_name = [];
-	
+
 	private readonly BannerPresets $banner_presets;
 
 	public function __construct(
@@ -54,7 +55,8 @@ class ProfileService {
 	) {
 		$options->assertRequiredOptions( self::CONSTRUCTOR_OPTIONS );
 		$this->banner_presets = new BannerPresets(
-			(array)$options->get( 'IntegratedProfilesBannerPresetImages' )
+			(array)$options->get( 'IntegratedProfilesBannerPresetImages' ),
+			(string)$options->get( 'IntegratedProfilesBannerPresetDefault' )
 		);
 		$this->fields = new ProfileFields(
 			(int)$options->get( 'IntegratedProfilesAboutMaxLength' ),

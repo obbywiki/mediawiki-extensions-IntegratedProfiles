@@ -136,6 +136,7 @@ class ProfileHandler {
 					'has_custom_banner' => $payload['has_custom_banner'] ?? false,
 					'banner_presets' => ProfileFields::BANNER_GRADIENT_PRESETS,
 					'banner_preset_images' => $banner_presets->images(),
+					'banner_preset_default' => $banner_presets->default_id(),
 					'banner_presets_split' => $banner_presets->is_split(),
 
 					'ui' => $payload['ui'],

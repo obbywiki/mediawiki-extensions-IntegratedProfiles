@@ -12,11 +12,14 @@ class BannerPresets {
 	/** @var array<string, string> id => sanitized URL */
 	private readonly array $images;
 
+	private readonly string $default_id;
+
 	/**
 	 * @param array<mixed, mixed> $raw $wgIntegratedProfilesBannerPresetImages
 	 */
-	public function __construct( array $raw ) {
+	public function __construct( array $raw, string $default_id = '' ) {
 		$this->images = self::parse( $raw );
+		$this->default_id = $this->resolve_default_id( $default_id );
 	}
 
 	/**
@@ -24,6 +27,10 @@ class BannerPresets {
 	 */
 	public function images(): array {
 		return $this->images;
+	}
+
+	public function default_id(): string {
+		return $this->default_id;
 	}
 
 	public function is_split(): bool {
@@ -64,14 +71,27 @@ class BannerPresets {
 			return [ 'url' => $custom_url ];
 		}
 
-		if ( !$this->is_split() && $global_mode !== ProfileFields::BANNER_CUSTOM ) {
-			$url = $this->url_for( $global_mode );
+		if ( !$this->is_split() && $this->default_id !== '' ) {
+			$url = $this->url_for( $this->default_id );
 			if ( $url !== '' ) {
 				return [ 'url' => $url ];
 			}
 		}
 
 		return [ 'url' => '' ];
+	}
+
+	private function resolve_default_id( string $requested ): string {
+		$requested = strtolower( trim( $requested ) );
+		if ( $requested !== '' && isset( $this->images[$requested] ) ) {
+			return $requested;
+		}
+
+		if ( $this->images === [] ) {
+			return '';
+		}
+
+		return (string)array_key_first( $this->images );
 	}
 
 	/**

@@ -407,7 +407,11 @@
 		},
 		"IntegratedProfilesBannerPresetImages": {
 			"value": [],
-			"description": "Map of banner preset id to image URL (http(s) or site-relative). Behavior depends on setup. TODO"
+			"description": "Map of banner preset id to image URL (http(s) or site-relative)."
+		},
+		"IntegratedProfilesBannerPresetDefault": {
+			"value": "",
+			"description": "Preset ID from IntegratedProfilesBannerPresetImages to use as the single-wiki default when the user has not chosen one."
 		},
 		"IntegratedProfilesLanguageInterwikis": {
 			"value": [],

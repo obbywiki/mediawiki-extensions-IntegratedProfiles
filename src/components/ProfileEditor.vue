@@ -96,32 +96,6 @@
 									@click="on_select_banner( 'custom' )"
 								/>
 							</li>
-							<li
-								v-if="replace_gradient_presets && selected_wiki_banner"
-								role="presentation"
-							>
-								<button
-									type="button"
-									class="ip-editor__banner-swatch ip-editor__banner-swatch--add"
-									:aria-label="msg( 'integratedprofiles-banner-wiki-clear' )"
-									:title="msg( 'integratedprofiles-banner-wiki-clear' )"
-									:disabled="busy"
-									@click="on_select_wiki_banner( '' )"
-								>
-									<svg
-										class="ip-editor__banner-add-icon"
-										xmlns="http://www.w3.org/2000/svg"
-										viewBox="0 0 20 20"
-										aria-hidden="true"
-										focusable="false"
-									>
-										<path
-											fill="currentColor"
-											d="M10 1C14.9706 1 19 5.02944 19 10C19 14.9706 14.9706 19 10 19C5.02944 19 1 14.9706 1 10C1 5.02944 5.02944 1 10 1ZM4.39355 5.80566C3.51773 6.97448 3 8.42706 3 10C3 13.866 6.13401 17 10 17C11.5729 17 13.0246 16.4812 14.1934 15.6055L4.39355 5.80566ZM10 3C8.42832 3 6.97692 3.51705 5.80859 4.3916L15.6064 14.1904C16.4811 13.022 17 11.5718 17 10C17 6.13401 13.866 3 10 3Z"
-										/>
-									</svg>
-								</button>
-							</li>
 							<li role="presentation">
 								<button
 									type="button"
@@ -795,6 +769,14 @@ const banner_preset_images = computed( (): Record<string, string> => {
 const banner_presets_split = computed( () => Boolean( props.config.banner_presets_split ) );
 const wiki_banner_ids = computed( () => Object.keys( banner_preset_images.value ) );
 const has_wiki_presets = computed( () => wiki_banner_ids.value.length > 0 );
+const wiki_banner_default = computed( () => {
+	const configured = ( props.config.banner_preset_default || '' ).trim();
+	if ( configured && banner_preset_images.value[ configured ] ) {
+		return configured;
+	}
+
+	return wiki_banner_ids.value[ 0 ] || '';
+} );
 const replace_gradient_presets = computed(
 	() => has_wiki_presets.value && !banner_presets_split.value
 );
@@ -815,7 +797,15 @@ const selected_wiki_banner = computed( () => {
 	if ( !has_wiki_presets.value ) {
 		return '';
 	}
-	return draft[ 'ip-banner-wiki' ] || '';
+	const stored = draft[ 'ip-banner-wiki' ] || '';
+	if ( stored ) {
+		return stored;
+	}
+	if ( replace_gradient_presets.value && selected_banner.value !== 'custom' ) {
+		return wiki_banner_default.value;
+	}
+
+	return '';
 } );
 const gradient_selected = computed( () => {
 	if ( selected_wiki_banner.value ) {

@@ -69,6 +69,7 @@ export type IntegratedProfilesConfig = {
 	has_custom_banner?: boolean;
 	banner_presets?: string[];
 	banner_preset_images?: Record<string, string>;
+	banner_preset_default?: string;
 	banner_presets_split?: boolean;
 	ui: {
 		color: string;
