@@ -65,6 +65,8 @@
 	"integratedprofiles-banner-preset-aurora": "Aurora",
 	"integratedprofiles-banner-preset-custom": "Custom image",
 	"integratedprofiles-banner-wiki-label": "On $1",
+	"integratedprofiles-banner-wiki-help": "These banners will only apply on this wiki and will override your original banner, but only on this wiki.",
+	"integratedprofiles-banner-wiki-clear": "Discard local banner",
 	"integratedprofiles-field-about": "Tagline",
 	"integratedprofiles-field-about-help": "Write something short about yourself.",
 	"integratedprofiles-field-about-placeholder": "A short line about you",
