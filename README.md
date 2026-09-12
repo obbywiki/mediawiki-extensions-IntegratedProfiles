@@ -197,7 +197,7 @@ $wgIntegratedProfilesBannerPresetImages = [
 $wgIntegratedProfilesBannerPresetDefault = 'custombanner1'; // only useful for single-wiki setups
 ```
 
-On a single wiki these replace the gradient presets. Users without a custom upload get `$wgIntegratedProfilesBannerPresetDefault` if set, otherwise the first map entry. On a farm they appear below the gradients and only apply on that wiki. Do not set the map globally.
+On a single wiki these replace the gradient presets. Users without a custom upload get `$wgIntegratedProfilesBannerPresetDefault` if set, otherwise the first map entry. On a farm they appear below the gradients and only apply on that wiki. Do not set the map globally on a farm.
 
 ### Social links
 
