@@ -66,6 +66,7 @@ export type IntegratedProfilesConfig = {
 	avatar_url: string;
 	has_custom_avatar: boolean;
 	banner_url?: string;
+	custom_banner_url?: string;
 	has_custom_banner?: boolean;
 	banner_presets?: string[];
 	banner_preset_images?: Record<string, string>;
@@ -104,6 +105,7 @@ export type ProfilePayload = {
 	avatar_url: string;
 	has_custom_avatar: boolean;
 	banner_url?: string;
+	custom_banner_url?: string;
 	has_custom_banner?: boolean;
 	connections: ProfileConnection[];
 	ui: {

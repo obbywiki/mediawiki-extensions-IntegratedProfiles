@@ -291,6 +291,7 @@ class ProfileFields {
 		$payload['wiki_profiles'] = [];
 		$payload['featured_article'] = null;
 		$payload['banner_url'] = '';
+		$payload['custom_banner_url'] = '';
 		$payload['has_custom_banner'] = false;
 		$payload['connections'] = [];
 

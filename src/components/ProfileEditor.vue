@@ -679,6 +679,18 @@ function normalize_visibility( value: string | undefined ): string {
 	return 'public';
 }
 
+function initial_custom_banner_url( config: IntegratedProfilesConfig ): string {
+	const explicit = ( config.custom_banner_url || '' ).trim();
+	if ( explicit ) { return explicit; }
+	if ( !config.has_custom_banner ) { return ''; }
+
+	const wiki_id = ( config.fields && config.fields[ 'ip-banner-wiki' ] ) || '';
+	const images = config.banner_preset_images || {};
+	if ( wiki_id && images[ wiki_id ] ) { return ''; }
+
+	return ( config.banner_url || '' ).trim();
+}
+
 const draft = reactive<ProfileFieldsMap>( {
 	'ip-about': field_or_empty( props.config.fields && props.config.fields[ 'ip-about' ] ),
 	'ip-location': field_or_empty( props.config.fields && props.config.fields[ 'ip-location' ] ),
@@ -708,6 +720,7 @@ let footer_observer: IntersectionObserver | null = null;
 const selected_banner = ref( draft[ 'ip-banner' ] || 'accent' );
 const has_custom_banner = ref( !!props.config.has_custom_banner );
 const banner_url = ref( props.config.banner_url || '' );
+const custom_banner_url = ref( initial_custom_banner_url( props.config ) );
 const avatar_preview_url = ref( props.config.avatar_url || '' );
 const social_links_open = ref( false );
 const wiki_profiles_open = ref( Boolean( draft[ 'ip-mediawiki' ] || draft[ 'ip-miraheze' ] || draft[ 'ip-fandom' ] ) );
@@ -808,7 +821,7 @@ const selected_wiki_banner = computed( () => {
 	return '';
 } );
 const gradient_selected = computed( () => {
-	if ( selected_wiki_banner.value ) {
+	if ( replace_gradient_presets.value && selected_wiki_banner.value ) {
 		return '';
 	}
 	return selected_banner.value;
@@ -896,9 +909,9 @@ const about_remaining = computed( () => about_max.value - about_length.value );
 const location_length = computed( () => ( draft[ 'ip-location' ] || '' ).length );
 const location_remaining = computed( () => about_max.value - location_length.value );
 const custom_swatch_style = computed( () => {
-	if ( !banner_url.value ) { return {}; }
+	if ( !custom_banner_url.value ) { return {}; }
 
-	return { backgroundImage: 'url(' + banner_url.value + ')' };
+	return { backgroundImage: 'url(' + custom_banner_url.value + ')' };
 } );
 const show_manage_connections = computed(
 	() => Boolean( props.config.show_manage_connections )
@@ -1045,7 +1058,7 @@ function sync_avatar_from_profile( profile: { avatar_url?: string; has_custom_av
 	}
 }
 
-function sync_banner_from_profile( profile: { fields?: { 'ip-banner'?: string; 'ip-banner-wiki'?: string }; banner_url?: string; has_custom_banner?: boolean; } ): void {
+function sync_banner_from_profile( profile: { fields?: { 'ip-banner'?: string; 'ip-banner-wiki'?: string }; banner_url?: string; custom_banner_url?: string; has_custom_banner?: boolean } ): void {
 	const mode = ( profile.fields && profile.fields[ 'ip-banner' ] ) || 'accent';
 	const wiki_mode = ( profile.fields && profile.fields[ 'ip-banner-wiki' ] ) || '';
 	selected_banner.value = mode;
@@ -1053,12 +1066,18 @@ function sync_banner_from_profile( profile: { fields?: { 'ip-banner'?: string; '
 	draft[ 'ip-banner-wiki' ] = wiki_mode;
 	has_custom_banner.value = !!profile.has_custom_banner;
 	banner_url.value = profile.banner_url || '';
+	if ( profile.custom_banner_url !== undefined ) {
+		custom_banner_url.value = profile.custom_banner_url || '';
+	} else if ( !has_custom_banner.value ) {
+		custom_banner_url.value = '';
+	}
 
 	const live_config = mw.config.get( 'wgIntegratedProfiles' ) as IntegratedProfilesConfig | null;
 
 	if ( live_config ) {
 		live_config.has_custom_banner = has_custom_banner.value;
 		live_config.banner_url = banner_url.value;
+		live_config.custom_banner_url = custom_banner_url.value;
 
 		if ( live_config.fields ) {
 			live_config.fields[ 'ip-banner' ] = mode;
@@ -1068,8 +1087,9 @@ function sync_banner_from_profile( profile: { fields?: { 'ip-banner'?: string; '
 }
 
 async function on_select_banner( preset_id: string ): Promise<void> {
-	if ( busy.value || main_preset_selected( preset_id ) ) { return; }
+	if ( busy.value ) { return; }
 	if ( preset_id === 'custom' && !has_custom_banner.value ) { return; }
+	if ( main_preset_selected( preset_id ) && !( banner_presets_split.value && selected_wiki_banner.value ) ) { return; }
 
 	busy.value = true;
 	error_message.value = '';

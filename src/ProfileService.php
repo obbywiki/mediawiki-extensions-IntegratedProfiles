@@ -266,6 +266,7 @@ class ProfileService {
 				(string)( $field_values[ ProfileFields::KEY_BANNER_WIKI ] ?? '' ),
 				$banner
 			),
+			'custom_banner_url' => $banner['has_custom_banner'] ? $banner['banner_url'] : '',
 			'has_custom_banner' => $banner['has_custom_banner'],
 			'connections' => $connections,
 			'ui' => $this->payload_ui(),

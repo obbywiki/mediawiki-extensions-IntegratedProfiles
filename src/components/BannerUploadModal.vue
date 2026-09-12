@@ -124,6 +124,23 @@ const props = defineProps<{
 
 const emit = defineEmits( [ 'close' ] );
 
+function custom_file_url( source: { custom_banner_url?: string; banner_url?: string; has_custom_banner?: boolean; fields?: { 'ip-banner-wiki'?: string }; banner_preset_images?: Record<string, string> } ): string {
+	const explicit = ( source.custom_banner_url || '' ).trim();
+	if ( explicit ) {
+		return explicit;
+	}
+	if ( !source.has_custom_banner ) {
+		return '';
+	}
+	const wiki_id = ( source.fields && source.fields[ 'ip-banner-wiki' ] ) || '';
+	const images = source.banner_preset_images || {};
+	if ( wiki_id && images[ wiki_id ] ) {
+		return '';
+	}
+
+	return ( source.banner_url || '' ).trim();
+}
+
 const title_id = 'ip-banner-modal-title';
 const dialog_el = ref<HTMLElement | null>( null );
 const file_input = ref<HTMLInputElement | null>( null );
@@ -131,7 +148,7 @@ const file_input = ref<HTMLInputElement | null>( null );
 const busy = ref( false );
 const error_message = ref( '' );
 const has_custom_banner = ref( !!props.config.has_custom_banner );
-const current_banner_url = ref( props.config.banner_url || '' );
+const current_banner_url = ref( custom_file_url( props.config ) );
 const pending_file = ref<File | null>( null );
 const preview_url = ref( '' );
 
@@ -225,11 +242,14 @@ function on_file_selected( event: Event ): void {
 	preview_url.value = URL.createObjectURL( file );
 }
 
-function sync_config_banner( banner_url: string, custom: boolean ): void {
+function sync_config_banner( file_url: string, custom: boolean ): void {
 	const live_config = mw.config.get( 'wgIntegratedProfiles' ) as IntegratedProfilesConfig | null;
 	if ( live_config ) {
-		live_config.banner_url = banner_url;
+		live_config.custom_banner_url = custom ? file_url : '';
 		live_config.has_custom_banner = custom;
+		if ( custom ) {
+			live_config.banner_url = file_url;
+		}
 
 		if ( live_config.fields ) {
 			live_config.fields[ 'ip-banner' ] = custom ? 'custom' : 'accent';
@@ -247,7 +267,7 @@ async function on_confirm(): Promise<void> {
 		const profile = await upload_banner( file, props.config.user_name );
 		apply_payload_to_dom( profile );
 		has_custom_banner.value = !!profile.has_custom_banner;
-		current_banner_url.value = profile.banner_url || '';
+		current_banner_url.value = custom_file_url( profile );
 		sync_config_banner( current_banner_url.value, has_custom_banner.value );
 		document.dispatchEvent( new CustomEvent( 'ip-banner-updated', { detail: profile } ) );
 		revoke_preview();
@@ -268,7 +288,7 @@ async function on_delete(): Promise<void> {
 		const profile = await delete_banner( props.config.user_name );
 		apply_payload_to_dom( profile );
 		has_custom_banner.value = !!profile.has_custom_banner;
-		current_banner_url.value = profile.banner_url || '';
+		current_banner_url.value = custom_file_url( profile );
 		sync_config_banner( current_banner_url.value, has_custom_banner.value );
 		document.dispatchEvent( new CustomEvent( 'ip-banner-updated', { detail: profile } ) );
 		emit( 'close' );

@@ -263,6 +263,10 @@ export function sync_config_from_profile( profile: ProfilePayload ): void {
 		live_config.banner_url = profile.banner_url || '';
 	}
 
+	if ( profile.custom_banner_url !== undefined ) {
+		live_config.custom_banner_url = profile.custom_banner_url || '';
+	}
+
 	if ( profile.has_custom_banner !== undefined ) {
 		live_config.has_custom_banner = !!profile.has_custom_banner;
 	}
