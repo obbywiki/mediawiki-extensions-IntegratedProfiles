@@ -106,7 +106,7 @@
 	}
 }
 
- /* implements --ip-sidebar-offset, see page_sidebar.js */
+/* implements --ip-sidebar-offset, see page_sidebar.js */
 @media ( min-width: 1120px ) {
 	.integratedprofiles-profile.citizen-toc-enabled #citizen-page-header .citizen-page-header-inner {
 		max-width: var( --width-page );
@@ -270,14 +270,19 @@
 	height: 1.5rem;
 }
 
-.ip-avatar:hover .ip-avatar__edit,
-.ip-avatar__edit:focus-visible {
-	opacity: 1;
+/* the badge opens the vue editor, so it is useless without JS loaded */
+.client-nojs .ip-avatar__edit {
+	display: none;
 }
 
 .ip-avatar__edit:focus-visible {
 	outline: 2px solid var( --color-progressive, #36c );
 	outline-offset: 2px;
+}
+
+.ip-avatar__edit:focus-visible,
+.ip-avatar:hover .ip-avatar__edit {
+	opacity: 1;
 }
 
 @media ( hover: none ) {
@@ -288,11 +293,6 @@
 	.ip-avatar__edit-scrim {
 		background: rgba( 0, 0, 0, 0.32 );
 	}
-}
-
-/* the badge opens the vue editor, so it is useless without JS loaded */
-.client-nojs .ip-avatar__edit {
-	display: none;
 }
 
 .ip-identity {
@@ -315,6 +315,7 @@
 	min-width: 0;
 }
 
+/* stylelint-disable declaration-no-important */
 .ip-identity__name {
 	margin: 0 !important; /* for timeless */
 	padding: 0;
@@ -325,6 +326,7 @@
 	color: var( --color-emphasized );
 	overflow-wrap: break-word;
 }
+/* stylelint-enable declaration-no-important */
 
 .ip-identity__you {
 	display: inline-flex;
@@ -379,7 +381,7 @@
 	display: none;
 }
 
-.ip-identity__meta-item:not( :empty ):not( [hidden] ) ~ .ip-identity__meta-item:not( :empty ):not( [hidden] )::before {
+.ip-identity__meta-item:not( :empty ):not( [ hidden ] ) ~ .ip-identity__meta-item:not( :empty ):not( [ hidden ] )::before {
 	content: '·';
 	margin-right: 0.75rem;
 	color: var( --color-placeholder );
@@ -450,7 +452,7 @@
 	padding: 0;
 	border-radius: var( --border-radius-medium );
 	color: var( --color-emphasized );
-	background-color: var( --color-surface-3, var(--background-color-neutral) );
+	background-color: var( --color-surface-3, var( --background-color-neutral ) );
 	text-decoration: none;
 	opacity: 1;
 	transition: background-color 0.2s ease, color 0.2s ease, filter 0.2s ease;
@@ -494,6 +496,7 @@
 	filter: brightness( 1.1 );
 }
 
+/* stylelint-disable */
 .ip-links__item--verified.ip-links__item--discord .ip-links__anchor,
 .ip-links__item--verified.ip-links__item--discord .ip-links__anchor:link,
 .ip-links__item--verified.ip-links__item--discord .ip-links__anchor:visited,
@@ -515,6 +518,8 @@
 	/* https://github.com/obbywiki/standards/blob/main/DESIGN.md */
 	background-color: #335fff;
 }
+
+/* stylelint-enable */
 
 .ip-links__badge {
 	position: absolute;
@@ -878,6 +883,8 @@
 	outline-offset: 2px;
 }
 
+/* stylelint-disable */
+
 .ip-wiki-profiles__icon {
 	display: block;
 	width: 1.1rem;
@@ -886,6 +893,8 @@
 	-webkit-mask: center / contain no-repeat;
 	mask: center / contain no-repeat;
 }
+
+/* stylelint-enable */
 
 /* WIKI CONNECTIONS */
 .ip-wiki-profiles__item--mediawiki .ip-wiki-profiles__anchor {
@@ -934,7 +943,7 @@
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
-	column-gap: 1rem;
+	gap: 1rem;
 	row-gap: 0.35rem;
 	margin: 0;
 	padding: 0.65rem 1.25rem 0.35rem;

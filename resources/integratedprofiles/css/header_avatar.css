@@ -7,6 +7,7 @@
 	height: 1.5rem;
 }
 
+/* stylelint-disable declaration-no-important */
 .ip-has-header-avatar .citizen-userMenu .citizen-dropdown-summary > .mw-ui-icon-wikimedia-userAvatar::before {
 	background-color: transparent !important;
 	background-image: var( --ip-header-avatar ) !important;
@@ -17,3 +18,4 @@
 	-webkit-mask-image: none;
 	mask-image: none;
 }
+/* stylelint-enable declaration-no-important */

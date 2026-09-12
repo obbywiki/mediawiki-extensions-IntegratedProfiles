@@ -22,7 +22,7 @@
 	overflow: hidden;
 	border-radius: 0.5rem;
 	background: #2a2a2a;
-	box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+	box-shadow: 0 2px 12px 0 rgba( 0, 0, 0, 0.1 );
 }
 
 .ip-user-card__banner {
@@ -209,8 +209,7 @@ a.ip-user-card__user-name:focus {
 
 .ip-user-card__extras {
 	display: flex;
-	flex-direction: row;
-	flex-wrap: wrap;
+	flex-flow: row wrap;
 	align-items: center;
 	gap: 0.25rem 0.75rem;
 }

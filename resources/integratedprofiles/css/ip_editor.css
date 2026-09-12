@@ -174,7 +174,7 @@
 	font-size: 0.8125rem;
 	line-height: 1.4;
 	color: var( --color-subtle );
-	font-weight: 400;
+	font-weight: normal;
 }
 
 /* so the switch stays trailing */
@@ -261,9 +261,7 @@
 }
 
 .ip-editor__toggle-input:focus-visible + .ip-editor__toggle-track {
-	box-shadow: inset 0 0 0 1px var( --color-progressive ),
-		0 0 0 2px var( --background-color-base ),
-		0 0 0 4px var( --color-progressive );
+	box-shadow: inset 0 0 0 1px var( --color-progressive ), 0 0 0 2px var( --background-color-base ), 0 0 0 4px var( --color-progressive );
 }
 
 .ip-editor__toggle-input:disabled + .ip-editor__toggle-track {
@@ -413,11 +411,7 @@
 .ip-editor__footer--settled {
 	padding-top: 1.35rem;
 	background-color: var( --background-color-neutral-subtle );
-	background-image: linear-gradient(
-		180deg,
-		color-mix( in srgb, var( --background-color-base ) 58%, var( --background-color-neutral-subtle ) ) 0,
-		var( --background-color-neutral-subtle ) 1.25rem
-	);
+	background-image: linear-gradient( 180deg, color-mix( in srgb, var( --background-color-base ) 58%, var( --background-color-neutral-subtle ) ) 0, var( --background-color-neutral-subtle ) 1.25rem );
 	border-top-color: transparent;
 	box-shadow: none;
 }
@@ -518,8 +512,7 @@
 }
 
 .ip-editor__avatar-button:focus-visible .ip-editor__avatar-preview {
-	box-shadow: 0 0 0 var( --ip-editor-avatar-cutout ) var( --background-color-base ),
-		0 0 0 calc( var( --ip-editor-avatar-cutout ) + 0.15rem ) var( --color-progressive );
+	box-shadow: 0 0 0 var( --ip-editor-avatar-cutout ) var( --background-color-base ), 0 0 0 calc( var( --ip-editor-avatar-cutout ) + 0.15rem ) var( --color-progressive );
 }
 
 .ip-editor__avatar-preview-image {
@@ -772,12 +765,14 @@
 	color: var( --color-emphasized );
 }
 
+/* stylelint-disable */
 .ip-editor__help {
 	margin: 0;
 	font-size: 0.8125rem;
 	line-height: 1.45;
 	color: var( --color-subtle );
 }
+/* stylelint-enable */
 
 .ip-editor__field > .ip-editor__help,
 .ip-editor__field > .ip-editor__field-meta {
@@ -998,7 +993,7 @@ body.ip-banner-modal-open {
 .ip-upload-modal__close:focus-visible:not( :disabled ) {
 	background: var( --background-color-interactive );
 	color: var( --color-base );
-	outline: none;
+	outline: 0;
 }
 
 .ip-upload-modal__body {
@@ -1082,6 +1077,10 @@ body.ip-banner-modal-open {
 	color: #fff;
 }
 
+.ip-upload-modal .ip-upload-modal__actions > .cdx-button.cdx-button--action-progressive.cdx-button--weight-primary.ip-upload-modal__confirm:disabled {
+	opacity: 0.55;
+}
+
 .ip-upload-modal .ip-upload-modal__actions > .cdx-button.cdx-button--action-progressive.cdx-button--weight-primary.ip-upload-modal__confirm:hover:not( :disabled ) {
 	border-color: transparent;
 	background-color: var( --background-color-progressive--hover );
@@ -1091,10 +1090,6 @@ body.ip-banner-modal-open {
 .ip-upload-modal .ip-upload-modal__actions > .cdx-button.cdx-button--action-progressive.cdx-button--weight-primary.ip-upload-modal__confirm:focus-visible:not( :disabled ) {
 	outline: 2px solid var( --background-color-progressive--hover );
 	outline-offset: 2px;
-}
-
-.ip-upload-modal .ip-upload-modal__actions > .cdx-button.cdx-button--action-progressive.cdx-button--weight-primary.ip-upload-modal__confirm:disabled {
-	opacity: 0.55;
 }
 
 .ip-upload-modal__enter-hint {
