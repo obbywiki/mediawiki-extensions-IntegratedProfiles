@@ -133,12 +133,14 @@ class ProfileRenderer {
 		$banner_mode = $is_private ? ProfileFields::BANNER_ACCENT : ProfileFields::normalize_banner( (string)( $payload['fields'][ ProfileFields::KEY_BANNER ] ?? ProfileFields::BANNER_ACCENT ) );
 		$banner_url = $is_private ? '' : (string)( $payload['banner_url'] ?? '' );
 
-		if ( $banner_mode === ProfileFields::BANNER_CUSTOM && $banner_url === '' ) {
+		if ( $banner_url !== '' ) {
+			$banner_mode = ProfileFields::BANNER_CUSTOM;
+		} elseif ( $banner_mode === ProfileFields::BANNER_CUSTOM ) {
 			$banner_mode = ProfileFields::BANNER_ACCENT;
 		}
 
 		$masthead_style = '--ip-accent:' . $color . ';--ip-avatar-radius:' . $radius;
-		if ( $banner_mode === ProfileFields::BANNER_CUSTOM ) {
+		if ( $banner_mode === ProfileFields::BANNER_CUSTOM && $banner_url !== '' ) {
 			$masthead_style .= ';--ip-banner-image:url(' . $banner_url . ')';
 		}
 

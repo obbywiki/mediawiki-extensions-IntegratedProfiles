@@ -14,6 +14,7 @@ export type ProfileFieldsMap = {
 	'ip-miraheze': string;
 	'ip-fandom': string;
 	'ip-banner': string;
+	'ip-banner-wiki': string;
 	'ip-hide-connections': string;
 	'ip-show-pronouns': string;
 	'ip-visibility': string;
@@ -65,8 +66,12 @@ export type IntegratedProfilesConfig = {
 	avatar_url: string;
 	has_custom_avatar: boolean;
 	banner_url?: string;
+	custom_banner_url?: string;
 	has_custom_banner?: boolean;
 	banner_presets?: string[];
+	banner_preset_images?: Record<string, string>;
+	banner_preset_default?: string;
+	banner_presets_split?: boolean;
 	ui: {
 		color: string;
 		avatar_border_radius: string;
@@ -100,6 +105,7 @@ export type ProfilePayload = {
 	avatar_url: string;
 	has_custom_avatar: boolean;
 	banner_url?: string;
+	custom_banner_url?: string;
 	has_custom_banner?: boolean;
 	connections: ProfileConnection[];
 	ui: {

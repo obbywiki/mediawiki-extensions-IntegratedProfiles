@@ -20,6 +20,7 @@ class ProfileFields {
 	public const KEY_MIRAHEZE = 'ip-miraheze';
 	public const KEY_FANDOM = 'ip-fandom';
 	public const KEY_BANNER = 'ip-banner';
+	public const KEY_BANNER_WIKI = 'ip-banner-wiki';
 	public const KEY_HIDE_CONNECTIONS = 'ip-hide-connections';
 	public const KEY_SHOW_PRONOUNS = 'ip-show-pronouns';
 	public const KEY_VISIBILITY = 'ip-visibility';
@@ -126,6 +127,7 @@ class ProfileFields {
 		self::KEY_MIRAHEZE,
 		self::KEY_FANDOM,
 		self::KEY_BANNER,
+		self::KEY_BANNER_WIKI,
 		self::KEY_HIDE_CONNECTIONS,
 		self::KEY_SHOW_PRONOUNS,
 		self::KEY_VISIBILITY,
@@ -163,6 +165,7 @@ class ProfileFields {
 		private readonly int $about_max_length = 500,
 		private readonly int $link_max_length = 255,
 		?array $enabled_social_links = null,
+		private readonly ?BannerPresets $banner_presets = null
 	) {
 		$this->enabled_social_ids = self::normalize_enabled_social_links( $enabled_social_links );
 	}
@@ -221,6 +224,8 @@ class ProfileFields {
 		foreach ( self::KEYS as $key ) {
 			if ( $key === self::KEY_BANNER ) {
 				$fields[$key] = self::BANNER_ACCENT;
+			} elseif ( $key === self::KEY_BANNER_WIKI ) {
+				$fields[$key] = '';
 			} elseif ( $key === self::KEY_VISIBILITY ) {
 				$fields[$key] = self::VISIBILITY_PUBLIC;
 			} elseif ( isset( self::FLAG_KEYS[$key] ) ) {
@@ -286,6 +291,7 @@ class ProfileFields {
 		$payload['wiki_profiles'] = [];
 		$payload['featured_article'] = null;
 		$payload['banner_url'] = '';
+		$payload['custom_banner_url'] = '';
 		$payload['has_custom_banner'] = false;
 		$payload['connections'] = [];
 
@@ -461,6 +467,14 @@ class ProfileFields {
 			}
 
 			return $normalized;
+		}
+
+		if ( $key === self::KEY_BANNER_WIKI ) {
+			if ( $this->banner_presets === null ) {
+				return '';
+			}
+
+			return $this->banner_presets->normalize_wiki_id( $value );
 		}
 
 		if ( $key === self::KEY_ABOUT ) {

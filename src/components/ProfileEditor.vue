@@ -67,12 +67,13 @@
 								v-for="preset_id in banner_presets"
 								:key="preset_id"
 								role="option"
-								:aria-selected="selected_banner === preset_id"
+								:aria-selected="main_preset_selected( preset_id )"
 							>
 								<button
 									type="button"
 									class="ip-editor__banner-swatch"
 									:class="banner_swatch_class( preset_id )"
+									:style="merge_swatch_style( preset_id )"
 									:aria-label="preset_label( preset_id )"
 									:title="preset_label( preset_id )"
 									:disabled="busy"
@@ -82,12 +83,12 @@
 							<li
 								v-if="has_custom_banner"
 								role="option"
-								:aria-selected="selected_banner === 'custom'"
+								:aria-selected="gradient_selected === 'custom'"
 							>
 								<button
 									type="button"
 									class="ip-editor__banner-swatch ip-editor__banner-swatch--custom"
-									:class="{ 'ip-editor__banner-swatch--selected': selected_banner === 'custom' }"
+									:class="{ 'ip-editor__banner-swatch--selected': gradient_selected === 'custom' }"
 									:style="custom_swatch_style"
 									:aria-label="msg( 'integratedprofiles-banner-preset-custom' )"
 									:title="msg( 'integratedprofiles-banner-preset-custom' )"
@@ -119,6 +120,69 @@
 							</li>
 						</ul>
 					</div>
+				</div>
+
+				<div
+					v-if="show_wiki_banners"
+					class="ip-editor__banner-wiki"
+				>
+					<div class="ip-editor__banner-wiki-header">
+						<p class="ip-editor__banner-wiki-label">
+							{{ wiki_banner_label }}
+						</p>
+						<p class="ip-editor__banner-wiki-help">
+							{{ msg( 'integratedprofiles-banner-wiki-help' ) }}
+						</p>
+					</div>
+					<ul
+						class="ip-editor__banner-presets ip-editor__banner-presets--wiki"
+						role="listbox"
+						:aria-label="wiki_banner_label"
+					>
+						<li
+							v-for="preset_id in wiki_banner_ids"
+							:key="preset_id"
+							role="option"
+							:aria-selected="selected_wiki_banner === preset_id"
+						>
+							<button
+								type="button"
+								class="ip-editor__banner-swatch ip-editor__banner-swatch--wiki"
+								:class="{ 'ip-editor__banner-swatch--selected': selected_wiki_banner === preset_id }"
+								:style="banner_image_style( preset_id )"
+								:aria-label="preset_label( preset_id )"
+								:title="preset_label( preset_id )"
+								:disabled="busy"
+								@click="on_select_wiki_banner( preset_id )"
+							/>
+						</li>
+						<li
+							v-if="selected_wiki_banner"
+							role="presentation"
+						>
+							<button
+								type="button"
+								class="ip-editor__banner-swatch ip-editor__banner-swatch--add"
+								:aria-label="msg( 'integratedprofiles-banner-wiki-clear' )"
+								:title="msg( 'integratedprofiles-banner-wiki-clear' )"
+								:disabled="busy"
+								@click="on_select_wiki_banner( '' )"
+							>
+								<svg
+									class="ip-editor__banner-add-icon"
+									xmlns="http://www.w3.org/2000/svg"
+									viewBox="0 0 20 20"
+									aria-hidden="true"
+									focusable="false"
+								>
+									<path
+										fill="currentColor"
+										d="M10 1C14.9706 1 19 5.02944 19 10C19 14.9706 14.9706 19 10 19C5.02944 19 1 14.9706 1 10C1 5.02944 5.02944 1 10 1ZM4.39355 5.80566C3.51773 6.97448 3 8.42706 3 10C3 13.866 6.13401 17 10 17C11.5729 17 13.0246 16.4812 14.1934 15.6055L4.39355 5.80566ZM10 3C8.42832 3 6.97692 3.51705 5.80859 4.3916L15.6064 14.1904C16.4811 13.022 17 11.5718 17 10C17 6.13401 13.866 3 10 3Z"
+									/>
+								</svg>
+							</button>
+						</li>
+					</ul>
 				</div>
 			</fieldset>
 
@@ -615,6 +679,18 @@ function normalize_visibility( value: string | undefined ): string {
 	return 'public';
 }
 
+function initial_custom_banner_url( config: IntegratedProfilesConfig ): string {
+	const explicit = ( config.custom_banner_url || '' ).trim();
+	if ( explicit ) { return explicit; }
+	if ( !config.has_custom_banner ) { return ''; }
+
+	const wiki_id = ( config.fields && config.fields[ 'ip-banner-wiki' ] ) || '';
+	const images = config.banner_preset_images || {};
+	if ( wiki_id && images[ wiki_id ] ) { return ''; }
+
+	return ( config.banner_url || '' ).trim();
+}
+
 const draft = reactive<ProfileFieldsMap>( {
 	'ip-about': field_or_empty( props.config.fields && props.config.fields[ 'ip-about' ] ),
 	'ip-location': field_or_empty( props.config.fields && props.config.fields[ 'ip-location' ] ),
@@ -629,6 +705,7 @@ const draft = reactive<ProfileFieldsMap>( {
 	'ip-miraheze': field_or_empty( props.config.fields && props.config.fields[ 'ip-miraheze' ] ),
 	'ip-fandom': field_or_empty( props.config.fields && props.config.fields[ 'ip-fandom' ] ),
 	'ip-banner': field_or_empty( props.config.fields && props.config.fields[ 'ip-banner' ] ) || 'accent',
+	'ip-banner-wiki': field_or_empty( props.config.fields && props.config.fields[ 'ip-banner-wiki' ] ),
 	'ip-hide-connections': flag_or_off( props.config.fields && props.config.fields[ 'ip-hide-connections' ] ),
 	'ip-show-pronouns': flag_or_off( props.config.fields && props.config.fields[ 'ip-show-pronouns' ] ),
 	'ip-visibility': normalize_visibility( props.config.fields && props.config.fields[ 'ip-visibility' ] )
@@ -643,6 +720,7 @@ let footer_observer: IntersectionObserver | null = null;
 const selected_banner = ref( draft[ 'ip-banner' ] || 'accent' );
 const has_custom_banner = ref( !!props.config.has_custom_banner );
 const banner_url = ref( props.config.banner_url || '' );
+const custom_banner_url = ref( initial_custom_banner_url( props.config ) );
 const avatar_preview_url = ref( props.config.avatar_url || '' );
 const social_links_open = ref( false );
 const wiki_profiles_open = ref( Boolean( draft[ 'ip-mediawiki' ] || draft[ 'ip-miraheze' ] || draft[ 'ip-fandom' ] ) );
@@ -698,6 +776,59 @@ function social_maxlength( entry: EnabledSocialLink ): number {
 	return link_max.value;
 }
 
+const banner_preset_images = computed( (): Record<string, string> => props.config.banner_preset_images || {} );
+const banner_presets_split = computed( () => Boolean( props.config.banner_presets_split ) );
+const wiki_banner_ids = computed( () => Object.keys( banner_preset_images.value ).slice( 0, 8 ) );
+const has_wiki_presets = computed( () => wiki_banner_ids.value.length > 0 );
+const wiki_banner_default = computed( () => {
+	const configured = ( props.config.banner_preset_default || '' ).trim();
+	if ( configured && banner_preset_images.value[ configured ] ) {
+		return configured;
+	}
+
+	return wiki_banner_ids.value[ 0 ] || '';
+} );
+const replace_gradient_presets = computed(
+	() => has_wiki_presets.value && !banner_presets_split.value
+);
+const show_wiki_banners = computed(
+	() => has_wiki_presets.value && banner_presets_split.value
+);
+const banner_presets = computed( () => {
+	if ( replace_gradient_presets.value ) {
+		return wiki_banner_ids.value;
+	}
+	if ( props.config.banner_presets && props.config.banner_presets.length ) {
+		return props.config.banner_presets;
+	}
+
+	return DEFAULT_BANNER_PRESETS;
+} );
+const selected_wiki_banner = computed( () => {
+	if ( !has_wiki_presets.value ) {
+		return '';
+	}
+	const stored = draft[ 'ip-banner-wiki' ] || '';
+	if ( stored ) {
+		return stored;
+	}
+	if ( replace_gradient_presets.value && selected_banner.value !== 'custom' ) {
+		return wiki_banner_default.value;
+	}
+
+	return '';
+} );
+const gradient_selected = computed( () => {
+	if ( replace_gradient_presets.value && selected_wiki_banner.value ) {
+		return '';
+	}
+	return selected_banner.value;
+} );
+const wiki_banner_label = computed( () => {
+	const sitename = String( mw.config.get( 'wgSiteName' ) || '' );
+	return msg( 'integratedprofiles-banner-wiki-label', sitename );
+} );
+
 function build_save_fields(): Partial<ProfileFieldsMap> {
 	const payload: Partial<ProfileFieldsMap> = {
 		'ip-about': draft[ 'ip-about' ],
@@ -708,6 +839,10 @@ function build_save_fields(): Partial<ProfileFieldsMap> {
 		'ip-show-pronouns': draft[ 'ip-show-pronouns' ],
 		'ip-visibility': draft[ 'ip-visibility' ]
 	};
+
+	if ( has_wiki_presets.value ) {
+		payload[ 'ip-banner-wiki' ] = draft[ 'ip-banner-wiki' ];
+	}
 
 	if ( show_wiki_profiles ) {
 		payload[ 'ip-mediawiki' ] = draft[ 'ip-mediawiki' ];
@@ -771,17 +906,10 @@ const about_length = computed( () => ( draft[ 'ip-about' ] || '' ).length );
 const about_remaining = computed( () => about_max.value - about_length.value );
 const location_length = computed( () => ( draft[ 'ip-location' ] || '' ).length );
 const location_remaining = computed( () => about_max.value - location_length.value );
-const banner_presets = computed( () => {
-	if ( props.config.banner_presets && props.config.banner_presets.length ) {
-		return props.config.banner_presets;
-	}
-
-	return DEFAULT_BANNER_PRESETS;
-} );
 const custom_swatch_style = computed( () => {
-	if ( !banner_url.value ) { return {}; }
+	if ( !custom_banner_url.value ) { return {}; }
 
-	return { backgroundImage: 'url(' + banner_url.value + ')' };
+	return { backgroundImage: 'url(' + custom_banner_url.value + ')' };
 } );
 const show_manage_connections = computed(
 	() => Boolean( props.config.show_manage_connections )
@@ -858,11 +986,45 @@ const connection_rows = computed( () => {
 } );
 
 function banner_swatch_class( preset_id: string ): ( string | Record<string, boolean> )[] {
-	return [ 'ip-editor__banner-swatch--' + preset_id, { 'ip-editor__banner-swatch--selected': selected_banner.value === preset_id } ];
+	return [
+		'ip-editor__banner-swatch--' + preset_id,
+		{
+			'ip-editor__banner-swatch--wiki': !!banner_preset_images.value[ preset_id ],
+			'ip-editor__banner-swatch--selected': main_preset_selected( preset_id )
+		}
+	];
+}
+
+function main_preset_selected( preset_id: string ): boolean {
+	if ( replace_gradient_presets.value ) {
+		return selected_wiki_banner.value === preset_id;
+	}
+
+	return gradient_selected.value === preset_id;
+}
+
+function banner_image_style( preset_id: string ): Record<string, string> {
+	const url = banner_preset_images.value[ preset_id ];
+	if ( !url ) { return {}; }
+
+	return { backgroundImage: 'url(' + url + ')' };
+}
+
+function merge_swatch_style( preset_id: string ): Record<string, string> {
+	if ( banner_presets_split.value ) {
+		return {};
+	}
+
+	return banner_image_style( preset_id );
 }
 
 function preset_label( preset_id: string ): string {
-	return msg( 'integratedprofiles-banner-preset-' + preset_id );
+	const key = 'integratedprofiles-banner-preset-' + preset_id;
+	if ( mw.message( key ).exists() ) {
+		return msg( key );
+	}
+
+	return preset_id;
 }
 
 function on_social_toggle( event: Event ): void {
@@ -894,38 +1056,77 @@ function sync_avatar_from_profile( profile: { avatar_url?: string; has_custom_av
 	}
 }
 
-function sync_banner_from_profile( profile: { fields?: { 'ip-banner'?: string }; banner_url?: string; has_custom_banner?: boolean; } ): void {
+function sync_banner_from_profile( profile: { fields?: { 'ip-banner'?: string; 'ip-banner-wiki'?: string }; banner_url?: string; custom_banner_url?: string; has_custom_banner?: boolean } ): void {
 	const mode = ( profile.fields && profile.fields[ 'ip-banner' ] ) || 'accent';
+	const wiki_mode = ( profile.fields && profile.fields[ 'ip-banner-wiki' ] ) || '';
 	selected_banner.value = mode;
 	draft[ 'ip-banner' ] = mode;
+	draft[ 'ip-banner-wiki' ] = wiki_mode;
 	has_custom_banner.value = !!profile.has_custom_banner;
 	banner_url.value = profile.banner_url || '';
+	if ( profile.custom_banner_url !== undefined ) {
+		custom_banner_url.value = profile.custom_banner_url || '';
+	} else if ( !has_custom_banner.value ) {
+		custom_banner_url.value = '';
+	}
 
 	const live_config = mw.config.get( 'wgIntegratedProfiles' ) as IntegratedProfilesConfig | null;
 
 	if ( live_config ) {
 		live_config.has_custom_banner = has_custom_banner.value;
 		live_config.banner_url = banner_url.value;
+		live_config.custom_banner_url = custom_banner_url.value;
 
 		if ( live_config.fields ) {
 			live_config.fields[ 'ip-banner' ] = mode;
+			live_config.fields[ 'ip-banner-wiki' ] = wiki_mode;
 		}
 	}
 }
 
 async function on_select_banner( preset_id: string ): Promise<void> {
-	if ( busy.value || selected_banner.value === preset_id ) { return; }
+	if ( busy.value ) { return; }
 	if ( preset_id === 'custom' && !has_custom_banner.value ) { return; }
+	if ( main_preset_selected( preset_id ) && !( banner_presets_split.value && selected_wiki_banner.value ) ) { return; }
 
 	busy.value = true;
 	error_message.value = '';
 	success_message.value = '';
 	try {
-		const profile = await save_profile_fields( { 'ip-banner': preset_id }, props.config.user_name );
+		const fields: Partial<ProfileFieldsMap> = { 'ip-banner': preset_id };
+		if ( replace_gradient_presets.value && preset_id !== 'custom' ) {
+			fields[ 'ip-banner-wiki' ] = preset_id;
+			delete fields[ 'ip-banner' ];
+		} else if ( has_wiki_presets.value ) {
+			fields[ 'ip-banner-wiki' ] = '';
+		}
+		const profile = await save_profile_fields( fields, props.config.user_name );
 
 		apply_payload_to_dom( profile );
 		sync_banner_from_profile( profile );
-		remember_saved_fields( { 'ip-banner': draft[ 'ip-banner' ] } );
+		remember_saved_fields( {
+			'ip-banner': draft[ 'ip-banner' ],
+			'ip-banner-wiki': draft[ 'ip-banner-wiki' ]
+		} );
+	} catch ( err ) {
+		error_message.value = err instanceof Error ? err.message : msg( 'integratedprofiles-save-error' );
+	} finally {
+		busy.value = false;
+	}
+}
+
+async function on_select_wiki_banner( preset_id: string ): Promise<void> {
+	if ( busy.value || selected_wiki_banner.value === preset_id ) { return; }
+
+	busy.value = true;
+	error_message.value = '';
+	success_message.value = '';
+	try {
+		const profile = await save_profile_fields( { 'ip-banner-wiki': preset_id }, props.config.user_name );
+
+		apply_payload_to_dom( profile );
+		sync_banner_from_profile( profile );
+		remember_saved_fields( { 'ip-banner-wiki': draft[ 'ip-banner-wiki' ] } );
 	} catch ( err ) {
 		error_message.value = err instanceof Error ? err.message : msg( 'integratedprofiles-save-error' );
 	} finally {
@@ -938,7 +1139,10 @@ function on_banner_updated( event: Event ): void {
 
 	if ( custom.detail ) {
 		sync_banner_from_profile( custom.detail );
-		remember_saved_fields( { 'ip-banner': draft[ 'ip-banner' ] } );
+		remember_saved_fields( {
+			'ip-banner': draft[ 'ip-banner' ],
+			'ip-banner-wiki': draft[ 'ip-banner-wiki' ]
+		} );
 	}
 }
 

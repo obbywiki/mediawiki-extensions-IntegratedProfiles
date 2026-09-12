@@ -171,6 +171,8 @@ IntegratedProfiles integrates certain functionalities from NewAuth. If you have 
 | `$wgIntegratedProfilesAvatarMaxBytes` | `2097152` | Maximum avatar upload size in bytes (default 2 MiB). |
 | `$wgIntegratedProfilesEnableAnimatedAvatars` | `true` | When false, reject all animated avatar uploads regardless of user rights. Existing GIFs will still be displayed. |
 | `$wgIntegratedProfilesBannerMaxBytes` | `4194304` | Maximum banner upload size in bytes (default 4 MiB). |
+| `$wgIntegratedProfilesBannerPresetImages` | `[]` | Map of preset ID => image URL (max 8). Replaces gradients on a single wiki, or creates a local extra row with GlobalPreferences per-wiki. |
+| `$wgIntegratedProfilesBannerPresetDefault` | `''` | Optional preset ID to use as the single-wiki default. If empty, the first item in `$wgIntegratedProfilesBannerPresetImages` will be used. |
 | `$wgIntegratedProfilesLanguageInterwikis` | `[]` | Language interwiki prefixes to inject on user/user talk pages (e.g. ["en","ko","ja"]). Skips the wiki content language and $wgLocalInterwikis. See below. |
 
 ### Local settings
@@ -180,8 +182,22 @@ Some settings can only be applied globally, as modifying them on one wiki would 
 * `$wgIntegratedProfilesEnabledSocialLinks`
 * `$wgIntegratedProfilesLanguageInterwikis`
 * `$wgIntegratedProfilesEnableUserCards`
+* `$wgIntegratedProfilesBannerPresetImages`
+* `$wgIntegratedProfilesBannerPresetDefault`
 
 The rest should be global or farm-wide.
+
+### Banner preset images
+
+```php
+$wgIntegratedProfilesBannerPresetImages = [
+	'custombanner1' => '/images/banners/custombanner1.webp',
+	'custombanner2' => 'https://static.wiki.local/banner2.webp'
+];
+$wgIntegratedProfilesBannerPresetDefault = 'custombanner1'; // only useful for single-wiki setups
+```
+
+On a single wiki these replace the gradient presets. Users without a custom upload get `$wgIntegratedProfilesBannerPresetDefault` if set, otherwise the first map entry. On a farm they appear below the gradients and only apply on that wiki. Do not set the map globally.
 
 ### Social links
 
@@ -279,7 +295,7 @@ You can query hover-card payloads for no more than 50 usernames.
 action=query&list=integratedprofilecard&ipcuser=Wlft|Wlft2|Wlft3
 ```
 
-Returns a list of `{ user, user_id, real_name, about, location, website, edit_count, registration, avatar_url, has_custom_avatar, banner, banner_url, featured_article, is_private }`. `banner` is a preset id (`accent`, `ocean`, `sunset`, `forest`, `midnight`, `ember`, `sand`, `aurora`) or `custom`. `banner_url` is set only for `custom`. `featured_article` is `{ title, display_title, url }` or `null`. `website` is `{ label, url }` or `null`. Unknown names are warned and omitted. When `is_private` is true, extras are empty (`banner` falls back to `accent`).
+Returns a list of `{ user, user_id, real_name, about, location, website, edit_count, registration, avatar_url, has_custom_avatar, banner, banner_url, featured_article, is_private }`. `banner` is a preset id (`accent`, `ocean`, `sunset`, `forest`, `midnight`, `ember`, `sand`, `aurora`) or `custom`. `banner_url` is set for a custom upload or a wiki preset image. `featured_article` is `{ title, display_title, url }` or `null`. `website` is `{ label, url }` or `null`. Unknown names are warned and omitted. When `is_private` is true, extras are empty (`banner` falls back to `accent`).
 
 ---
 

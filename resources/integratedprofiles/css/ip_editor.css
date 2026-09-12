@@ -594,6 +594,31 @@
 	height: var( --ip-editor-avatar-size );
 }
 
+.ip-editor__banner-wiki {
+	--ip-editor-avatar-size: 8rem;
+	margin-top: 2rem;
+	padding-top: 1.15rem;
+	border-top: 1px solid var( --border-color-subtle );
+}
+
+.ip-editor__banner-wiki-header {
+	margin: 0 0 0.55rem;
+}
+
+.ip-editor__banner-wiki-label {
+	margin: 0;
+	font-size: 0.8125rem;
+	font-weight: 600;
+	color: var( --color-emphasized );
+}
+
+.ip-editor__banner-wiki-help {
+	margin: 0.25rem 0 0;
+	font-size: 0.8125rem;
+	line-height: 1.45;
+	color: var( --color-subtle );
+}
+
 .ip-editor__label--sr {
 	position: absolute;
 	width: 1px;
@@ -617,6 +642,13 @@
 	margin: 0;
 	padding: 0;
 	list-style: none;
+}
+
+.ip-editor__banner-presets--wiki {
+	height: var( --ip-editor-avatar-size );
+	min-height: var( --ip-editor-avatar-size );
+	grid-template-columns: repeat( 5, minmax( 0, 1fr ) );
+	grid-template-rows: repeat( 2, minmax( 0, 1fr ) );
 }
 
 .ip-editor__banner-presets > li {
@@ -643,6 +675,12 @@
 	background-position: center;
 	background-repeat: no-repeat;
 	box-shadow: none;
+}
+
+.ip-editor__banner-swatch--wiki {
+	height: auto;
+	min-height: 0;
+	background-color: var( --background-color-neutral );
 }
 
 .ip-editor__banner-swatch:disabled {
