@@ -443,6 +443,7 @@ function enhance_about_block_after_sync( block: HTMLElement, about: string ): vo
 		return;
 	}
 
+	// eslint-disable-next-line
 	void mw.loader.using( 'ext.IntegratedProfiles.aboutExpand' ).then( run, () => {
 		// clamped via css, more button is hidden
 	} );
