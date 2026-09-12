@@ -13,6 +13,7 @@ jobs:
       lint-js: true
       lint-styles: true
       lint-i18n: true
+      lint-md: true
 
   # test-js:
   #   uses: StarCitizenTools/mediawiki-ci-workflows/.github/workflows/test-js.yml@main
