@@ -151,7 +151,7 @@ class ProfileFields {
 
 	private const HANDLE_PATTERN = '/^[A-Za-z0-9._-]{1,64}$/';
 
-	private const DISCORD_USERNAME_PATTERN = '/^[a-z0-9_]{2,32}$/';
+	private const DISCORD_USERNAME_PATTERN = '/^(?!.*\.\.)[a-z0-9_.]{2,32}$/';
 
 	private const ROBLOX_USERNAME_PATTERN = '/^[A-Za-z0-9_]{3,20}$/';
 
