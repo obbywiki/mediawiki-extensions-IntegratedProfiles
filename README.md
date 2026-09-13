@@ -6,8 +6,14 @@
 > [!WARNING]  
 > IntegratedProfiles is currently in BETA.
 
-
 IntegratedProfiles implements modern and extensible user profiles with the added focus of integration, meaning any other extension can add onto it.
+
+## Screenshots
+
+<details>
+  <summary>Profile Editor</summary>
+  ![IntegratedProfiles Preview: Editor](./docs/images/profileeditor1.png)
+</details>
 
 ## Installation
 
