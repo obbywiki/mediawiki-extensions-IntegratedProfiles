@@ -1,6 +1,6 @@
 # IntegratedProfiles (Usage)
 
-![IntegratedProfiles Preview](./docs/images/image.png)
+![IntegratedProfiles Preview](./docs/images/cover.png)
 > Screenshot taken on the Citizen skin while using IntegratedProfiles v0.5.0.
 
 > [!WARNING]  
@@ -12,8 +12,20 @@ IntegratedProfiles implements modern and extensible user profiles with the added
 
 <details>
   <summary>Profile Editor</summary>
-  
+
+> Taken on IntegratedProfiles v0.6.0 using the Citizen skin (with NewAuth active).
+
   ![IntegratedProfiles Preview: Editor](./docs/images/profileeditor1.png)
+
+  ![IntegratedProfiles Preview: Editor](./docs/images/profileeditor2.png)
+</details>
+
+<details>
+  <summary>User Cards</summary>
+
+> Taken on IntegratedProfiles v0.6.0 using the Citizen skin.
+
+  ![IntegratedProfiles Preview: User Cards](./docs/images/usercards.png)
 </details>
 
 ## Installation
