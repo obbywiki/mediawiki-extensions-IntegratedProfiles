@@ -12,6 +12,7 @@ IntegratedProfiles implements modern and extensible user profiles with the added
 
 <details>
   <summary>Profile Editor</summary>
+  
   ![IntegratedProfiles Preview: Editor](./docs/images/profileeditor1.png)
 </details>
 
