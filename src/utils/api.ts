@@ -602,12 +602,19 @@ function sync_pronouns_dom( profile: ProfilePayload ): void {
 	item.textContent = label;
 }
 
+type BannerPaintProfile = {
+	fields?: { 'ip-banner'?: string };
+	banner_url?: string;
+};
+
 /**
  * Syncs the masthead band class / custom background from the profile payload.
  *
- * @param {ProfilePayload} profile Saved profile payload from the write API
+ * @param {BannerPaintProfile} profile Saved profile payload from the write API
  */
-export function sync_banner_dom( profile: ProfilePayload ): void {
+export function sync_banner_dom(
+	profile: BannerPaintProfile,
+): void {
 	const band = document.querySelector( '.ip-masthead__band' ) as HTMLElement | null;
 	const masthead = document.querySelector( '.ip-masthead' ) as HTMLElement | null;
 	if ( !band ) { return; }
