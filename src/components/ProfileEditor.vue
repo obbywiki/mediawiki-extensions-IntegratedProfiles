@@ -640,7 +640,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, reactive, ref } from 'vue';
 import type { EnabledSocialLink, IntegratedProfilesConfig, ProfileConnection, ProfileFieldsMap, ProfilePayload } from '../types/mw';
-import { apply_payload_to_dom, msg, save_profile_fields } from '../utils/api';
+import { apply_payload_to_dom, msg, save_profile_fields, sync_banner_dom } from '../utils/api';
 
 const DEFAULT_BANNER_PRESETS = [
 	'accent',
@@ -1085,54 +1085,49 @@ function sync_banner_from_profile( profile: { fields?: { 'ip-banner'?: string; '
 	}
 }
 
-async function on_select_banner( preset_id: string ): Promise<void> {
+function preview_banner(): void {
+	const wiki_id = selected_wiki_banner.value;
+	const wiki_url = wiki_id ? ( banner_preset_images.value[ wiki_id ] || '' ) : '';
+	const mode = draft[ 'ip-banner' ] || 'accent';
+	const custom_url = mode === 'custom' ? custom_banner_url.value : '';
+
+	sync_banner_dom( {
+		fields: { 'ip-banner': mode },
+		banner_url: wiki_url || custom_url
+	} );
+}
+
+function restore_banner(): void {
+	const live_config = mw.config.get( 'wgIntegratedProfiles' ) as IntegratedProfilesConfig | null;
+
+	sync_banner_dom( {
+		fields: { 'ip-banner': ( live_config && live_config.fields[ 'ip-banner' ] ) || 'accent' },
+		banner_url: ( live_config && live_config.banner_url ) || ''
+	} );
+}
+
+function on_select_banner( preset_id: string ): void {
 	if ( busy.value ) { return; }
 	if ( preset_id === 'custom' && !has_custom_banner.value ) { return; }
 	if ( main_preset_selected( preset_id ) && !( banner_presets_split.value && selected_wiki_banner.value ) ) { return; }
 
-	busy.value = true;
-	error_message.value = '';
-	success_message.value = '';
-	try {
-		const fields: Partial<ProfileFieldsMap> = { 'ip-banner': preset_id };
-		if ( replace_gradient_presets.value && preset_id !== 'custom' ) {
-			fields[ 'ip-banner-wiki' ] = preset_id;
-			delete fields[ 'ip-banner' ];
-		} else if ( has_wiki_presets.value ) {
-			fields[ 'ip-banner-wiki' ] = '';
+	if ( replace_gradient_presets.value && preset_id !== 'custom' ) {
+		draft[ 'ip-banner-wiki' ] = preset_id;
+	} else {
+		selected_banner.value = preset_id;
+		draft[ 'ip-banner' ] = preset_id;
+		if ( has_wiki_presets.value ) {
+			draft[ 'ip-banner-wiki' ] = '';
 		}
-		const profile = await save_profile_fields( fields, props.config.user_name );
-
-		apply_payload_to_dom( profile );
-		sync_banner_from_profile( profile );
-		remember_saved_fields( {
-			'ip-banner': draft[ 'ip-banner' ],
-			'ip-banner-wiki': draft[ 'ip-banner-wiki' ]
-		} );
-	} catch ( err ) {
-		error_message.value = err instanceof Error ? err.message : msg( 'integratedprofiles-save-error' );
-	} finally {
-		busy.value = false;
 	}
+	preview_banner();
 }
 
-async function on_select_wiki_banner( preset_id: string ): Promise<void> {
+function on_select_wiki_banner( preset_id: string ): void {
 	if ( busy.value || selected_wiki_banner.value === preset_id ) { return; }
 
-	busy.value = true;
-	error_message.value = '';
-	success_message.value = '';
-	try {
-		const profile = await save_profile_fields( { 'ip-banner-wiki': preset_id }, props.config.user_name );
-
-		apply_payload_to_dom( profile );
-		sync_banner_from_profile( profile );
-		remember_saved_fields( { 'ip-banner-wiki': draft[ 'ip-banner-wiki' ] } );
-	} catch ( err ) {
-		error_message.value = err instanceof Error ? err.message : msg( 'integratedprofiles-save-error' );
-	} finally {
-		busy.value = false;
-	}
+	draft[ 'ip-banner-wiki' ] = preset_id;
+	preview_banner();
 }
 
 function on_banner_updated( event: Event ): void {
@@ -1200,6 +1195,7 @@ function on_open_banner_modal( event: MouseEvent ): void {
 }
 
 function on_cancel(): void {
+	restore_banner();
 	emit( 'close' );
 }
 
