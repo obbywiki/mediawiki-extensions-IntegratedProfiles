@@ -183,6 +183,10 @@ class Hooks implements
 				return;
 			}
 
+			if ( $out->getActionName() !== 'view' ) {
+				return;
+			}
+
 			$out->addModuleStyles( [ 'ext.IntegratedProfiles.styles' ] );
 			$out->addBodyClasses( [ 'integratedprofiles-profile' ] );
 			return;
