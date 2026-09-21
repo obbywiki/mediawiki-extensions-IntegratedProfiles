@@ -31,7 +31,23 @@
 				</header>
 
 				<div class="cdx-dialog__body ip-upload-modal__body ip-avatar-modal__body">
-					<div class="ip-avatar-modal__preview">
+					<ImageCropper
+						v-if="pending_file && preview_url && !skip_crop"
+						ref="cropper_el"
+						class="ip-avatar-modal__cropper"
+						:src="preview_url"
+						:aspect="AVATAR_ASPECT"
+						round_mask
+						:alt="msg( 'integratedprofiles-avatar-alt' )"
+						:zoom_label="msg( 'integratedprofiles-crop-zoom' )"
+						:disabled="busy"
+						@error="on_cropper_error"
+						@ready="cropper_ready = true"
+					/>
+					<div
+						v-else
+						class="ip-avatar-modal__preview"
+					>
 						<img
 							class="ip-avatar-modal__preview-image"
 							:src="display_url"
@@ -105,7 +121,7 @@
 							type="button"
 							class="cdx-button cdx-button--action-progressive
 								cdx-button--weight-primary ip-upload-modal__confirm"
-							:disabled="busy"
+							:disabled="busy || !can_confirm"
 							@click="on_confirm"
 						>
 							{{ msg( 'integratedprofiles-avatar-confirm' ) }}
@@ -124,12 +140,22 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue';
 import type { IntegratedProfilesConfig } from '../types/mw';
+import ImageCropper from './ImageCropper.vue';
 import {
 	apply_payload_to_dom,
 	delete_avatar,
 	msg,
 	upload_avatar
 } from '../utils/api';
+import { AVATAR_ASPECT, AVATAR_MAX_EDGE, type CropRect } from '../utils/crop';
+import { prepare_upload_file } from '../utils/crop_export';
+import { file_is_animated } from '../utils/image_meta';
+
+type CropperExpose = {
+	get_crop_rect: () => CropRect | null;
+	get_image_size: () => { width: number; height: number };
+	is_identity: () => boolean;
+};
 
 const props = defineProps<{
 	config: IntegratedProfilesConfig;
@@ -141,6 +167,7 @@ const emit = defineEmits( [ 'close' ] );
 const title_id = 'ip-avatar-modal-title';
 const dialog_el = ref<HTMLElement | null>( null );
 const file_input = ref<HTMLInputElement | null>( null );
+const cropper_el = ref<CropperExpose | null>( null );
 
 const busy = ref( false );
 const error_message = ref( '' );
@@ -148,6 +175,9 @@ const has_custom_avatar = ref( !!props.config.has_custom_avatar );
 const current_avatar_url = ref( props.config.avatar_url || '' );
 const pending_file = ref<File | null>( null );
 const preview_url = ref( '' );
+const skip_crop = ref( false );
+const cropper_ready = ref( false );
+let pick_generation = 0;
 
 const avatar_max_bytes = computed(
 	() => ( props.config.limits && props.config.limits.avatar_max_bytes ) || 2097152
@@ -168,7 +198,9 @@ const file_accept = computed( () => can_upload_animated_avatar.value ?
 
 const help_text = computed( () => {
 	if ( pending_file.value ) {
-		return msg( 'integratedprofiles-avatar-preview-help' );
+		return skip_crop.value ?
+			msg( 'integratedprofiles-avatar-preview-help' ) :
+			msg( 'integratedprofiles-avatar-crop-help' );
 	}
 	const key = can_upload_animated_avatar.value ?
 		'integratedprofiles-avatar-help' :
@@ -189,6 +221,12 @@ const choose_label = computed( () => {
 	);
 } );
 
+const can_confirm = computed( () => {
+	if ( !pending_file.value ) { return false; }
+
+	return skip_crop.value || cropper_ready.value;
+} );
+
 function read_masthead_avatar_url(): string {
 	const avatar_img = document.querySelector( '.ip-avatar__image' ) as HTMLImageElement | null;
 	return ( avatar_img && avatar_img.src ) || props.config.avatar_url || '';
@@ -199,7 +237,11 @@ function revoke_preview(): void {
 		URL.revokeObjectURL( preview_url.value );
 		preview_url.value = '';
 	}
+
 	pending_file.value = null;
+	skip_crop.value = false;
+	cropper_ready.value = false;
+
 	if ( file_input.value ) {
 		file_input.value.value = '';
 	}
@@ -222,6 +264,10 @@ function on_backdrop_click(): void {
 	close_modal();
 }
 
+function on_cropper_error(): void {
+	error_message.value = msg( 'integratedprofiles-avatar-error' );
+}
+
 function on_dialog_keydown( event: KeyboardEvent ): void {
 	if ( busy.value ) {
 		return;
@@ -231,17 +277,19 @@ function on_dialog_keydown( event: KeyboardEvent ): void {
 		close_modal();
 		return;
 	}
-	if ( event.key === 'Enter' && pending_file.value && !( event.target instanceof HTMLButtonElement ) && !( event.target instanceof HTMLLabelElement ) ) {
+	if ( event.key === 'Enter' && pending_file.value && can_confirm.value && !( event.target instanceof HTMLButtonElement ) && !( event.target instanceof HTMLLabelElement ) && !( event.target instanceof HTMLInputElement ) ) {
 		event.preventDefault();
 		event.stopPropagation();
 		on_confirm();
 	}
 }
 
-function on_file_selected( event: Event ): void {
+async function on_file_selected( event: Event ): Promise<void> {
 	const input = event.target as HTMLInputElement;
 	const file = input.files && input.files[ 0 ];
 	if ( !file ) { return; }
+
+	const generation = ++pick_generation;
 
 	if ( file.size > avatar_max_bytes.value ) {
 		error_message.value = msg( 'integratedprofiles-error-avatar-size' );
@@ -257,8 +305,26 @@ function on_file_selected( event: Event ): void {
 		return;
 	}
 
+	let animated;
+	try {
+		animated = await file_is_animated( file );
+	} catch {
+		animated = file.type === 'image/gif';
+	}
+
+	if ( generation !== pick_generation ) { return; }
+
+	if ( animated && !can_upload_animated_avatar.value ) {
+		error_message.value = msg( 'integratedprofiles-error-avatar-animated' );
+		input.value = '';
+
+		return;
+	}
+
 	revoke_preview();
 	error_message.value = '';
+	skip_crop.value = animated;
+	cropper_ready.value = animated;
 	pending_file.value = file;
 	preview_url.value = URL.createObjectURL( file );
 }
@@ -273,12 +339,33 @@ function sync_config_avatar( avatar_url: string, custom: boolean ): void {
 
 async function on_confirm(): Promise<void> {
 	const file = pending_file.value;
-	if ( !file ) { return; }
+	if ( !file || !can_confirm.value ) { return; }
 
 	busy.value = true;
 	error_message.value = '';
 	try {
-		const profile = await upload_avatar( file, props.config.user_name );
+		let to_upload = file;
+		if ( !skip_crop.value && cropper_el.value ) {
+			const size = cropper_el.value.get_image_size();
+			
+			try {
+				to_upload = await prepare_upload_file( file, {
+					skip_crop: false,
+					crop: cropper_el.value.get_crop_rect(),
+					image_width: size.width,
+					image_height: size.height,
+					max_bytes: avatar_max_bytes.value,
+					max_width: AVATAR_MAX_EDGE,
+					max_height: AVATAR_MAX_EDGE
+				} );
+			} catch {
+				error_message.value = msg( 'integratedprofiles-avatar-error' );
+
+				return;
+			}
+		}
+
+		const profile = await upload_avatar( to_upload, props.config.user_name );
 		apply_payload_to_dom( profile );
 
 		has_custom_avatar.value = !!profile.has_custom_avatar;
