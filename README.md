@@ -180,19 +180,19 @@ IntegratedProfiles integrates certain functionalities from NewAuth. If you have 
 
 ## Configuration
 
-| Config | Default | Purpose |
-|--------|---------|---------|
-| `$wgIntegratedProfilesBackend` | `''` | Named entry in `$wgFileBackends`. Empty uses `{UploadDirectory}/ipavatars` and `{UploadDirectory}/ipbanners`. Must already exist if set. See Setup. |
-| `$wgIntegratedProfilesEnableUserCards` | `false` | On-click profile cards for username links. Requires FloatingUI. |
-| `$wgIntegratedProfilesAboutMaxLength` | `300` | Maximum length in characters for the about tagline. |
-| `$wgIntegratedProfilesLinkMaxLength` | `255` | Maximum length in characters for freeform profile link fields. |
-| `$wgIntegratedProfilesEnabledSocialLinks` | `['website','twitter','github','discord','roblox','youtube']` | Only accepts one of the presets. Feel free to request or add any. |
-| `$wgIntegratedProfilesAvatarMaxBytes` | `2097152` | Maximum avatar upload size in bytes (default 2 MiB). |
-| `$wgIntegratedProfilesEnableAnimatedAvatars` | `true` | When false, reject all animated avatar uploads regardless of user rights. Existing GIFs will still be displayed. |
-| `$wgIntegratedProfilesBannerMaxBytes` | `4194304` | Maximum banner upload size in bytes (default 4 MiB). |
-| `$wgIntegratedProfilesBannerPresetImages` | `[]` | Map of preset ID => image URL (max 8). Replaces gradients on a single wiki, or creates a local extra row with GlobalPreferences per-wiki. |
-| `$wgIntegratedProfilesBannerPresetDefault` | `''` | Optional preset ID to use as the single-wiki default. If empty, the first item in `$wgIntegratedProfilesBannerPresetImages` will be used. |
-| `$wgIntegratedProfilesLanguageInterwikis` | `[]` | Language interwiki prefixes to inject on user/user talk pages (e.g. ["en","ko","ja"]). Skips the wiki content language and $wgLocalInterwikis. See below. |
+| Config | Default | Type(s) | Purpose |
+|--------|---------|---------|---------|
+| `$wgIntegratedProfilesBackend` | `''` | ![string](https://img.shields.io/badge/-string-blue?style=flat-square) | Named entry in `$wgFileBackends`. Empty uses `{UploadDirectory}/ipavatars` and `{UploadDirectory}/ipbanners`. Must already exist if set. See Setup. |
+| `$wgIntegratedProfilesEnableUserCards` | `false` | ![boolean](https://img.shields.io/badge/-boolean-orange?style=flat-square) | On-click profile cards for username links. Requires FloatingUI. |
+| `$wgIntegratedProfilesAboutMaxLength` | `300` | ![number](https://img.shields.io/badge/-number-green?style=flat-square) | Maximum length in characters for the about tagline. |
+| `$wgIntegratedProfilesLinkMaxLength` | `255` | ![number](https://img.shields.io/badge/-number-green?style=flat-square) | Maximum length in characters for freeform profile link fields. |
+| `$wgIntegratedProfilesEnabledSocialLinks` | `['website','twitter','github','discord','roblox','youtube']` | array | Only accepts one of the presets. Feel free to request or add any. |
+| `$wgIntegratedProfilesAvatarMaxBytes` | `2097152` | ![number](https://img.shields.io/badge/-number-green?style=flat-square) | Maximum avatar upload size in bytes (default 2 MiB). |
+| `$wgIntegratedProfilesEnableAnimatedAvatars` | `true` | ![boolean](https://img.shields.io/badge/-boolean-orange?style=flat-square) | When false, reject all animated avatar uploads regardless of user rights. Existing GIFs will still be displayed. |
+| `$wgIntegratedProfilesBannerMaxBytes` | `4194304` | ![number](https://img.shields.io/badge/-number-green?style=flat-square) | Maximum banner upload size in bytes (default 4 MiB). |
+| `$wgIntegratedProfilesBannerPresetImages` | `[]` | array | Map of preset ID => image URL (max 8). Replaces gradients on a single wiki, or creates a local extra row with GlobalPreferences per-wiki. |
+| `$wgIntegratedProfilesBannerPresetDefault` | `''` | ![string](https://img.shields.io/badge/-string-blue?style=flat-square) | Optional preset ID to use as the single-wiki default. If empty, the first item in `$wgIntegratedProfilesBannerPresetImages` will be used. |
+| `$wgIntegratedProfilesLanguageInterwikis` | `[]` | array | Language interwiki prefixes to inject on user/user talk pages (e.g. ["en","ko","ja"]). Skips the wiki content language and $wgLocalInterwikis. See below. |
 
 ### Local settings
 
@@ -257,6 +257,9 @@ Add both directions, e.g. `en` = `https://wiki.local/$1` and `ko` = `https://ko.
 
 ### User cards [EXPERIMENTAL]
 
+> [!NOTE]  
+> User cards may also be referred to as profile cards or hover cards, especially with-in the codebase. They explicitly appear only on-click, but were originally designed to appear on-hover, hence the different names.
+
 User card previews are experimental and opt-in. Use `$wgIntegratedProfilesEnableUserCards` to enable this feature on your wiki.
 
 Additionally, as user cards are on-click, you may want to remove redlinks from empty user page URLs. You can achieve these by putting the following in your `MediaWiki:Common.js` file:
@@ -275,6 +278,8 @@ mw.hook('wikipage.content').add(function ($content) {
 });
 ```
 
+**Note:** User cards may misbehave if FloatingUI is not installed/loaded. Use this feature with FloatingUI active for the best user experience. User cards may not work on every skin.
+
 ---
 
 ## Rights
@@ -288,7 +293,16 @@ mw.hook('wikipage.content').add(function ($content) {
 
 ## Hooks
 
-Please see better hook documentation at https://www.mediawiki.org/wiki/Extension:IntegratedProfiles.
+Please see better hook documentation at https://www.mediawiki.org/wiki/Extension:IntegratedProfiles where the up-to-date documentation is. Shortcuts:
+
+* [IntegratedProfilesAfterMasthead](https://www.mediawiki.org/wiki/Special:MyLanguage/Extension:IntegratedProfiles/Hooks/IntegratedProfilesAfterMasthead)
+* [IntegratedProfilesAfterAvatar](https://www.mediawiki.org/wiki/Special:MyLanguage/Extension:IntegratedProfiles/Hooks/IntegratedProfilesAfterAvatar)
+* [IntegratedProfilesGetTabs](https://www.mediawiki.org/wiki/Special:MyLanguage/Extension:IntegratedProfiles/Hooks/IntegratedProfilesGetTabs)
+* [IntegratedProfilesRenderTab](https://www.mediawiki.org/wiki/Special:MyLanguage/Extension:IntegratedProfiles/Hooks/IntegratedProfilesRenderTab)
+
+There should be code and usage examples there, along with other information about how these hooks are used internally and where they fit in.
+
+If there's a performant way to implement another hook with a lot of potential use cases, create an issue on this GitHub issue as a request.
 
 ## Misc
 
@@ -318,7 +332,7 @@ action=query&list=integratedprofileavatar&ipauser=Wlft|Wlft2|Wlft3
 
 Returns a list of `{ user, avatar_url, has_custom_avatar }`. Unknown names are warned and omitted.
 
-### Getting hover-card payloads
+### Getting card payloads
 
 Query quick information about a user's profile.
 
