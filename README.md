@@ -37,8 +37,10 @@ IntegratedProfiles implements modern and extensible user profiles with the added
 
 ### Suggestions
 
-* FloatingUI
-* One of the following supported skins: `Citizen`, `Vector-2022` (or any Codex-compatible skin)
+* [Extension:FloatingUI](https://www.mediawiki.org/wiki/Extension:FloatingUI)
+* Any Codex-compatible skin[^1], or one of the following skins for the best results:
+	* [Citizen](https://www.mediawiki.org/wiki/Skin:Citizen) (built-in improvements)
+ 	* Vector 2022
 
 ### Install
 
@@ -173,26 +175,29 @@ Integrations are the whole point of IntegratedProfiles!
 
 IntegratedProfiles integrates certain functionalities from NewAuth. If you have access to NewAuth and have the extension loaded and properly configured, it should work correctly without any configuration. If it does not, please contact me.
 
-### Third-party integrations
+### External integrations
 
-* UserFlairs
+Below are open-source integrations that implement IntegratedProfiles' hooks or APIs:
 
+* Extension:UserFlairs
+
+> You can add any open-source integrations to this list in a PR, if you want.
 
 ## Configuration
 
-| Config | Default | Type(s) | Purpose |
+| Config | Type(s) | Default | Purpose |
 |--------|---------|---------|---------|
-| `$wgIntegratedProfilesBackend` | `''` | ![string](https://img.shields.io/badge/-string-blue?style=flat-square) | Named entry in `$wgFileBackends`. Empty uses `{UploadDirectory}/ipavatars` and `{UploadDirectory}/ipbanners`. Must already exist if set. See Setup. |
-| `$wgIntegratedProfilesEnableUserCards` | `false` | ![boolean](https://img.shields.io/badge/-boolean-orange?style=flat-square) | On-click profile cards for username links. Requires FloatingUI. |
-| `$wgIntegratedProfilesAboutMaxLength` | `300` | ![number](https://img.shields.io/badge/-number-green?style=flat-square) | Maximum length in characters for the about tagline. |
-| `$wgIntegratedProfilesLinkMaxLength` | `255` | ![number](https://img.shields.io/badge/-number-green?style=flat-square) | Maximum length in characters for freeform profile link fields. |
-| `$wgIntegratedProfilesEnabledSocialLinks` | `['website','twitter','github','discord','roblox','youtube']` | array | Only accepts one of the presets. Feel free to request or add any. |
-| `$wgIntegratedProfilesAvatarMaxBytes` | `2097152` | ![number](https://img.shields.io/badge/-number-green?style=flat-square) | Maximum avatar upload size in bytes (default 2 MiB). |
-| `$wgIntegratedProfilesEnableAnimatedAvatars` | `true` | ![boolean](https://img.shields.io/badge/-boolean-orange?style=flat-square) | When false, reject all animated avatar uploads regardless of user rights. Existing GIFs will still be displayed. |
-| `$wgIntegratedProfilesBannerMaxBytes` | `4194304` | ![number](https://img.shields.io/badge/-number-green?style=flat-square) | Maximum banner upload size in bytes (default 4 MiB). |
-| `$wgIntegratedProfilesBannerPresetImages` | `[]` | array | Map of preset ID => image URL (max 8). Replaces gradients on a single wiki, or creates a local extra row with GlobalPreferences per-wiki. |
-| `$wgIntegratedProfilesBannerPresetDefault` | `''` | ![string](https://img.shields.io/badge/-string-blue?style=flat-square) | Optional preset ID to use as the single-wiki default. If empty, the first item in `$wgIntegratedProfilesBannerPresetImages` will be used. |
-| `$wgIntegratedProfilesLanguageInterwikis` | `[]` | array | Language interwiki prefixes to inject on user/user talk pages (e.g. ["en","ko","ja"]). Skips the wiki content language and $wgLocalInterwikis. See below. |
+| `$wgIntegratedProfilesBackend` | ![string](https://img.shields.io/badge/-string-blue?style=flat-square) | `''` | Named entry in `$wgFileBackends`. Empty uses `{UploadDirectory}/ipavatars` and `{UploadDirectory}/ipbanners`. Must already exist if set. See Setup. |
+| `$wgIntegratedProfilesEnableUserCards` | ![boolean](https://img.shields.io/badge/-boolean-orange?style=flat-square) | `false` | On-click profile cards for username links. Requires FloatingUI. |
+| `$wgIntegratedProfilesAboutMaxLength` | ![number](https://img.shields.io/badge/-number-green?style=flat-square) | `300` | Maximum length in characters for the about tagline. |
+| `$wgIntegratedProfilesLinkMaxLength` | ![number](https://img.shields.io/badge/-number-green?style=flat-square) | `255` | Maximum length in characters for freeform profile link fields. |
+| `$wgIntegratedProfilesEnabledSocialLinks` | array | `['website','twitter','github','discord','roblox','youtube']` | Only accepts one of the presets. Feel free to request or add any. |
+| `$wgIntegratedProfilesAvatarMaxBytes` | ![number](https://img.shields.io/badge/-number-green?style=flat-square) | `2097152` | Maximum avatar upload size in bytes (default 2 MiB). |
+| `$wgIntegratedProfilesEnableAnimatedAvatars` | ![boolean](https://img.shields.io/badge/-boolean-orange?style=flat-square) | `true` | When false, reject all animated avatar uploads regardless of user rights. Existing GIFs will still be displayed. |
+| `$wgIntegratedProfilesBannerMaxBytes` | ![number](https://img.shields.io/badge/-number-green?style=flat-square) | `4194304` | Maximum banner upload size in bytes (default 4 MiB). |
+| `$wgIntegratedProfilesBannerPresetImages` | array | `[]` | Map of preset ID => image URL (max 8). Replaces gradients on a single wiki, or creates a local extra row with GlobalPreferences per-wiki. |
+| `$wgIntegratedProfilesBannerPresetDefault` | ![string](https://img.shields.io/badge/-string-blue?style=flat-square) | `''` | Optional preset ID to use as the single-wiki default. If empty, the first item in `$wgIntegratedProfilesBannerPresetImages` will be used. |
+| `$wgIntegratedProfilesLanguageInterwikis` | array | `[]` | Language interwiki prefixes to inject on user/user talk pages (e.g. ["en","ko","ja"]). Skips the wiki content language and $wgLocalInterwikis. See below. |
 
 ### Local settings
 
@@ -380,3 +385,5 @@ https://github.com/obbywiki/standards
 GPL-3.0-or-later
 
 <!-- written by wlft -->
+
+[^1]: Not every token used by IntegratedProfiles is implemented in every skin. Use modern skins for the best results.
