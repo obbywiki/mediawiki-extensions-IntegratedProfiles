@@ -1,0 +1,10 @@
+{
+	"@metadata": {
+		"authors": [
+			"Wolfite",
+			"The Obby Wiki"
+		]
+	},
+	"integratedprofiles-desc": "Implements modern user profiles with the ability for other extensions to build on it.",
+	"integratedprofiles-banner-crop-callout": "Banners can appear differently on other devices. Fit any legible content within the centre of the frame."
+}

@@ -6,7 +6,7 @@ export default defineConfig( {
 		vue()
 	],
 	test: {
-		include: [ 'tests/vitest/**/*.test.js' ],
+		include: [ 'tests/vitest/**/*.test.ts', 'tests/vitest/**/*.test.js' ],
 		globals: true,
 		environment: 'jsdom'
 	}
