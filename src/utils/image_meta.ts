@@ -33,7 +33,7 @@ function ascii( bytes: Uint8Array, offset: number, length: number ): string {
 	for ( let i = offset; i < end; i++ ) {
 		text += String.fromCharCode( bytes[ i ] );
 	}
-	
+
 	return text;
 }
 
@@ -220,7 +220,7 @@ export function bytes_are_animated( data: Uint8Array, ext: ImageExt | null ): bo
 
 export async function file_is_animated( file: File ): Promise<boolean> {
 	const ext = extension_for_file( file );
-	
+
 	if ( ext === 'jpg' ) { return false; }
 
 	const buffer = await file.arrayBuffer();
@@ -276,7 +276,7 @@ export async function load_image_source( file: File ): Promise<ImageSource> {
 
 export function export_mime_for_file( file: File ): string {
 	const ext = extension_for_file( file );
-	
+
 	if ( ext === 'jpg' ) {
 		return 'image/jpeg';
 	}

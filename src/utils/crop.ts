@@ -5,7 +5,6 @@ export type CropRect = {
 	height: number;
 };
 
-
 export const AVATAR_ASPECT = 1;
 // not at all very accurate, i can't get it right TODO
 export const BANNER_ASPECT = 6;
@@ -222,7 +221,7 @@ export function read_banner_frame_aspect(): number {
 	// best guesses
 
 	const hero = document.querySelector( '.ip-masthead__hero' );
-	
+
 	let live = 0;
 	if ( hero instanceof HTMLElement && hero.clientWidth > 1 && hero.clientHeight > 1 ) {
 		live = hero.clientWidth / hero.clientHeight;

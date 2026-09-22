@@ -125,7 +125,7 @@ export async function prepare_upload_file( file: File,
 		max_height: number;
 		aspect?: number;
 		pass_through_default_cover?: boolean;
-	}
+	},
 ): Promise<File> {
 	if ( options.skip_crop || !options.crop || options.image_width <= 0 || options.image_height <= 0 ) { return file; }
 
@@ -142,7 +142,7 @@ export async function prepare_upload_file( file: File,
 		const blob = await export_crop( source, rect, mime, options.max_bytes, options.max_width, options.max_height );
 
 		mime = blob.type || mime;
-		
+
 		return new File( [ blob ], file_name_for_mime( file.name, mime ), { type: mime } );
 	} finally {
 		close_image_source( source );
