@@ -397,16 +397,22 @@ async function on_delete(): Promise<void> {
 	}
 }
 
-onMounted( () => {
+function sync_banner_aspect(): void {
 	banner_aspect.value = read_banner_frame_aspect();
+}
+
+onMounted( () => {
+	sync_banner_aspect();
 	document.body.classList.add( 'ip-banner-modal-open' );
+	window.addEventListener( 'resize', sync_banner_aspect );
 	nextTick( () => {
-		banner_aspect.value = read_banner_frame_aspect();
+		sync_banner_aspect();
 		dialog_el.value?.focus();
 	} );
 } );
 
 onUnmounted( () => {
+	window.removeEventListener( 'resize', sync_banner_aspect );
 	revoke_preview();
 	document.body.classList.remove( 'ip-banner-modal-open' );
 
