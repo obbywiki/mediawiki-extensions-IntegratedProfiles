@@ -227,9 +227,8 @@ export function read_banner_frame_aspect(): number {
 		live = hero.clientWidth / hero.clientHeight;
 	}
 
-	const narrow = typeof window !== 'undefined' &&
-		typeof window.matchMedia === 'function' &&
-		window.matchMedia( '(max-width: 640px)' ).matches;
+	const narrow = typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia( '(max-width: 640px)' ).matches;
+
 	if ( !narrow && live > 0 ) {
 		return live;
 	}

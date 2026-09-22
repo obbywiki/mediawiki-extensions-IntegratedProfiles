@@ -80,11 +80,18 @@
 						>
 							{{ choose_label }}
 						</label>
-						<CropResetButton
+						<button
 							v-if="pending_file && !skip_crop"
+							type="button"
+							class="cdx-button cdx-button--action-default cdx-button--weight-quiet
+								cdx-button--icon-only ip-upload-modal__reset"
+							:aria-label="msg( 'integratedprofiles-crop-reset' )"
+							:title="msg( 'integratedprofiles-crop-reset' )"
 							:disabled="busy || !can_reset_crop"
 							@click="on_reset_crop"
-						/>
+						>
+							<span class="cdx-button__icon" aria-hidden="true"></span>
+						</button>
 						<button
 							v-if="has_custom_avatar && !pending_file"
 							type="button"
@@ -146,7 +153,6 @@
 import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue';
 import type { IntegratedProfilesConfig } from '../types/mw';
 import ImageCropper from './ImageCropper.vue';
-import CropResetButton from './CropResetButton.vue';
 import {
 	apply_payload_to_dom,
 	delete_avatar,
