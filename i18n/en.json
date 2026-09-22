@@ -45,6 +45,7 @@
 	"integratedprofiles-avatar-crop-help": "Drag the frame to move it. Drag a corner to resize.",
 	"integratedprofiles-crop-frame": "Crop frame. Arrow keys move it. Hold Shift and press an arrow key to resize.",
 	"integratedprofiles-crop-handle": "Resize from this corner. Arrow keys change the size.",
+	"integratedprofiles-crop-reset": "Reset crop",
 	"integratedprofiles-avatar-error": "Could not update avatar.",
 	"integratedprofiles-banner-label": "Banner",
 	"integratedprofiles-banner-help": "Choose a gradient or upload your own cover image.",

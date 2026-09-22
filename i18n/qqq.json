@@ -45,6 +45,7 @@
 	"integratedprofiles-avatar-crop-help": "Help text shown while cropping a static avatar image before upload.",
 	"integratedprofiles-crop-frame": "Accessible name for the avatar and banner crop frame. Arrow keys move it; Shift and arrow keys resize it.",
 	"integratedprofiles-crop-handle": "Accessible name for a corner handle on the avatar and banner crop frame.",
+	"integratedprofiles-crop-reset": "Accessible label for the button that restores the default crop frame.",
 	"integratedprofiles-avatar-error": "Error message for avatar mutations.",
 	"integratedprofiles-banner-label": "Label for the banner preset picker in the profile editor.",
 	"integratedprofiles-banner-help": "Help text under the banner preset picker.",

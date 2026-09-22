@@ -42,6 +42,7 @@
 						:disabled="busy"
 						@error="on_cropper_error"
 						@ready="cropper_ready = true"
+						@can-reset="can_reset_crop = $event"
 					/>
 					<div
 						v-else
@@ -79,6 +80,11 @@
 						>
 							{{ choose_label }}
 						</label>
+						<CropResetButton
+							v-if="pending_file && !skip_crop"
+							:disabled="busy || !can_reset_crop"
+							@click="on_reset_crop"
+						/>
 						<button
 							v-if="has_custom_avatar && !pending_file"
 							type="button"
@@ -140,6 +146,7 @@
 import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue';
 import type { IntegratedProfilesConfig } from '../types/mw';
 import ImageCropper from './ImageCropper.vue';
+import CropResetButton from './CropResetButton.vue';
 import {
 	apply_payload_to_dom,
 	delete_avatar,
@@ -154,6 +161,7 @@ type CropperExpose = {
 	get_crop_rect: () => CropRect | null;
 	get_image_size: () => { width: number; height: number };
 	is_identity: () => boolean;
+	reset_crop: () => void;
 };
 
 const props = defineProps<{
@@ -176,6 +184,7 @@ const pending_file = ref<File | null>( null );
 const preview_url = ref( '' );
 const skip_crop = ref( false );
 const cropper_ready = ref( false );
+const can_reset_crop = ref( false );
 let pick_generation = 0;
 
 const avatar_max_bytes = computed(
@@ -240,6 +249,7 @@ function revoke_preview(): void {
 	pending_file.value = null;
 	skip_crop.value = false;
 	cropper_ready.value = false;
+	can_reset_crop.value = false;
 
 	if ( file_input.value ) {
 		file_input.value.value = '';
@@ -249,6 +259,12 @@ function revoke_preview(): void {
 function clear_pending(): void {
 	revoke_preview();
 	error_message.value = '';
+}
+
+function on_reset_crop(): void {
+	if ( cropper_el.value ) {
+		cropper_el.value.reset_crop();
+	}
 }
 
 function close_modal(): void {

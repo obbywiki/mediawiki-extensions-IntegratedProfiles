@@ -1414,6 +1414,24 @@ body.ip-banner-modal-open {
 	line-height: 1.35;
 }
 
+.ip-upload-modal__reset {
+	flex: 0 0 auto;
+}
+
+.ip-upload-modal__reset .cdx-button__icon {
+	width: 1.25rem;
+	height: 1.25rem;
+	background-color: currentcolor;
+	-webkit-mask-image: url( "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20' fill='%23000'><path d='M10 1a8.98 8.98 0 0 1 6.999 3.343L17 2h2v5l-1 1h-5l-.001-2h2.746a7 7 0 1 0 1.184 5h2.016A9 9 0 1 1 10 1'/></svg>" );
+	mask-image: url( "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20' fill='%23000'><path d='M10 1a8.98 8.98 0 0 1 6.999 3.343L17 2h2v5l-1 1h-5l-.001-2h2.746a7 7 0 1 0 1.184 5h2.016A9 9 0 1 1 10 1'/></svg>" );
+	-webkit-mask-position: center;
+	mask-position: center;
+	-webkit-mask-repeat: no-repeat;
+	mask-repeat: no-repeat;
+	-webkit-mask-size: 1.25rem;
+	mask-size: 1.25rem;
+}
+
 @media ( max-width: 640px ) {
 	.ip-editor__header {
 		padding-inline: 1rem;
@@ -1474,6 +1492,11 @@ body.ip-banner-modal-open {
 	.ip-upload-modal__actions > .cdx-button {
 		justify-content: center;
 		flex: 1 1 auto;
+	}
+
+	.ip-avatar-modal__controls > .cdx-button--icon-only,
+	.ip-banner-modal__controls > .cdx-button--icon-only {
+		flex: 0 0 auto;
 	}
 }
 

@@ -87,7 +87,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { msg } from '../utils/api';
-import { crop_around_center, frame_aspect_for_image, inscribed_guide_rect, is_identity_crop, max_cover_rect, pan_crop, resize_crop_from_handle, type CropHandle, type CropRect } from '../utils/crop';
+import { crop_around_center, frame_aspect_for_image, inscribed_guide_rect, is_default_cover_crop, is_identity_crop, max_cover_rect, pan_crop, resize_crop_from_handle, type CropHandle, type CropRect } from '../utils/crop';
 
 const props = withDefaults( defineProps<{
 	src: string;
@@ -107,7 +107,7 @@ const props = withDefaults( defineProps<{
 	disabled: false
 } );
 
-const emit = defineEmits( [ 'error', 'ready' ] );
+const emit = defineEmits( [ 'error', 'ready', 'can-reset' ] );
 
 const crop_handles: CropHandle[] = [ 'nw', 'ne', 'sw', 'se' ];
 
@@ -202,6 +202,17 @@ const frame_style = computed( () => {
 		width: ( rect.width / image_width.value * 100 ) + '%',
 		height: ( rect.height / image_height.value * 100 ) + '%'
 	};
+} );
+
+const can_reset = computed( () => {
+	if ( !crop.value || image_width.value <= 0 || image_height.value <= 0 ) { return false; }
+
+	return !is_default_cover_crop(
+		crop.value,
+		image_width.value,
+		image_height.value,
+		frame_aspect.value
+	);
 } );
 
 function is_crop_handle( value: string | null ): value is CropHandle {
@@ -449,7 +460,11 @@ function is_identity(): boolean {
 	return is_identity_crop( crop.value, image_width.value, image_height.value );
 }
 
-defineExpose( { get_crop_rect, get_image_size, is_identity } );
+defineExpose( { get_crop_rect, get_image_size, is_identity, reset_crop } );
+
+watch( can_reset, ( value ) => {
+	emit( 'can-reset', value );
+}, { immediate: true } );
 
 watch( () => props.src, () => {
 	crop.value = null;
