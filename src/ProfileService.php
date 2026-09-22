@@ -275,7 +275,7 @@ class ProfileService {
 
 	/**
 	 * Lightweight mini-profile payload for cards, gadgets, etc.
-	 * 
+	 *
 	 * Previously get_card_payload, renamed as of v0.7.0. Now global, so you can use this without `$wgIntegratedProfilesEnableUserCards`.
 	 *
 	 * @param User $subject Profile owner
