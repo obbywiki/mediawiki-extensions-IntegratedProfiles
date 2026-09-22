@@ -39,7 +39,6 @@
 						:aspect="AVATAR_ASPECT"
 						round_mask
 						:alt="msg( 'integratedprofiles-avatar-alt' )"
-						:zoom_label="msg( 'integratedprofiles-crop-zoom' )"
 						:disabled="busy"
 						@error="on_cropper_error"
 						@ready="cropper_ready = true"
@@ -347,7 +346,7 @@ async function on_confirm(): Promise<void> {
 		let to_upload = file;
 		if ( !skip_crop.value && cropper_el.value ) {
 			const size = cropper_el.value.get_image_size();
-			
+
 			try {
 				to_upload = await prepare_upload_file( file, {
 					skip_crop: false,

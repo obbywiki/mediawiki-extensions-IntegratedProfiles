@@ -37,8 +37,10 @@
 						class="ip-banner-modal__cropper"
 						:src="preview_url"
 						:aspect="banner_aspect"
+						:guide_aspect="BANNER_GUIDE_ASPECT"
+						:callout="msg( 'integratedprofiles-banner-crop-callout' )"
+						fit_image
 						:alt="msg( 'integratedprofiles-banner-modal-title' )"
-						:zoom_label="msg( 'integratedprofiles-crop-zoom' )"
 						:disabled="busy"
 						@error="on_cropper_error"
 						@ready="cropper_ready = true"
@@ -138,12 +140,7 @@ import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue';
 import type { IntegratedProfilesConfig } from '../types/mw';
 import ImageCropper from './ImageCropper.vue';
 import { apply_payload_to_dom, delete_banner, msg, upload_banner } from '../utils/api';
-import {
-	BANNER_MAX_WIDTH,
-	banner_output_max_height,
-	read_banner_frame_aspect,
-	type CropRect
-} from '../utils/crop';
+import { BANNER_GUIDE_ASPECT, BANNER_MAX_WIDTH, banner_output_max_height, read_banner_frame_aspect, type CropRect } from '../utils/crop';
 import { prepare_upload_file } from '../utils/crop_export';
 import { file_is_animated } from '../utils/image_meta';
 
@@ -162,14 +159,17 @@ const emit = defineEmits( [ 'close' ] );
 
 function custom_file_url( source: { custom_banner_url?: string; banner_url?: string; has_custom_banner?: boolean; fields?: { 'ip-banner-wiki'?: string }; banner_preset_images?: Record<string, string> } ): string {
 	const explicit = ( source.custom_banner_url || '' ).trim();
+
 	if ( explicit ) {
 		return explicit;
 	}
 	if ( !source.has_custom_banner ) {
 		return '';
 	}
+
 	const wiki_id = ( source.fields && source.fields[ 'ip-banner-wiki' ] ) || '';
 	const images = source.banner_preset_images || {};
+
 	if ( wiki_id && images[ wiki_id ] ) {
 		return '';
 	}
@@ -193,9 +193,7 @@ const cropper_ready = ref( false );
 const banner_aspect = ref( read_banner_frame_aspect() );
 let pick_generation = 0;
 
-const banner_max_bytes = computed(
-	() => ( props.config.limits && props.config.limits.banner_max_bytes ) || 4194304
-);
+const banner_max_bytes = computed( () => ( props.config.limits && props.config.limits.banner_max_bytes ) || 4194304 );
 const banner_max_mb = computed( () => {
 	const megabytes = banner_max_bytes.value / ( 1024 * 1024 );
 
@@ -294,6 +292,7 @@ async function on_file_selected( event: Event ): Promise<void> {
 	if ( file.size > banner_max_bytes.value ) {
 		error_message.value = msg( 'integratedprofiles-error-banner-size' );
 		input.value = '';
+
 		return;
 	}
 
@@ -321,6 +320,7 @@ function sync_config_banner( file_url: string, custom: boolean ): void {
 	if ( live_config ) {
 		live_config.custom_banner_url = custom ? file_url : '';
 		live_config.has_custom_banner = custom;
+
 		if ( custom ) {
 			live_config.banner_url = file_url;
 		}
@@ -365,6 +365,7 @@ async function on_confirm(): Promise<void> {
 		current_banner_url.value = custom_file_url( profile );
 		sync_config_banner( current_banner_url.value, has_custom_banner.value );
 		document.dispatchEvent( new CustomEvent( 'ip-banner-updated', { detail: profile } ) );
+
 		revoke_preview();
 		emit( 'close' );
 	} catch ( err ) {
