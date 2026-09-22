@@ -120,8 +120,8 @@
 				"IntegratedProfiles.AvatarService"
 			]
 		},
-		"integratedprofilecard": {
-			"class": "MediaWiki\\Extension\\IntegratedProfiles\\Api\\ApiQueryIntegratedProfileCard",
+		"integratedprofilepreview": {
+			"class": "MediaWiki\\Extension\\IntegratedProfiles\\Api\\ApiQueryIntegratedProfilePreview",
 			"services": [
 				"IntegratedProfiles.ProfileService"
 			]

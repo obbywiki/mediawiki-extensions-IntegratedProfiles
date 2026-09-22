@@ -45,28 +45,82 @@ class BannerService {
 	 */
 	public function get_banner_info( int $central_id, ?int $local_id = null ): array {
 		if ( $central_id <= 0 ) {
-			return [
-				'banner_url' => '',
-				'has_custom_banner' => false,
-			];
+			return $this->info_from_resolved( null );
 		}
 
-		$resolved = $this->resolve_file( $central_id, $local_id ?? $central_id );
-		if ( $resolved === null ) {
-			return [
-				'banner_url' => '',
-				'has_custom_banner' => false,
-			];
+		return $this->info_from_resolved(
+			$this->resolve_file( $central_id, $local_id ?? $central_id )
+		);
+	}
+
+	/**
+	 * Batch banner info keyed by canonical username (in order of first occurrence) while skipping anonymous users.
+	 *
+	 * @param iterable<UserIdentity> $users
+	 * @return array<string, array{banner_url: string, has_custom_banner: bool}>
+	 */
+	public function get_banner_info_for_users( iterable $users ): array {
+		/** @var array<string, array{central_id: int, local_id: int}> $subjects */
+		$subjects = [];
+		foreach ( $users as $user ) {
+			if ( $user->getId() <= 0 ) {
+				continue;
+			}
+
+			$name = $user->getName();
+			if ( $name === '' || isset( $subjects[$name] ) ) {
+				continue;
+			}
+
+			$subjects[$name] = $this->subject_ids->ids_for( $user );
 		}
 
-		return [
-			'banner_url' => $this->storage->public_url(
-				$resolved['owner_id'],
-				$resolved['ext'],
-				$resolved['mtime'] !== '' ? $resolved['mtime'] : null
-			),
-			'has_custom_banner' => true,
-		];
+		if ( $subjects === [] ) {
+			return [];
+		}
+
+		$keys_by_central = [];
+		foreach ( $subjects as $ids ) {
+			$central_id = $ids['central_id'];
+			if ( $central_id > 0 && !isset( $keys_by_central[$central_id] ) ) {
+				$keys_by_central[$central_id] = $this->cache_key( $central_id );
+			}
+		}
+
+		$multi = $keys_by_central === [] ? [] : $this->cache->getMulti( array_values( $keys_by_central ) );
+
+		$result = [];
+		foreach ( $subjects as $name => $ids ) {
+			$central_id = $ids['central_id'];
+			$local_id = $ids['local_id'];
+
+			if ( $central_id <= 0 ) {
+				$result[$name] = $this->info_from_resolved( null );
+				continue;
+			}
+
+			$key = $keys_by_central[$central_id];
+			if ( array_key_exists( $key, $multi ) ) {
+				$parsed = $this->parse_cache_value( $multi[$key] );
+				if ( $parsed === false ) {
+					$result[$name] = $this->info_from_resolved( null );
+					continue;
+				}
+
+				if ( is_array( $parsed ) ) {
+					$result[$name] = $this->info_from_resolved( $parsed );
+					continue;
+				}
+
+				// invalid cache value will fall through to storage
+			}
+
+			$result[$name] = $this->info_from_resolved(
+				$this->resolve_file_from_storage( $central_id, $local_id )
+			);
+		}
+
+		return $result;
 	}
 
 	/**
@@ -136,6 +190,25 @@ class BannerService {
 	}
 
 	/**
+	 * @param array{owner_id: int, ext: string, mtime: string}|null $resolved
+	 * @return array{banner_url: string, has_custom_banner: bool}
+	 */
+	private function info_from_resolved( ?array $resolved ): array {
+		if ( $resolved === null ) {
+			return [ 'banner_url' => '', 'has_custom_banner' => false ];
+		}
+
+		return [
+			'banner_url' => $this->storage->public_url(
+				$resolved['owner_id'],
+				$resolved['ext'],
+				$resolved['mtime'] !== '' ? $resolved['mtime'] : null
+			),
+			'has_custom_banner' => true,
+		];
+	}
+
+	/**
 	 * @return array{owner_id: int, ext: string, mtime: string}|null
 	 */
 	private function resolve_file( int $central_id, int $local_id ): ?array {
@@ -147,6 +220,13 @@ class BannerService {
 			return $cached;
 		}
 
+		return $this->resolve_file_from_storage( $central_id, $local_id );
+	}
+
+	/**
+	 * @return array{owner_id: int, ext: string, mtime: string}|null
+	 */
+	private function resolve_file_from_storage( int $central_id, int $local_id ): ?array {
 		$found = $this->storage->find_extension_with_mtime( $central_id );
 		if ( $found !== null ) {
 			$this->write_cache( $central_id, $central_id, $found['ext'], $found['mtime'] );
@@ -175,6 +255,18 @@ class BannerService {
 		if ( $raw === false || $raw === null ) {
 			return null;
 		}
+
+		return $this->parse_cache_value( $raw );
+	}
+
+	/**
+	 * @return array{owner_id: int, ext: string, mtime: string}|false|null
+	 *   array on hit, false for negative cache, null for miss/invalid
+	 */
+	private function parse_cache_value( mixed $raw ): array|false|null {
+		if ( $raw === false || $raw === null ) {
+			return null;
+		}
 		if ( $raw === '' ) {
 			return false;
 		}
@@ -186,6 +278,7 @@ class BannerService {
 		if ( count( $parts ) !== 3 ) {
 			return null;
 		}
+
 		[ $owner_raw, $ext, $mtime ] = $parts;
 		$owner_id = (int)$owner_raw;
 		if ( $owner_id <= 0 || !in_array( $ext, BannerStorage::EXTENSIONS, true ) ) {

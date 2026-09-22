@@ -216,10 +216,10 @@ function fetch_card_payload( user_name ) {
 	const request = new Promise( ( resolve, reject ) => {
 		get_api().get( {
 			action: 'query',
-			list: 'integratedprofilecard',
-			ipcuser: user_name
+			list: 'integratedprofilepreview',
+			ippuser: user_name
 		} ).done( ( data ) => {
-			const list = ( data.query && data.query.integratedprofilecard ) || [];
+			const list = ( data.query && data.query.integratedprofilepreview ) || [];
 			const payload = list[ 0 ];
 			if ( !payload ) {
 				reject( new Error( 'usernotfound' ) );
