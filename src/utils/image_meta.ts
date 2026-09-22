@@ -220,11 +220,9 @@ export function bytes_are_animated( data: Uint8Array, ext: ImageExt | null ): bo
 
 export async function file_is_animated( file: File ): Promise<boolean> {
 	const ext = extension_for_file( file );
-
-	if ( ext === 'jpg' ) { return false; }
-
 	const buffer = await file.arrayBuffer();
-	return bytes_are_animated( new Uint8Array( buffer ), ext );
+
+	return bytes_are_animated( new Uint8Array( buffer ), ext === 'jpg' ? null : ext );
 }
 
 function load_html_image( file: File ): Promise<HTMLImageElement> {
