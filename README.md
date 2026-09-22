@@ -331,15 +331,18 @@ if ( ExtensionRegistry::getInstance()->isLoaded( 'IntegratedProfiles' ) ) {
 You can use the Action API to query user avatars from anywhere else for no more than 50 usernames.
 
 ```
-action=query&list=integratedprofileavatar&ipauser=Wlft|Wlft2|Wlft3
+action=query&list=integratedprofileavatar&ipauser=User1|User2|User3
 ```
 <!-- mitosis? -->
 
 Returns a list of `{ user, avatar_url, has_custom_avatar }`. Unknown names are warned and omitted.
 
-### Getting card payloads
+### Getting preview payloads
 
-Query quick information about a user's profile.
+> [!WARNING]  
+> Breaking change: please update your code from using `get_card_payload` to `get_preview_payload`, as of v0.7.0.
+
+Query slim public profile information for display outside the profile page (user cards, gadgets, other extensions). Unlike the previous user card endpoint, this works even when `$wgIntegratedProfilesEnableUserCards` is false.
 
 #### For extensions
 
@@ -347,18 +350,18 @@ Query quick information about a user's profile.
 if ( ExtensionRegistry::getInstance()->isLoaded( 'IntegratedProfiles' ) ) {
 	$profiles = MediaWikiServices::getInstance()
 		->get( 'IntegratedProfiles.ProfileService' );
-	$card = $profiles->get_card_payload( $user, $viewer );
+	$preview = $profiles->get_preview_payload( $user, $viewer );
 	// Or alternatively, for many users in a batch:
-	// $profiles->get_card_payloads_for_users( $users, $viewer );
+	// $profiles->get_preview_payloads_for_users( $users, $viewer );
 }
 ```
 
 #### Action API
 
-You can query hover-card payloads for no more than 50 usernames.
+You can query preview payloads for no more than 50 usernames.
 
 ```
-action=query&list=integratedprofilecard&ipcuser=Wlft|Wlft2|Wlft3
+action=query&list=integratedprofilepreview&ippuser=User1|User2|User3
 ```
 
 Returns a list of `{ user, user_id, real_name, about, location, website, edit_count, registration, avatar_url, has_custom_avatar, banner, banner_url, featured_article, is_private }`. `banner` is a preset id (`accent`, `ocean`, `sunset`, `forest`, `midnight`, `ember`, `sand`, `aurora`) or `custom`. `banner_url` is set for a custom upload or a wiki preset image. `featured_article` is `{ title, display_title, url }` or `null`. `website` is `{ label, url }` or `null`. Unknown names are warned and omitted. When `is_private` is true, extras are empty (`banner` falls back to `accent`).

@@ -274,12 +274,15 @@ class ProfileService {
 	}
 
 	/**
-	 * Lightweight mini-profile payload.
+	 * Lightweight mini-profile payload for cards, gadgets, etc.
+	 * 
+	 * Previously get_card_payload, renamed as of v0.7.0. Now global, so you can use this without `$wgIntegratedProfilesEnableUserCards`.
 	 *
 	 * @param User $subject Profile owner
 	 * @param UserIdentity $viewer Requesting user
 	 * @param array{avatar_url: string, has_custom_avatar: bool}|null $avatar_info Prefetched avatar row
 	 * @param array{banner_url: string, has_custom_banner: bool}|null $banner_info Prefetched banner row
+	 * @param string|false|null $registration Prefetched first-registration timestamp; false looks it up
 	 * @return array{
 	 *   user: string,
 	 *   user_id: int,
@@ -297,16 +300,11 @@ class ProfileService {
 	 *   is_private: bool
 	 * }
 	 */
-	public function get_card_payload(
-		User $subject,
-		UserIdentity $viewer,
-		?array $avatar_info = null,
-		?array $banner_info = null
-	): array {
+	public function get_preview_payload( User $subject, UserIdentity $viewer, ?array $avatar_info = null, ?array $banner_info = null, string|false|null $registration = false ): array {
 		$avatar = $avatar_info ?? $this->avatar_service->get_avatar_info_for_user( $subject );
 		$can_view = $this->can_view_details( $viewer, $subject );
 
-		$card = [
+		$preview = [
 			'user' => $subject->getName(),
 			'user_id' => $subject->getId(),
 			'real_name' => '',
@@ -324,7 +322,7 @@ class ProfileService {
 		];
 
 		if ( !$can_view ) {
-			return $card;
+			return $preview;
 		}
 
 		$about = $this->user_options_lookup->getOption( $subject, ProfileFields::KEY_ABOUT );
@@ -343,20 +341,22 @@ class ProfileService {
 			is_string( $stored_banner ) ? $stored_banner : '',
 			$banner['has_custom_banner']
 		);
-		$registration = $this->user_registration_lookup->getFirstRegistration( $subject );
+		if ( $registration === false ) {
+			$registration = $this->user_registration_lookup->getFirstRegistration( $subject );
+		}
 
-		$card['real_name'] = $subject->getRealName();
-		$card['about'] = is_string( $about ) ? trim( $about ) : '';
-		$card['location'] = is_string( $location ) ? trim( $location ) : '';
-		$card['edit_count'] = (int)$subject->getEditCount();
-		$card['registration'] = is_string( $registration ) && $registration !== '' ? $registration : null;
-		$card['banner'] = $banner_mode;
-		$card['banner_url'] = $this->resolve_banner_paint_url(
+		$preview['real_name'] = $subject->getRealName();
+		$preview['about'] = is_string( $about ) ? trim( $about ) : '';
+		$preview['location'] = is_string( $location ) ? trim( $location ) : '';
+		$preview['edit_count'] = (int)$subject->getEditCount();
+		$preview['registration'] = is_string( $registration ) && $registration !== '' ? $registration : null;
+		$preview['banner'] = $banner_mode;
+		$preview['banner_url'] = $this->resolve_banner_paint_url(
 			$banner_mode,
 			is_string( $stored_wiki_banner ) ? $stored_wiki_banner : '',
 			$banner
 		);
-		$card['featured_article'] = $this->resolve_featured_article(
+		$preview['featured_article'] = $this->resolve_featured_article(
 			is_string( $stored_featured ) ? $stored_featured : ''
 		);
 
@@ -368,16 +368,14 @@ class ProfileService {
 		if ( is_array( $website ) ) {
 			$website_label = trim( (string)( $website['label'] ?? '' ) );
 			$website_url = trim( (string)( $website['url'] ?? '' ) );
-			$card['website'] = $website_label !== '' && $website_url !== ''
-				? [ 'label' => $website_label, 'url' => $website_url ]
-				: null;
+			$preview['website'] = $website_label !== '' && $website_url !== '' ? [ 'label' => $website_label, 'url' => $website_url ] : null;
 		}
 
-		return $card;
+		return $preview;
 	}
 
 	/**
-	 * Card payloads for one or more users.
+	 * A helper for getting preview payloads for more than one user, with additional optimizations for batching. Use this instead of calling get_preview_payload multiple times.
 	 *
 	 * @param list<User> $subjects
 	 * @param UserIdentity $viewer Requesting user
@@ -398,16 +396,33 @@ class ProfileService {
 	 *   is_private: bool
 	 * }>
 	 */
-	public function get_card_payloads_for_users( array $subjects, UserIdentity $viewer ): array {
+	public function get_preview_payloads_for_users( array $subjects, UserIdentity $viewer ): array {
 		$avatars = $this->avatar_service->get_avatar_info_for_users( $subjects );
-		$cards = [];
 
+		$viewable = [];
 		foreach ( $subjects as $subject ) {
-			$name = $subject->getName();
-			$cards[] = $this->get_card_payload( $subject, $viewer, $avatars[$name] ?? null );
+			if ( $this->can_view_details( $viewer, $subject ) ) {
+				$viewable[] = $subject;
+			}
 		}
 
-		return $cards;
+		$banners = $viewable === [] ? [] : $this->banner_service->get_banner_info_for_users( $viewable );
+		$registrations = $viewable === [] ? [] : $this->user_registration_lookup->getFirstRegistrationBatch( $viewable );
+
+		$previews = [];
+		foreach ( $subjects as $subject ) {
+			$name = $subject->getName();
+			$id = $subject->getId();
+			$previews[] = $this->get_preview_payload(
+				$subject,
+				$viewer,
+				$avatars[$name] ?? null,
+				$banners[$name] ?? null,
+				array_key_exists( $id, $registrations ) ? $registrations[$id] : false
+			);
+		}
+
+		return $previews;
 	}
 
 	/**

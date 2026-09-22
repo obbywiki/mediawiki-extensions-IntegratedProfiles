@@ -10,9 +10,9 @@ use MediaWiki\User\User;
 use Wikimedia\ParamValidator\ParamValidator;
 
 /**
- * Handles hover-card query requests for one or more users.
+ * Handles preview-payload query requests for one or more users.
  */
-class ApiQueryIntegratedProfileCard extends ApiQueryBase {
+class ApiQueryIntegratedProfilePreview extends ApiQueryBase {
 
 	public const MAX_USERS = 50;
 
@@ -21,7 +21,7 @@ class ApiQueryIntegratedProfileCard extends ApiQueryBase {
 		string $moduleName,
 		private readonly ProfileService $profile_service,
 	) {
-		parent::__construct( $query, $moduleName, 'ipc' );
+		parent::__construct( $query, $moduleName, 'ipp' );
 	}
 
 	public function execute(): void {
@@ -50,12 +50,12 @@ class ApiQueryIntegratedProfileCard extends ApiQueryBase {
 			$subjects[] = $subject;
 		}
 
-		$list = $this->profile_service->get_card_payloads_for_users(
+		$list = $this->profile_service->get_preview_payloads_for_users(
 			$subjects,
 			$this->getUser()
 		);
 
-		ApiResult::setIndexedTagName( $list, 'card' );
+		ApiResult::setIndexedTagName( $list, 'preview' );
 		$this->getResult()->addValue( 'query', $this->getModuleName(), $list );
 	}
 
@@ -74,7 +74,7 @@ class ApiQueryIntegratedProfileCard extends ApiQueryBase {
 
 	/** @inheritDoc */
 	protected function getExamplesMessages(): array {
-		return [ 'action=query&list=integratedprofilecard&ipcuser=User1|User2' => 'apihelp-query+integratedprofilecard-example-1', ];
+		return [ 'action=query&list=integratedprofilepreview&ippuser=User1|User2' => 'apihelp-query+integratedprofilepreview-example-1' ];
 	}
 
 }
