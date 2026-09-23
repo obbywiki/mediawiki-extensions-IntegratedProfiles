@@ -88,10 +88,14 @@ class AvatarValidator {
 		}
 
 		if ( extension_loaded( 'fileinfo' ) ) {
-			$finfo = new \finfo( FILEINFO_MIME_TYPE );
-			$mime = $finfo->file( $path );
-			if ( is_string( $mime ) && $mime !== '' ) {
-				return $mime;
+			try {
+				$finfo = new \finfo( FILEINFO_MIME_TYPE );
+				$mime = $finfo->file( $path );
+				if ( is_string( $mime ) && $mime !== '' ) {
+					return $mime;
+				}
+			} catch ( \Exception ) {
+				// magic db failed to load, fall through
 			}
 		}
 
