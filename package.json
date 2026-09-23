@@ -14,7 +14,7 @@
 	},
 	"author": "ObbyWiki",
 	"license": "GPL-3.0-or-later",
-	"packageManager": "pnpm@10.12.1",
+	"packageManager": "pnpm@12.5.1",
 	"devDependencies": {
 		"@eslint/eslintrc": "^3.3.6",
 		"@eslint/js": "^10.0.1",
