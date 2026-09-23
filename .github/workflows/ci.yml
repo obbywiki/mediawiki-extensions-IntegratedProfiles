@@ -5,6 +5,9 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   lint:
     uses: StarCitizenTools/mediawiki-ci-workflows/.github/workflows/lint.yml@main
@@ -15,17 +18,17 @@ jobs:
       # lint-i18n: true
       # lint-md: true
 
-  # test-js:
-  #   uses: StarCitizenTools/mediawiki-ci-workflows/.github/workflows/test-js.yml@main
+  test-js:
+    uses: StarCitizenTools/mediawiki-ci-workflows/.github/workflows/test-js.yml@main
 
-  # test-php:
-  #   uses: StarCitizenTools/mediawiki-ci-workflows/.github/workflows/test-php.yml@main
-  #   with:
-  #     project-type: extension
-  #     project-name: IntegratedProfiles
-  #     matrix: >-
-  #       [
-  #         {"mw":"REL1_45", "php":"8.3", "coverage":"xdebug", "experimental":"false"},
-  #         {"mw":"REL1_46", "php":"8.5", "coverage":"none", "experimental":"false"},
-  #         {"mw":"master", "php":"8.5", "coverage":"none", "experimental":"true"},
-  #       ]
+  test-php:
+    uses: StarCitizenTools/mediawiki-ci-workflows/.github/workflows/test-php.yml@main
+    with:
+      project-type: extension
+      project-name: IntegratedProfiles
+      matrix: >-
+        [
+          {"mw":"REL1_45", "php":"8.3", "coverage":"xdebug", "experimental":false},
+          {"mw":"REL1_46", "php":"8.5", "coverage":"none", "experimental":false},
+          {"mw":"master", "php":"8.5", "coverage":"none", "experimental":true}
+        ]

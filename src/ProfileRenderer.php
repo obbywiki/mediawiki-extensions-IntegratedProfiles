@@ -251,27 +251,27 @@ class ProfileRenderer {
 			'banner_mode' => $banner_mode,
 			'avatar_url' => (string)( $payload['avatar_url'] ?? '' ),
 			'avatar_alt' => (string)( $messages['avatar_alt'] ?? '' ),
-			'avatar_decoration' => $avatar_decoration,
+			'avatar_decoration' => self::optional_section( $avatar_decoration ),
 			'avatar_edit' => $avatar_edit,
 
 			'use_floating_ui' => $use_floating_ui,
 			'user_name' => (string)( $payload['user_name'] ?? '' ),
 
-			'aka' => $aka,
+			'aka' => self::optional_section( $aka ),
 			'you_label' => $you_label,
 			'has_groups' => $groups !== [],
 			'groups' => $groups,
 
-			'private_notice' => $private_notice,
+			'private_notice' => self::optional_section( $private_notice ),
 			'has_meta' => $pronouns_label !== '' || $edit_count_label !== '' || $joined_label !== '',
-			'pronouns_label' => $pronouns_label,
+			'pronouns_label' => self::optional_section( $pronouns_label ),
 			'has_edit_count' => $edit_count_label !== '',
 
 			'edit_count_label' => $edit_count_label,
 			'has_contributions_url' => $contributions_url !== '',
 			'contributions_url' => $contributions_url,
 
-			'joined_label' => $joined_label,
+			'joined_label' => self::optional_section( $joined_label ),
 
 			'has_links' => $link_items !== [],
 			'link_items' => $link_items,
@@ -294,6 +294,16 @@ class ProfileRenderer {
 			'wiki_profiles_label' => $about_view['wiki_profiles_label'],
 			'wiki_profile_items' => $about_view['wiki_profile_items'],
 		];
+	}
+
+	/**
+	 * LightnCandy treats empty strings as truthy, so Mustache sections need
+	 * false when a string field is absent.
+	 *
+	 * @return string|false
+	 */
+	private static function optional_section( string $value ): string|false {
+		return $value !== '' ? $value : false;
 	}
 
 	/**

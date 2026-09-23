@@ -8,6 +8,11 @@ export default defineConfig( {
 	test: {
 		include: [ 'tests/vitest/**/*.test.ts', 'tests/vitest/**/*.test.js' ],
 		globals: true,
-		environment: 'jsdom'
+		environment: 'jsdom',
+		coverage: {
+			provider: 'v8',
+			reporter: [ 'text', 'lcov' ],
+			reportsDirectory: 'coverage/js',
+		},
 	}
 } );

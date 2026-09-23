@@ -4,12 +4,8 @@
 	<rule ref="./vendor/mediawiki/mediawiki-codesniffer/MediaWiki">
 		<exclude name="MediaWiki.NamingConventions.LowerCamelFunctionsName"/>
 		<exclude name="Generic.Files.LineLength.TooLong" />
-		<exclude name="MediaWiki.Commenting.MissingCovers"/>
 		<exclude name="MediaWiki.Commenting.PropertyDocumentation.MissingDocumentationPrivate" />
 		<exclude name="MediaWiki.Commenting.PropertyDocumentation.MissingDocumentationProtected" />
-	</rule>
-	<rule ref="MediaWiki.Files.ClassMatchesFilename">
-		<exclude-pattern>tests/phpunit/*Stub.php</exclude-pattern>
 	</rule>
 	<rule ref="MediaWiki.Commenting.FunctionComment.MissingDocumentationPublic">
 		<exclude-pattern>tests/phpunit/</exclude-pattern>
@@ -18,7 +14,7 @@
 		<exclude-pattern>tests/phpunit/</exclude-pattern>
 	</rule>
 	<file>src</file>
-	<!-- <file>tests/phpunit</file> -->
+	<file>tests/phpunit</file>
 	<arg name="extensions" value="php"/>
 	<arg name="encoding" value="UTF-8"/>
 	<exclude-pattern>vendor/</exclude-pattern>
