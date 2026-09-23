@@ -6,7 +6,7 @@
 	"scripts": {
 		"build": "vite build -c vite.build.config.mjs",
 		"typecheck": "vue-tsc --noEmit",
-		"lint": "pnpm lint:js && pnpm lint:css",
+		"lint": "pnpm lint:js && pnpm lint:styles",
 		"lint:js": "eslint resources src",
 		"lint:styles": "stylelint \"resources/**/*.css\" \"src/**/*.vue\"",
 		"test": "vitest run",
