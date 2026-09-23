@@ -185,7 +185,10 @@ class ProfileRendererTest extends TestCase {
 		$this->assertStringContainsString( 'User1', $html );
 		$this->assertStringContainsString( '/avatars/private.jpg', $html );
 		$this->assertStringContainsString( 'class="ip-identity__private"', $html );
-		$this->assertStringContainsString( 'This profile\'s details are hidden.', $html );
+		$this->assertStringContainsString(
+			htmlspecialchars( "This profile's details are hidden.", ENT_QUOTES ),
+			$html
+		);
 		$this->assertStringContainsString( 'ip-masthead__band--accent', $html );
 		$this->assertStringNotContainsString( 'ip-identity__meta', $html );
 		$this->assertStringNotContainsString( '0 edits', $html );

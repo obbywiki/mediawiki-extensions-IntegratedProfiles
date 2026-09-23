@@ -50,7 +50,7 @@ class BannerCleanupTest extends TestCase {
 		$service = $reflection->newInstanceWithoutConstructor();
 		$prop = $reflection->getProperty( 'banner_service' );
 		$prop->setValue( $service, $banner );
-		
+
 		return $service;
 	}
 
@@ -59,7 +59,7 @@ class BannerCleanupTest extends TestCase {
 		$user->method( 'getId' )->willReturn( 7 );
 		$user->method( 'getName' )->willReturn( 'User1' );
 		$user->method( 'isRegistered' )->willReturn( true );
-		
+
 		return $user;
 	}
 

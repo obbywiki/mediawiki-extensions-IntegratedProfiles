@@ -108,7 +108,7 @@ class AvatarServiceBatchTest extends TestCase {
 		$subject_ids->method( 'ids_for' )->willReturnCallback(
 			static function ( UserIdentity $user ): array {
 				$id = $user->getId();
-				
+
 				return [ 'central_id' => $id, 'local_id' => $id ];
 			}
 		);

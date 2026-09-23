@@ -30,7 +30,7 @@ class AvatarValidatorTest extends TestCase {
 		if ( is_dir( $this->temp_dir ) ) {
 			rmdir( $this->temp_dir );
 		}
-		
+
 		parent::tearDown();
 	}
 
@@ -161,7 +161,7 @@ class AvatarValidatorTest extends TestCase {
 			. "\x2C\x00\x00\x00\x00\x01\x00\x01\x00\x00"
 			. "\x02\x02\x4C\x01\x00";
 		$frames = str_repeat( $frame, max( 1, $frame_count ) );
-		
+
 		return $header . $netscape_block . $frames . "\x3B";
 	}
 

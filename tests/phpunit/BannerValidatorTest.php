@@ -59,7 +59,7 @@ class BannerValidatorTest extends TestCase {
 	public function test_validate_rejects_oversized(): void {
 		$path = $this->temp_dir . '/big.png';
 		$png = base64_decode( 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', true );
-		
+
 		file_put_contents( $path, $png );
 
 		$result = $this->validator->validate_upload( $path, 2048 );

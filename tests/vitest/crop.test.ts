@@ -98,7 +98,7 @@ describe( 'clamp and pan', () => {
 			200,
 			100,
 		);
-		
+
 		expect( clamped.x ).toBe( 0 );
 		expect( clamped.y ).toBe( 50 );
 		expect( clamped.width ).toBe( 100 );

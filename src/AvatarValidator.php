@@ -87,15 +87,11 @@ class AvatarValidator {
 			return null;
 		}
 
-		if ( function_exists( 'finfo_open' ) ) {
-			$finfo = finfo_open( FILEINFO_MIME_TYPE );
-			if ( $finfo ) {
-				$mime = finfo_file( $finfo, $path );
-				finfo_close( $finfo );
-
-				if ( is_string( $mime ) && $mime !== '' ) {
-					return $mime;
-				}
+		if ( extension_loaded( 'fileinfo' ) ) {
+			$finfo = new \finfo( FILEINFO_MIME_TYPE );
+			$mime = $finfo->file( $path );
+			if ( is_string( $mime ) && $mime !== '' ) {
+				return $mime;
 			}
 		}
 

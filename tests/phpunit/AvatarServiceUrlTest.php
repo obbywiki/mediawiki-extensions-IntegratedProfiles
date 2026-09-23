@@ -45,7 +45,7 @@ class AvatarServiceUrlTest extends TestCase {
 		$user->method( 'getId' )->willReturn( $local_id );
 		$user->method( 'getName' )->willReturn( 'User1' );
 		$user->method( 'isRegistered' )->willReturn( $local_id > 0 );
-		
+
 		return $user;
 	}
 

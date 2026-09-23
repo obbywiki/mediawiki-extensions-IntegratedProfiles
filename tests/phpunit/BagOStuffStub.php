@@ -31,7 +31,7 @@ class BagOStuff {
 
 	public function set( $key, $value, $exptime = 0, $flags = 0 ): bool {
 		$this->data[$key] = $value;
-		
+
 		return true;
 	}
 

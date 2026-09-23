@@ -99,7 +99,7 @@ class HeaderAvatarTest extends TestCase {
 			->onlyMethods( [ 'get_avatar_info' ] )
 			->getMock();
 		$service->method( 'get_avatar_info' )->willReturn( $info );
-		
+
 		return $service;
 	}
 
