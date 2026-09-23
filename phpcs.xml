@@ -4,7 +4,7 @@
 	<rule ref="./vendor/mediawiki/mediawiki-codesniffer/MediaWiki">
 		<exclude name="MediaWiki.NamingConventions.LowerCamelFunctionsName"/>
 		<exclude name="Generic.Files.LineLength.TooLong" />
-		<exclude name="MediaWiki.Commenting.MissingCovers"/>
+		<!-- <exclude name="MediaWiki.Commenting.MissingCovers"/> -->
 		<exclude name="MediaWiki.Commenting.PropertyDocumentation.MissingDocumentationPrivate" />
 		<exclude name="MediaWiki.Commenting.PropertyDocumentation.MissingDocumentationProtected" />
 	</rule>
