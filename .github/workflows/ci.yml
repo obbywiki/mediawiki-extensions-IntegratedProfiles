@@ -23,3 +23,9 @@ jobs:
   #   with:
   #     project-type: extension
   #     project-name: IntegratedProfiles
+  #     matrix: >-
+  #       [
+  #         {"mw":"REL1_45", "php":"8.3", "coverage":"xdebug", "experimental":"false"},
+  #         {"mw":"REL1_46", "php":"8.5", "coverage":"none", "experimental":"false"},
+  #         {"mw":"master", "php":"8.5", "coverage":"none", "experimental":"true"},
+  #       ]
