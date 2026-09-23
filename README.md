@@ -3,7 +3,7 @@
 ![IntegratedProfiles Preview](./docs/images/cover.png)
 > Screenshot taken on the Citizen skin while using IntegratedProfiles v0.5.0.
 
-> [!WARNING]  
+> [!WARNING]
 > IntegratedProfiles is currently in BETA.
 
 IntegratedProfiles implements modern and extensible user profiles with the added focus of integration, meaning any other extension can add onto it.
@@ -33,14 +33,14 @@ IntegratedProfiles implements modern and extensible user profiles with the added
 ### Requirements
 
 * MediaWiki 1.45 or later
-	* Only MW 1.45 and MW 1.46 have been tested. Earlier versions may work but are not officially supported.
+  * Only MW 1.45 and MW 1.46 have been tested. Earlier versions may work but are not officially supported.
 
 ### Suggestions
 
 * [Extension:FloatingUI](https://www.mediawiki.org/wiki/Extension:FloatingUI)
 * Any Codex-compatible skin[^1], or one of the following skins for the best results:
-	* [Citizen](https://www.mediawiki.org/wiki/Skin:Citizen) (built-in improvements)
- 	* Vector 2022
+  * [Citizen](https://www.mediawiki.org/wiki/Skin:Citizen) (built-in improvements)
+  * Vector 2022
 
 ### Install
 
@@ -256,7 +256,7 @@ $wgIntegratedProfilesLanguageInterwikis = [ 'en', 'ko', 'ja', 'zh' ];
 
 Each wiki skips its own content language (`$wgLanguageCode` and `$wgLocalInterwikis`), so you can use the same list everywhere.
 
-**Note**: If a prefix is missing from that wiki’s `interwiki` table, MediaWiki treats `en:User:Name` as a local title and the language menu stays on the current host (`https://ko.wiki.local/en:User:TestUser` instead of `https://wiki.local/User:TestUser`). 
+**Note**: If a prefix is missing from that wiki’s `interwiki` table, MediaWiki treats `en:User:Name` as a local title and the language menu stays on the current host (`https://ko.wiki.local/en:User:TestUser` instead of `https://wiki.local/User:TestUser`).
 
 Add both directions, e.g. `en` = `https://wiki.local/$1` and `ko` = `https://ko.wiki.local/$1`.
 
@@ -298,7 +298,7 @@ mw.hook('wikipage.content').add(function ($content) {
 
 ## Hooks
 
-Please see better hook documentation at https://www.mediawiki.org/wiki/Extension:IntegratedProfiles where the up-to-date documentation is. Shortcuts:
+Please see better hook documentation at <https://www.mediawiki.org/wiki/Extension:IntegratedProfiles> where the up-to-date documentation is. Shortcuts:
 
 * [IntegratedProfilesAfterMasthead](https://www.mediawiki.org/wiki/Special:MyLanguage/Extension:IntegratedProfiles/Hooks/IntegratedProfilesAfterMasthead)
 * [IntegratedProfilesAfterAvatar](https://www.mediawiki.org/wiki/Special:MyLanguage/Extension:IntegratedProfiles/Hooks/IntegratedProfilesAfterAvatar)
@@ -325,12 +325,11 @@ if ( ExtensionRegistry::getInstance()->isLoaded( 'IntegratedProfiles' ) ) {
 }
 ```
 
-
 #### Action API
 
 You can use the Action API to query user avatars from anywhere else for no more than 50 usernames.
 
-```
+```text
 action=query&list=integratedprofileavatar&ipauser=User1|User2|User3
 ```
 <!-- mitosis? -->
@@ -360,7 +359,7 @@ if ( ExtensionRegistry::getInstance()->isLoaded( 'IntegratedProfiles' ) ) {
 
 You can query preview payloads for no more than 50 usernames.
 
-```
+```text
 action=query&list=integratedprofilepreview&ippuser=User1|User2|User3
 ```
 
@@ -370,7 +369,7 @@ Returns a list of `{ user, user_id, real_name, about, location, website, edit_co
 
 # IntegratedProfiles (Contributing)
 
-Style rules: https://github.com/obbywiki/standards
+Style rules: <https://github.com/obbywiki/standards>
 
 ```bash
 pnpm install

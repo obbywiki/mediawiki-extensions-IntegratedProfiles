@@ -17,7 +17,7 @@ Use `snake_case` for variables, parameters, and functions you define.
 - Object literal keys and JSON/config shapes from ResourceLoader / Action API
 - Preference keys and config registry names (`ip-about`, `IntegratedProfilesColor`)
 
-As for everything else, see: https://github.com/obbywiki/standards
+As for everything else, see: <https://github.com/obbywiki/standards>
 
 # Tests
 

@@ -1,6 +1,19 @@
 {
-    "$schema": "https://raw.githubusercontent.com/DavidAnson/markdownlint/v0.41.1/schema/markdownlint-config-schema.json",
-    "line-length": {
-      "tables": false
-    }
-  }
+  "$schema": "https://raw.githubusercontent.com/DavidAnson/markdownlint/v0.41.1/schema/markdownlint-config-schema.json",
+  "default": true,
+  "line-length": false,
+  "no-duplicate-heading": {
+    "siblings_only": true
+  },
+  "single-title": false,
+  "no-inline-html": {
+    "allowed_elements": ["details", "summary"]
+  },
+  "no-hard-tabs": {
+    "code_blocks": false
+  },
+  "no-multiple-blanks": false,
+  "no-blanks-blockquote": false,
+  "first-line-heading": false,
+  "table-column-style": false
+}
