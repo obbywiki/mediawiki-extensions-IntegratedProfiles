@@ -1,11 +1,16 @@
 <?php
+declare( strict_types=1 );
 
-namespace MediaWiki\Extension\IntegratedProfiles\Tests;
+namespace MediaWiki\Extension\IntegratedProfiles\Tests\Unit;
 
 use MediaWiki\Extension\IntegratedProfiles\ProfileFields;
-use PHPUnit\Framework\TestCase;
+use MediaWikiUnitTestCase;
 
-class ProfileFieldsTest extends TestCase {
+/**
+ * @group IntegratedProfiles
+ * @covers \MediaWiki\Extension\IntegratedProfiles\ProfileFields
+ */
+class ProfileFieldsTest extends MediaWikiUnitTestCase {
 
 	private ProfileFields $fields;
 

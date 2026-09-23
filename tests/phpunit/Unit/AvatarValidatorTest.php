@@ -1,11 +1,16 @@
 <?php
+declare( strict_types=1 );
 
-namespace MediaWiki\Extension\IntegratedProfiles\Tests;
+namespace MediaWiki\Extension\IntegratedProfiles\Tests\Unit;
 
 use MediaWiki\Extension\IntegratedProfiles\AvatarValidator;
-use PHPUnit\Framework\TestCase;
+use MediaWikiUnitTestCase;
 
-class AvatarValidatorTest extends TestCase {
+/**
+ * @group IntegratedProfiles
+ * @covers \MediaWiki\Extension\IntegratedProfiles\AvatarValidator
+ */
+class AvatarValidatorTest extends MediaWikiUnitTestCase {
 
 	private AvatarValidator $validator;
 

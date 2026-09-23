@@ -1,15 +1,20 @@
 <?php
+declare( strict_types=1 );
 
-namespace MediaWiki\Extension\IntegratedProfiles\Tests;
+namespace MediaWiki\Extension\IntegratedProfiles\Tests\Unit;
 
 use MediaWiki\Extension\IntegratedProfiles\BannerService;
 use MediaWiki\Extension\IntegratedProfiles\ProfileFields;
 use MediaWiki\Extension\IntegratedProfiles\ProfileService;
 use MediaWiki\User\UserIdentity;
-use PHPUnit\Framework\TestCase;
+use MediaWikiUnitTestCase;
 use ReflectionClass;
 
-class BannerCleanupTest extends TestCase {
+/**
+ * @group IntegratedProfiles
+ * @covers \MediaWiki\Extension\IntegratedProfiles\ProfileService
+ */
+class BannerCleanupTest extends MediaWikiUnitTestCase {
 
 	public function test_leaving_custom_deletes_banner_files(): void {
 		$banner = $this->createMock( BannerService::class );

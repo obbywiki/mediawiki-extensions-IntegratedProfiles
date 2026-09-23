@@ -1,11 +1,16 @@
 <?php
+declare( strict_types=1 );
 
-namespace MediaWiki\Extension\IntegratedProfiles\Tests;
+namespace MediaWiki\Extension\IntegratedProfiles\Tests\Unit;
 
 use MediaWiki\Extension\IntegratedProfiles\BannerValidator;
-use PHPUnit\Framework\TestCase;
+use MediaWikiUnitTestCase;
 
-class BannerValidatorTest extends TestCase {
+/**
+ * @group IntegratedProfiles
+ * @covers \MediaWiki\Extension\IntegratedProfiles\BannerValidator
+ */
+class BannerValidatorTest extends MediaWikiUnitTestCase {
 
 	private BannerValidator $validator;
 

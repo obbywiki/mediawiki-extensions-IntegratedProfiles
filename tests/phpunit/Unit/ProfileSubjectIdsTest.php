@@ -1,13 +1,18 @@
 <?php
+declare( strict_types=1 );
 
-namespace MediaWiki\Extension\IntegratedProfiles\Tests;
+namespace MediaWiki\Extension\IntegratedProfiles\Tests\Unit;
 
 use MediaWiki\Extension\IntegratedProfiles\ProfileSubjectIds;
 use MediaWiki\User\CentralId\CentralIdLookup;
 use MediaWiki\User\UserIdentity;
-use PHPUnit\Framework\TestCase;
+use MediaWikiUnitTestCase;
 
-class ProfileSubjectIdsTest extends TestCase {
+/**
+ * @group IntegratedProfiles
+ * @covers \MediaWiki\Extension\IntegratedProfiles\ProfileSubjectIds
+ */
+class ProfileSubjectIdsTest extends MediaWikiUnitTestCase {
 
 	public function test_central_id_prefers_lookup_value(): void {
 		$ids = new ProfileSubjectIds( $this->lookup_returning( 9001 ) );

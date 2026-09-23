@@ -381,6 +381,8 @@ composer install
 composer test
 ```
 
+PHPUnit is a MediaWiki-dependent suite (`tests/phpunit/Unit`, `tests/phpunit/Integration`). It runs in CI, but locally it will need a MediaWiki checkout with IntegratedProfiles at `extensions/IntegratedProfiles`, then you can run `composer phpunit`.
+
 ---
 
 ## License

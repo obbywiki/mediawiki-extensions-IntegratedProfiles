@@ -1,11 +1,16 @@
 <?php
+declare( strict_types=1 );
 
-namespace MediaWiki\Extension\IntegratedProfiles\Tests;
+namespace MediaWiki\Extension\IntegratedProfiles\Tests\Unit;
 
 use MediaWiki\Extension\IntegratedProfiles\ProfileTabs;
-use PHPUnit\Framework\TestCase;
+use MediaWikiUnitTestCase;
 
-class ProfileTabsTest extends TestCase {
+/**
+ * @group IntegratedProfiles
+ * @covers \MediaWiki\Extension\IntegratedProfiles\ProfileTabs
+ */
+class ProfileTabsTest extends MediaWikiUnitTestCase {
 
 	/** @return list<array{id: string, label: string, weight: int}> */
 	private function core_tabs(): array {

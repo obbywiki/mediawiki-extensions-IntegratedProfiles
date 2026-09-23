@@ -1,12 +1,17 @@
 <?php
+declare( strict_types=1 );
 
-namespace MediaWiki\Extension\IntegratedProfiles\Tests;
+namespace MediaWiki\Extension\IntegratedProfiles\Tests\Unit;
 
 use MediaWiki\Extension\IntegratedProfiles\AvatarService;
 use MediaWiki\User\UserIdentity;
-use PHPUnit\Framework\TestCase;
+use MediaWikiUnitTestCase;
 
-class AvatarServiceUrlTest extends TestCase {
+/**
+ * @group IntegratedProfiles
+ * @covers \MediaWiki\Extension\IntegratedProfiles\AvatarService
+ */
+class AvatarServiceUrlTest extends MediaWikiUnitTestCase {
 
 	public function test_get_avatar_url_for_user_returns_info_url(): void {
 		$service = $this->getMockBuilder( AvatarService::class )

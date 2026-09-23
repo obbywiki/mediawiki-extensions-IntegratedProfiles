@@ -1,11 +1,16 @@
 <?php
+declare( strict_types=1 );
 
-namespace MediaWiki\Extension\IntegratedProfiles\Tests;
+namespace MediaWiki\Extension\IntegratedProfiles\Tests\Unit;
 
 use MediaWiki\Extension\IntegratedProfiles\ProfileLanguageLinks;
-use PHPUnit\Framework\TestCase;
+use MediaWikiUnitTestCase;
 
-class ProfileLanguageLinksTest extends TestCase {
+/**
+ * @group IntegratedProfiles
+ * @covers \MediaWiki\Extension\IntegratedProfiles\ProfileLanguageLinks
+ */
+class ProfileLanguageLinksTest extends MediaWikiUnitTestCase {
 
 	public function test_appends_configured_prefixes(): void {
 		$helper = new ProfileLanguageLinks( [ 'en', 'ko', 'ja' ], 'en' );

@@ -1,13 +1,18 @@
 <?php
+declare( strict_types=1 );
 
-namespace MediaWiki\Extension\IntegratedProfiles\Tests;
+namespace MediaWiki\Extension\IntegratedProfiles\Tests\Unit;
 
 use MediaWiki\Extension\IntegratedProfiles\NewAuthBridge;
 use MediaWiki\User\UserIdentity;
-use PHPUnit\Framework\TestCase;
+use MediaWikiUnitTestCase;
 use RuntimeException;
 
-class NewAuthBridgeTest extends TestCase {
+/**
+ * @group IntegratedProfiles
+ * @covers \MediaWiki\Extension\IntegratedProfiles\NewAuthBridge
+ */
+class NewAuthBridgeTest extends MediaWikiUnitTestCase {
 
 	private function identity(): UserIdentity {
 		$user = $this->createMock( UserIdentity::class );

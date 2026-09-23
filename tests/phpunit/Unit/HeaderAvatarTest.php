@@ -1,12 +1,17 @@
 <?php
+declare( strict_types=1 );
 
-namespace MediaWiki\Extension\IntegratedProfiles\Tests;
+namespace MediaWiki\Extension\IntegratedProfiles\Tests\Unit;
 
 use MediaWiki\Extension\IntegratedProfiles\AvatarService;
 use MediaWiki\Extension\IntegratedProfiles\HeaderAvatar;
-use PHPUnit\Framework\TestCase;
+use MediaWikiUnitTestCase;
 
-class HeaderAvatarTest extends TestCase {
+/**
+ * @group IntegratedProfiles
+ * @covers \MediaWiki\Extension\IntegratedProfiles\HeaderAvatar
+ */
+class HeaderAvatarTest extends MediaWikiUnitTestCase {
 
 	public function test_resolve_url_returns_custom_avatar_for_citizen(): void {
 		$service = $this->avatar_service_with_info( [

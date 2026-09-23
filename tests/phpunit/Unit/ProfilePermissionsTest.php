@@ -1,13 +1,18 @@
 <?php
+declare( strict_types=1 );
 
-namespace MediaWiki\Extension\IntegratedProfiles\Tests;
+namespace MediaWiki\Extension\IntegratedProfiles\Tests\Unit;
 
 use MediaWiki\Extension\IntegratedProfiles\ProfileFields;
 use MediaWiki\Extension\IntegratedProfiles\ProfilePermissions;
 use MediaWiki\User\UserIdentity;
-use PHPUnit\Framework\TestCase;
+use MediaWikiUnitTestCase;
 
-class ProfilePermissionsTest extends TestCase {
+/**
+ * @group IntegratedProfiles
+ * @covers \MediaWiki\Extension\IntegratedProfiles\ProfilePermissions
+ */
+class ProfilePermissionsTest extends MediaWikiUnitTestCase {
 
 	private ProfilePermissions $permissions;
 

@@ -21,6 +21,6 @@ As for everything else, see: https://github.com/obbywiki/standards
 
 # Tests
 
-`pnpm test` runs the Vitest suite in `tests/vitest`. `composer test` is PHP lint (syntax + PHPCS). `composer phpunit` runs PHPUnit in `tests/phpunit`. See the Contributing section of `README.md` for what each file actually checks.
+`pnpm test` runs the Vitest suite in `tests/vitest`. `composer test` is PHP lint (syntax + PHPCS).
 
-PHPUnit in this repository boots without MediaWiki. The masthead renderer tests need MediaWiki's template parser and run in the MediaWiki PHPUnit CI job.
+PHPUnit lives under `tests/phpunit/Unit` and `tests/phpunit/Integration`, using MediaWiki's `MediaWikiUnitTestCase` / `MediaWikiIntegrationTestCase`. it runs in CI, but locally it will need a MediaWiki checkout with IntegratedProfiles at `extensions/IntegratedProfiles`, then you can run `composer phpunit`.

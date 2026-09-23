@@ -1,22 +1,24 @@
 <?php
+declare( strict_types=1 );
 
-namespace MediaWiki\Extension\IntegratedProfiles\Tests;
+namespace MediaWiki\Extension\IntegratedProfiles\Tests\Integration;
 
 use MediaWiki\Extension\IntegratedProfiles\ProfileRenderer;
 use MediaWiki\Html\TemplateParser;
-use PHPUnit\Framework\TestCase;
+use MediaWikiIntegrationTestCase;
 
-class ProfileRendererTest extends TestCase {
+/**
+ * @group IntegratedProfiles
+ * @covers \MediaWiki\Extension\IntegratedProfiles\ProfileRenderer
+ */
+class ProfileRendererTest extends MediaWikiIntegrationTestCase {
 
 	private ProfileRenderer $renderer;
 
 	protected function setUp(): void {
 		parent::setUp();
-		if ( !class_exists( TemplateParser::class ) ) {
-			$this->markTestSkipped( 'Masthead HTML tests need MediaWiki TemplateParser.' );
-		}
 		$this->renderer = new ProfileRenderer(
-			new TemplateParser( dirname( __DIR__, 2 ) . '/templates' )
+			new TemplateParser( dirname( __DIR__, 3 ) . '/templates' )
 		);
 	}
 

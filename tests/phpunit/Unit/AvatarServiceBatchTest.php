@@ -1,16 +1,22 @@
 <?php
+declare( strict_types=1 );
 
-namespace MediaWiki\Extension\IntegratedProfiles\Tests;
+namespace MediaWiki\Extension\IntegratedProfiles\Tests\Unit;
 
 use MediaWiki\Config\ServiceOptions;
 use MediaWiki\Extension\IntegratedProfiles\AvatarService;
 use MediaWiki\Extension\IntegratedProfiles\AvatarStorage;
 use MediaWiki\Extension\IntegratedProfiles\ProfileSubjectIds;
 use MediaWiki\User\UserIdentity;
-use PHPUnit\Framework\TestCase;
+use MediaWikiUnitTestCase;
 use Wikimedia\ObjectCache\BagOStuff;
+use Wikimedia\ObjectCache\HashBagOStuff;
 
-class AvatarServiceBatchTest extends TestCase {
+/**
+ * @group IntegratedProfiles
+ * @covers \MediaWiki\Extension\IntegratedProfiles\AvatarService
+ */
+class AvatarServiceBatchTest extends MediaWikiUnitTestCase {
 
 	public function test_batch_uses_get_multi_cache_hits(): void {
 		$cache = $this->new_cache();
@@ -129,11 +135,7 @@ class AvatarServiceBatchTest extends TestCase {
 	}
 
 	private function new_cache(): BagOStuff {
-		if ( class_exists( \Wikimedia\ObjectCache\HashBagOStuff::class ) ) {
-			return new \Wikimedia\ObjectCache\HashBagOStuff( [] );
-		}
-
-		return new BagOStuff();
+		return new HashBagOStuff();
 	}
 
 	private function identity( int $local_id, string $name ): UserIdentity {
