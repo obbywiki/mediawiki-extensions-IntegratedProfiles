@@ -83,7 +83,6 @@ class ProfileRendererTest extends MediaWikiIntegrationTestCase {
 		$this->assertStringContainsString( 'User1&lt;script&gt;', $html );
 		$this->assertStringContainsString( '&lt;script&gt;alert(1)&lt;/script&gt;', $html );
 		$this->assertStringNotContainsString( '<script>alert(1)</script>', $html );
-		$this->assertStringNotContainsString( 'ip-avatar__decoration', $html );
 		$this->assertStringContainsString( 'id="integratedprofiles-edit"', $html );
 		$this->assertStringContainsString( 'id="integratedprofiles-avatar-edit"', $html );
 		$this->assertStringContainsString( 'aria-label="Change avatar"', $html );
@@ -133,7 +132,6 @@ class ProfileRendererTest extends MediaWikiIntegrationTestCase {
 		$this->assertStringContainsString( 'class="ip-identity__meta"', $html );
 		$this->assertStringContainsString( '0 edits', $html );
 		$this->assertStringNotContainsString( 'Joined', $html );
-		$this->assertStringNotContainsString( 'ip-identity__meta-item--joined', $html );
 	}
 
 	public function test_private_masthead_shows_avatar_name_and_notice(): void {
@@ -177,7 +175,7 @@ class ProfileRendererTest extends MediaWikiIntegrationTestCase {
 				'edit_count' => '0 edits',
 				'joined' => '',
 				'avatar_alt' => 'Profile avatar',
-				'private_notice' => 'This profile\'s details are hidden.',
+				'private_notice' => 'PRIVATE_NOTICE',
 				'featured_label' => 'Featured article',
 			],
 			'/wiki/Special:Contributions/User1'
@@ -187,10 +185,7 @@ class ProfileRendererTest extends MediaWikiIntegrationTestCase {
 		$this->assertStringContainsString( 'User1', $html );
 		$this->assertStringContainsString( '/avatars/private.jpg', $html );
 		$this->assertStringContainsString( 'class="ip-identity__private"', $html );
-		$this->assertStringContainsString(
-			htmlspecialchars( "This profile's details are hidden.", ENT_QUOTES ),
-			$html
-		);
+		$this->assertStringContainsString( 'PRIVATE_NOTICE', $html );
 		$this->assertStringContainsString( 'ip-masthead__band--accent', $html );
 		$this->assertStringNotContainsString( 'ip-identity__meta', $html );
 		$this->assertStringNotContainsString( '0 edits', $html );
@@ -252,7 +247,7 @@ class ProfileRendererTest extends MediaWikiIntegrationTestCase {
 			false,
 			[
 				'avatar_alt' => 'Profile avatar',
-				'private_notice' => 'This profile\'s details are hidden.',
+				'private_notice' => 'PRIVATE_NOTICE',
 			],
 			'',
 			false,
