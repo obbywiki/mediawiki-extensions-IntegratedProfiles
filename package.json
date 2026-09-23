@@ -8,6 +8,7 @@
 		"typecheck": "vue-tsc --noEmit",
 		"lint": "pnpm lint:js && pnpm lint:styles",
 		"lint:js": "eslint resources src tests",
+		"lint:md": "markdownlint \"*.md\"",
 		"lint:styles": "stylelint \"resources/**/*.css\" \"src/**/*.vue\"",
 		"test": "vitest run",
 		"test:watch": "vitest"
@@ -55,5 +56,8 @@
 				"typescript": "*"
 			}
 		}
+	},
+	"dependencies": {
+		"markdownlint": "^0.41.1"
 	}
 }
