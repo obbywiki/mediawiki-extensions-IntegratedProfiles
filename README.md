@@ -370,6 +370,8 @@ Returns a list of `{ user, user_id, real_name, about, location, website, edit_co
 
 # IntegratedProfiles (Contributing)
 
+Style rules: https://github.com/obbywiki/standards
+
 ```bash
 pnpm install
 pnpm build
@@ -378,8 +380,6 @@ pnpm test
 composer install
 composer test
 ```
-
-https://github.com/obbywiki/standards
 
 ---
 

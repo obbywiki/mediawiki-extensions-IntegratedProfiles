@@ -19,7 +19,6 @@ module.exports = defineConfig( [
 		'**/coverage/',
 		'resources/dist/',
 		'vendor/',
-		'**/*.test.js',
 	] ),
 
 	// avoid wikimedia/client
@@ -60,7 +59,7 @@ module.exports = defineConfig( [
 	} ) ),
 
 	{
-		files: [ 'src/**/*.ts', 'src/**/*.d.ts' ],
+		files: [ 'src/**/*.ts', 'src/**/*.d.ts', 'tests/**/*.ts' ],
 		extends: compat.extends( 'wikimedia/typescript' ),
 		languageOptions: {
 			sourceType: 'module',
@@ -116,9 +115,18 @@ module.exports = defineConfig( [
 	},
 
 	{
-		files: [ 'tests/**/*.{js,vue}' ],
+		files: [ 'tests/**/*.{js,ts,vue}' ],
 		languageOptions: {
 			sourceType: 'module',
+		},
+		rules: {
+			'comma-dangle': 'off',
+			'no-bitwise': 'off',
+			'jsdoc/require-param': 'off',
+			'jsdoc/require-returns': 'off',
+			'es-x/no-optional-chaining': 'off',
+			'es-x/no-global-this': 'off',
+			'es-x/no-dynamic-import': 'off',
 		},
 	},
 ] );

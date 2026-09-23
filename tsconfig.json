@@ -16,7 +16,8 @@
 	"include": [
 		"src/**/*.ts",
 		"src/**/*.vue",
-		"src/**/*.d.ts"
+		"src/**/*.d.ts",
+		"tests/vitest/**/*.ts"
 	],
 	"exclude": [
 		"node_modules",

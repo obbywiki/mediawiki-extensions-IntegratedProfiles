@@ -7,7 +7,7 @@
 		"build": "vite build -c vite.build.config.mjs",
 		"typecheck": "vue-tsc --noEmit",
 		"lint": "pnpm lint:js && pnpm lint:styles",
-		"lint:js": "eslint resources src",
+		"lint:js": "eslint resources src tests",
 		"lint:styles": "stylelint \"resources/**/*.css\" \"src/**/*.vue\"",
 		"test": "vitest run",
 		"test:watch": "vitest"
@@ -21,6 +21,7 @@
 		"@typescript-eslint/eslint-plugin": "^8.68.0",
 		"@typescript-eslint/parser": "^8.68.0",
 		"@vitejs/plugin-vue": "^6.0.5",
+		"@vitest/coverage-v8": "4.1.10",
 		"@vue/test-utils": "^2.5.0",
 		"eslint": "^10.9.1",
 		"eslint-config-wikimedia": "^0.32.4",

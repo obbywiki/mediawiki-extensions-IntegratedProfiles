@@ -18,3 +18,9 @@ Use `snake_case` for variables, parameters, and functions you define.
 - Preference keys and config registry names (`ip-about`, `IntegratedProfilesColor`)
 
 As for everything else, see: https://github.com/obbywiki/standards
+
+# Tests
+
+`pnpm test` runs the Vitest suite in `tests/vitest`. `composer test` is PHP lint (syntax + PHPCS). `composer phpunit` runs PHPUnit in `tests/phpunit`. See the Contributing section of `README.md` for what each file actually checks.
+
+PHPUnit in this repository boots without MediaWiki. The masthead renderer tests need MediaWiki's template parser and run in the MediaWiki PHPUnit CI job.
