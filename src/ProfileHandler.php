@@ -4,6 +4,7 @@ namespace MediaWiki\Extension\IntegratedProfiles;
 
 use ExtensionRegistry;
 use MediaWiki\Context\IContextSource;
+use MediaWiki\Html\Html;
 use MediaWiki\SpecialPage\SpecialPage;
 use MediaWiki\Title\Title;
 use MediaWiki\User\User;
@@ -117,7 +118,7 @@ class ProfileHandler {
 			$html .= $after;
 		}
 
-		$out->addHTML( $html );
+		$out->addHTML( '<div class="ip-profile-chrome">' . $html );
 
 		if ( $can_edit ) {
 			$banner_presets = $this->profile_service->get_banner_presets();
@@ -183,9 +184,35 @@ class ProfileHandler {
 
 		$out->addHTML(
 			$this->profile_renderer->render_tabs( $tab_state['tabs'], $context->msg( 'integratedprofiles-tabs-label' )->text() )
+			. '</div>'
+			. $this->chrome_place_inline_script()
 		);
 
 		return [ 'active' => $tab_state['active'], 'payload' => $payload ];
+	}
+
+	private function chrome_place_inline_script(): string {
+		// parser-blocking script to lift the profile chrome into Citizen's page grid, preventing the side column from painting over the masthead
+
+		$js = <<<'JS'
+			(function () {
+				if ( !document.body.classList.contains( 'integratedprofiles-profile' ) ) { return; }
+				if ( !document.body.classList.contains( 'citizen-page-aside-enabled' ) && !document.body.classList.contains( 'citizen-toc-enabled' ) ) { return; }
+
+				var chrome = document.querySelector( '.ip-profile-chrome' );
+				var container = document.querySelector( '.citizen-body-container' );
+				var content = document.querySelector( '.citizen-body' ) || document.getElementById( 'bodyContent' );
+
+				if ( !chrome || !container || !content || content.parentNode !== container ) { return; }
+				if ( chrome.parentNode !== container ) {
+					container.insertBefore( chrome, content );
+				}
+
+				document.body.classList.add( 'ip-profile-chrome-placed' );
+			})();
+		JS;
+
+		return Html::inlineScript( $js );
 	}
 
 	/**

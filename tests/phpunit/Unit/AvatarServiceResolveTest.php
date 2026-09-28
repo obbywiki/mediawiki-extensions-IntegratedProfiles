@@ -83,11 +83,7 @@ class AvatarServiceResolveTest extends MediaWikiUnitTestCase {
 		$this->assertFalse( $info['has_custom_avatar'] );
 	}
 
-	private function make_service(
-		AvatarStorage $storage,
-		array $ids,
-		?HashBagOStuff $cache = null
-	): AvatarService {
+	private function make_service( AvatarStorage $storage, array $ids, ?HashBagOStuff $cache = null ): AvatarService {
 		$subject_ids = $this->createMock( ProfileSubjectIds::class );
 		$subject_ids->method( 'ids_for' )->willReturn( $ids );
 

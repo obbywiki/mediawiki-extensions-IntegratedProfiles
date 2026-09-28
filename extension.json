@@ -190,7 +190,8 @@
 		"ext.IntegratedProfiles.pageSidebar": {
 			"scripts": [
 				"resources/integratedprofiles/page_sidebar.js"
-			]
+			],
+			"position": "top"
 		},
 		"ext.IntegratedProfiles.app": {
 			"class": "MediaWiki\\ResourceLoader\\CodexModule",

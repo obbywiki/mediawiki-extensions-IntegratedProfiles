@@ -31,7 +31,12 @@
 		right: 0;
 		left: 0;
 		z-index: 3;
+		margin-top: var( --space-xl, 1.5rem );
 		pointer-events: none;
+	}
+
+	.integratedprofiles-profile .ip-profile-chrome {
+		margin-top: var( --space-xl, 1.5rem );
 	}
 
 	.integratedprofiles-profile #citizen-page-header .citizen-page-header-inner {
@@ -112,21 +117,29 @@
 	}
 }
 
-/* implements --ip-sidebar-offset, see page_sidebar.js */
+/* see page_sidebar.js */
+
+.integratedprofiles-profile.ip-profile-chrome-placed .citizen-body-container {
+	grid-template-areas: 'chrome' 'content' 'footer';
+}
+
+.integratedprofiles-profile.ip-profile-chrome-placed .ip-profile-chrome {
+	grid-area: chrome;
+	min-width: 0;
+}
+
 @media ( min-width: 1120px ) {
-	.integratedprofiles-profile.citizen-toc-enabled #citizen-page-header .citizen-page-header-inner {
+	.integratedprofiles-profile.ip-profile-chrome-placed.citizen-toc-enabled .citizen-body-container {
+		grid-template-areas: 'chrome chrome' 'content toc' 'footer footer';
+	}
+
+	.integratedprofiles-profile.ip-profile-chrome-placed.citizen-page-aside-enabled .citizen-body-container {
+		grid-template-areas: 'chrome chrome' 'content aside' 'footer footer';
+	}
+
+	.integratedprofiles-profile.ip-profile-chrome-placed.citizen-toc-enabled #citizen-page-header .citizen-page-header-inner,
+	.integratedprofiles-profile.ip-profile-chrome-placed.citizen-page-aside-enabled #citizen-page-header .citizen-page-header-inner {
 		max-width: var( --width-page );
-	}
-
-	.integratedprofiles-profile.citizen-toc-enabled .ip-masthead,
-	.integratedprofiles-profile.citizen-toc-enabled .ip-tabs {
-		box-sizing: border-box;
-		width: calc( 100% + var( --width-toc, 15rem ) + var( --space-lg, 1.5rem ) );
-		max-width: none;
-	}
-
-	.integratedprofiles-profile.citizen-toc-enabled .citizen-page-sidebar {
-		margin-top: var( --ip-sidebar-offset, 0 );
 	}
 }
 
