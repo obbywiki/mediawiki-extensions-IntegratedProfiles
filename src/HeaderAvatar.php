@@ -16,17 +16,16 @@ class HeaderAvatar {
 	/**
 	 * @param string $skin_name Current skin name (only `citizen` is supported)
 	 * @param bool $is_registered Whether the viewer is a registered user
-	 * @param int $central_id Central (or local-fallback) storage id
+	 * @param int $central_id CentralIdLookup storage id
 	 * @param AvatarService $avatar_service Avatar lookup
-	 * @param int|null $local_id Legacy local id for dual-read migration
 	 * @return string|null Public avatar URL when the header should show a photo
 	 */
-	public static function resolve_url( string $skin_name, bool $is_registered, int $central_id, AvatarService $avatar_service, ?int $local_id = null ): ?string {
+	public static function resolve_url( string $skin_name, bool $is_registered, int $central_id, AvatarService $avatar_service ): ?string {
 		if ( $skin_name !== 'citizen' || !$is_registered || $central_id <= 0 ) {
 			return null;
 		}
 
-		$info = $avatar_service->get_avatar_info( $central_id, $local_id );
+		$info = $avatar_service->get_avatar_info( $central_id );
 		if ( !$info['has_custom_avatar'] ) {
 			return null;
 		}

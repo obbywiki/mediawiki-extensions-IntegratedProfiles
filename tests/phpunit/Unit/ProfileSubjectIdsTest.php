@@ -38,9 +38,13 @@ class ProfileSubjectIdsTest extends MediaWikiUnitTestCase {
 		);
 	}
 
-	public function test_central_id_falls_back_to_local_when_lookup_zero(): void {
+	public function test_central_id_stays_zero_when_lookup_zero(): void {
 		$ids = new ProfileSubjectIds( $this->lookup_returning( 0 ) );
-		$this->assertSame( 42, $ids->central_id_for( $this->identity( 42 ) ) );
+		$this->assertSame( 0, $ids->central_id_for( $this->identity( 42 ) ) );
+		$this->assertSame(
+			[ 'central_id' => 0, 'local_id' => 42 ],
+			$ids->ids_for( $this->identity( 42 ) )
+		);
 	}
 
 	public function test_central_id_zero_for_anon(): void {

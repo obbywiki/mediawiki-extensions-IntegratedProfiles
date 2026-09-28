@@ -20,8 +20,8 @@ class AvatarServiceBatchTest extends MediaWikiUnitTestCase {
 
 	public function test_batch_uses_get_multi_cache_hits(): void {
 		$cache = $this->new_cache();
-		$cache->set( $cache->makeGlobalKey( 'integratedprofiles', 'avatar', '1' ), '1:png:100' );
-		$cache->set( $cache->makeGlobalKey( 'integratedprofiles', 'avatar', '2' ), '' );
+		$cache->set( $this->cache_key( $cache, '1' ), '1:png:100' );
+		$cache->set( $this->cache_key( $cache, '2' ), '' );
 
 		$storage = $this->createMock( AvatarStorage::class );
 		$storage->expects( $this->never() )->method( 'find_extension_with_mtime' );
@@ -50,7 +50,7 @@ class AvatarServiceBatchTest extends MediaWikiUnitTestCase {
 
 	public function test_batch_dedupes_and_skips_anons(): void {
 		$cache = $this->new_cache();
-		$cache->set( $cache->makeGlobalKey( 'integratedprofiles', 'avatar', '5' ), '5:webp:9' );
+		$cache->set( $this->cache_key( $cache, '5' ), '5:webp:9' );
 
 		$storage = $this->createMock( AvatarStorage::class );
 		$storage->expects( $this->never() )->method( 'find_extension_with_mtime' );
@@ -83,7 +83,7 @@ class AvatarServiceBatchTest extends MediaWikiUnitTestCase {
 		$this->assertTrue( $info['User4']['has_custom_avatar'] );
 		$this->assertSame(
 			'8:jpg:42',
-			$cache->get( $cache->makeGlobalKey( 'integratedprofiles', 'avatar', '8' ) )
+			$cache->get( $this->cache_key( $cache, '8' ) )
 		);
 	}
 
@@ -136,6 +136,15 @@ class AvatarServiceBatchTest extends MediaWikiUnitTestCase {
 
 	private function new_cache(): BagOStuff {
 		return new HashBagOStuff();
+	}
+
+	private function cache_key( BagOStuff $cache, string $central_id ): string {
+		return $cache->makeGlobalKey(
+			'integratedprofiles',
+			'avatar',
+			AvatarService::CACHE_KEY_VERSION,
+			$central_id
+		);
 	}
 
 	private function identity( int $local_id, string $name ): UserIdentity {

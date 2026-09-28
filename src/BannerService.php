@@ -14,6 +14,7 @@ class BannerService {
 
 	public const SERVICE_NAME = 'IntegratedProfiles.BannerService';
 	public const CACHE_TTL = 86400;
+	public const CACHE_KEY_VERSION = '2'; // also bump in AvatarService
 	public const CONSTRUCTOR_OPTIONS = [
 		'IntegratedProfilesBannerMaxBytes',
 	];
@@ -37,20 +38,18 @@ class BannerService {
 	 */
 	public function get_banner_info_for_user( UserIdentity $user ): array {
 		$ids = $this->subject_ids->ids_for( $user );
-		return $this->get_banner_info( $ids['central_id'], $ids['local_id'] );
+		return $this->get_banner_info( $ids['central_id'] );
 	}
 
 	/**
 	 * @return array{banner_url: string, has_custom_banner: bool}
 	 */
-	public function get_banner_info( int $central_id, ?int $local_id = null ): array {
+	public function get_banner_info( int $central_id ): array {
 		if ( $central_id <= 0 ) {
 			return $this->info_from_resolved( null );
 		}
 
-		return $this->info_from_resolved(
-			$this->resolve_file( $central_id, $local_id ?? $central_id )
-		);
+		return $this->info_from_resolved( $this->resolve_file( $central_id ) );
 	}
 
 	/**
@@ -92,7 +91,6 @@ class BannerService {
 		$result = [];
 		foreach ( $subjects as $name => $ids ) {
 			$central_id = $ids['central_id'];
-			$local_id = $ids['local_id'];
 
 			if ( $central_id <= 0 ) {
 				$result[$name] = $this->info_from_resolved( null );
@@ -101,7 +99,7 @@ class BannerService {
 
 			$key = $keys_by_central[$central_id];
 			if ( array_key_exists( $key, $multi ) ) {
-				$parsed = $this->parse_cache_value( $multi[$key] );
+				$parsed = $this->parse_cache_value( $multi[$key], $central_id );
 				if ( $parsed === false ) {
 					$result[$name] = $this->info_from_resolved( null );
 					continue;
@@ -116,7 +114,7 @@ class BannerService {
 			}
 
 			$result[$name] = $this->info_from_resolved(
-				$this->resolve_file_from_storage( $central_id, $local_id )
+				$this->resolve_file_from_storage( $central_id )
 			);
 		}
 
@@ -128,16 +126,19 @@ class BannerService {
 	 */
 	public function upload_for_user( UserIdentity $user, string $tmp_path, int $size ): Status {
 		$ids = $this->subject_ids->ids_for( $user );
-		return $this->upload( $ids['central_id'], $tmp_path, $size, $ids['local_id'] );
+		return $this->upload( $ids['central_id'], $tmp_path, $size );
 	}
 
 	/**
 	 * @param int $central_id Storage owner ID
 	 * @param string $tmp_path Local filesystem path to the upload
 	 * @param int $size Byte length reported by the upload
-	 * @param int|null $local_id Legacy local ID to purge after write
 	 */
-	public function upload( int $central_id, string $tmp_path, int $size, ?int $local_id = null ): Status {
+	public function upload( int $central_id, string $tmp_path, int $size ): Status {
+		if ( $central_id <= 0 ) {
+			return Status::newFatal( 'integratedprofiles-error-banner-upload' );
+		}
+
 		$validation = $this->validator->validate_upload( $tmp_path, $size );
 		if ( !$validation['ok'] ) {
 			return Status::newFatal( $validation['error'] );
@@ -149,14 +150,10 @@ class BannerService {
 			return $status;
 		}
 
-		if ( $local_id !== null && $local_id > 0 && $local_id !== $central_id ) {
-			$status->merge( $this->storage->delete_all( $local_id ) );
-		}
-
 		$mtime = $this->storage->find_extension_with_mtime( $central_id )['mtime'] ?? '';
-		$this->write_cache( $central_id, $central_id, $validation['ext'], $mtime );
+		$this->write_cache( $central_id, $validation['ext'], $mtime );
 
-		return Status::newGood( $this->get_banner_info( $central_id, $local_id ) );
+		return Status::newGood( $this->get_banner_info( $central_id ) );
 	}
 
 	/**
@@ -164,17 +161,13 @@ class BannerService {
 	 */
 	public function delete_for_user( UserIdentity $user ): Status {
 		$ids = $this->subject_ids->ids_for( $user );
-		return $this->delete( $ids['central_id'], $ids['local_id'] );
+		return $this->delete( $ids['central_id'] );
 	}
 
-	public function delete( int $central_id, ?int $local_id = null ): Status {
+	public function delete( int $central_id ): Status {
 		$status = Status::newGood();
 		if ( $central_id > 0 ) {
 			$status->merge( $this->storage->delete_all( $central_id ) );
-		}
-
-		if ( $local_id !== null && $local_id > 0 && $local_id !== $central_id ) {
-			$status->merge( $this->storage->delete_all( $local_id ) );
 		}
 
 		if ( !$status->isOK() ) {
@@ -211,7 +204,7 @@ class BannerService {
 	/**
 	 * @return array{owner_id: int, ext: string, mtime: string}|null
 	 */
-	private function resolve_file( int $central_id, int $local_id ): ?array {
+	private function resolve_file( int $central_id ): ?array {
 		$cached = $this->read_cache( $central_id );
 		if ( $cached === false ) {
 			return null;
@@ -220,27 +213,18 @@ class BannerService {
 			return $cached;
 		}
 
-		return $this->resolve_file_from_storage( $central_id, $local_id );
+		return $this->resolve_file_from_storage( $central_id );
 	}
 
 	/**
 	 * @return array{owner_id: int, ext: string, mtime: string}|null
 	 */
-	private function resolve_file_from_storage( int $central_id, int $local_id ): ?array {
+	private function resolve_file_from_storage( int $central_id ): ?array {
 		$found = $this->storage->find_extension_with_mtime( $central_id );
 		if ( $found !== null ) {
-			$this->write_cache( $central_id, $central_id, $found['ext'], $found['mtime'] );
+			$this->write_cache( $central_id, $found['ext'], $found['mtime'] );
 
 			return [ 'owner_id' => $central_id, 'ext' => $found['ext'], 'mtime' => $found['mtime'] ];
-		}
-
-		if ( $local_id > 0 && $local_id !== $central_id ) {
-			$legacy = $this->storage->find_extension_with_mtime( $local_id );
-			if ( $legacy !== null ) {
-				$this->write_cache( $central_id, $local_id, $legacy['ext'], $legacy['mtime'] );
-
-				return [ 'owner_id' => $local_id, 'ext' => $legacy['ext'], 'mtime' => $legacy['mtime'] ];
-			}
 		}
 
 		$this->write_cache_negative( $central_id );
@@ -256,14 +240,14 @@ class BannerService {
 			return null;
 		}
 
-		return $this->parse_cache_value( $raw );
+		return $this->parse_cache_value( $raw, $central_id );
 	}
 
 	/**
 	 * @return array{owner_id: int, ext: string, mtime: string}|false|null
 	 *   array on hit, false for negative cache, null for miss/invalid
 	 */
-	private function parse_cache_value( mixed $raw ): array|false|null {
+	private function parse_cache_value( mixed $raw, int $central_id ): array|false|null {
 		if ( $raw === false || $raw === null ) {
 			return null;
 		}
@@ -281,15 +265,15 @@ class BannerService {
 
 		[ $owner_raw, $ext, $mtime ] = $parts;
 		$owner_id = (int)$owner_raw;
-		if ( $owner_id <= 0 || !in_array( $ext, BannerStorage::EXTENSIONS, true ) ) {
+		if ( $owner_id !== $central_id || !in_array( $ext, BannerStorage::EXTENSIONS, true ) ) {
 			return null;
 		}
 
 		return [ 'owner_id' => $owner_id, 'ext' => $ext, 'mtime' => $mtime ];
 	}
 
-	private function write_cache( int $central_id, int $owner_id, string $ext, string $mtime ): void {
-		$this->cache->set( $this->cache_key( $central_id ), $owner_id . ':' . $ext . ':' . $mtime, self::CACHE_TTL );
+	private function write_cache( int $central_id, string $ext, string $mtime ): void {
+		$this->cache->set( $this->cache_key( $central_id ), $central_id . ':' . $ext . ':' . $mtime, self::CACHE_TTL );
 	}
 
 	private function write_cache_negative( int $central_id ): void {
@@ -297,7 +281,12 @@ class BannerService {
 	}
 
 	private function cache_key( int $central_id ): string {
-		return $this->cache->makeGlobalKey( 'integratedprofiles', 'banner', (string)$central_id );
+		return $this->cache->makeGlobalKey(
+			'integratedprofiles',
+			'banner',
+			self::CACHE_KEY_VERSION,
+			(string)$central_id
+		);
 	}
 
 }

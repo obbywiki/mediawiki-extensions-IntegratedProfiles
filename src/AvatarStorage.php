@@ -17,7 +17,7 @@ if ( !class_exists( 'Wikimedia\LockManager\NullLockManager' ) ) {
 /**
  * FileBackend I/O for profile avatars under the ipavatars container (also see BannerStorage).
  *
- * Owner IDs are CentralIdLookup IDs (local id is used instead if CentralAuth is absent).
+ * Owner IDs are CentralIdLookup IDs (LocalIdLookup returns the local id when CentralAuth (or any other CentralIdLookup provider) is absent).
  */
 class AvatarStorage {
 

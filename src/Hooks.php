@@ -285,8 +285,7 @@ class Hooks implements
 			$skin->getSkinName(),
 			true,
 			$this->profile_service->get_subject_ids()->central_id_for( $user ),
-			$this->avatar_service,
-			$user->getId()
+			$this->avatar_service
 		);
 		if ( $url === null ) {
 			return;

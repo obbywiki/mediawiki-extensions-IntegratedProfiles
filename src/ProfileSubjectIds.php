@@ -6,7 +6,7 @@ use MediaWiki\User\CentralId\CentralIdLookup;
 use MediaWiki\User\UserIdentity;
 
 /**
- * Resolve local vs CentralAuth (or LocalIdLookup) IDs. Local IDs are used if CentralAuth is missing.
+ * Resolve local vs CentralAuth (or LocalIdLookup) IDs. Local IDs are used if CentralAuth (or another CentralIdLookup provider) is missing.
  */
 class ProfileSubjectIds {
 
@@ -39,10 +39,6 @@ class ProfileSubjectIds {
 					CentralIdLookup::AUDIENCE_RAW
 				);
 			}
-		}
-
-		if ( $central_id <= 0 ) {
-			$central_id = $local_id;
 		}
 
 		$this->central_ids_by_local[$local_id] = $central_id;

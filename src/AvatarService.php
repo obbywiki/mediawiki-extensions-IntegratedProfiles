@@ -14,6 +14,7 @@ class AvatarService {
 
 	public const SERVICE_NAME = 'IntegratedProfiles.AvatarService';
 	public const CACHE_TTL = 86400;
+	public const CACHE_KEY_VERSION = '2'; // also bump in BannerService
 	public const CONSTRUCTOR_OPTIONS = [
 		'IntegratedProfilesAvatarMaxBytes',
 		'IntegratedProfilesEnableAnimatedAvatars',
@@ -37,7 +38,7 @@ class AvatarService {
 	 */
 	public function get_avatar_info_for_user( UserIdentity $user ): array {
 		$ids = $this->subject_ids->ids_for( $user );
-		return $this->get_avatar_info( $ids['central_id'], $ids['local_id'] );
+		return $this->get_avatar_info( $ids['central_id'] );
 	}
 
 	/**
@@ -86,7 +87,6 @@ class AvatarService {
 		$result = [];
 		foreach ( $subjects as $name => $ids ) {
 			$central_id = $ids['central_id'];
-			$local_id = $ids['local_id'];
 
 			if ( $central_id <= 0 ) {
 				$result[$name] = $this->info_from_resolved( null );
@@ -95,7 +95,7 @@ class AvatarService {
 
 			$key = $keys_by_central[$central_id];
 			if ( array_key_exists( $key, $multi ) ) {
-				$parsed = $this->parse_cache_value( $multi[$key] );
+				$parsed = $this->parse_cache_value( $multi[$key], $central_id );
 				if ( $parsed === false ) {
 					$result[$name] = $this->info_from_resolved( null );
 					continue;
@@ -110,7 +110,7 @@ class AvatarService {
 			}
 
 			$result[$name] = $this->info_from_resolved(
-				$this->resolve_file_from_storage( $central_id, $local_id )
+				$this->resolve_file_from_storage( $central_id )
 			);
 		}
 
@@ -134,14 +134,12 @@ class AvatarService {
 	/**
 	 * @return array{avatar_url: string, has_custom_avatar: bool}
 	 */
-	public function get_avatar_info( int $central_id, ?int $local_id = null ): array {
+	public function get_avatar_info( int $central_id ): array {
 		if ( $central_id <= 0 ) {
 			return $this->info_from_resolved( null );
 		}
 
-		return $this->info_from_resolved(
-			$this->resolve_file( $central_id, $local_id ?? $central_id )
-		);
+		return $this->info_from_resolved( $this->resolve_file( $central_id ) );
 	}
 
 	public function default_avatar_url(): string {
@@ -163,7 +161,6 @@ class AvatarService {
 			$ids['central_id'],
 			$tmp_path,
 			$size,
-			$ids['local_id'],
 			$allow_animated
 		);
 	}
@@ -172,10 +169,13 @@ class AvatarService {
 	 * @param int $central_id Storage owner ID
 	 * @param string $tmp_path Local filesystem path to the upload
 	 * @param int $size Byte length reported by the upload
-	 * @param int|null $local_id Legacy local id to purge after write
 	 * @param bool $allow_animated Whether animated GIF / WebP / APNG is allowed
 	 */
-	public function upload( int $central_id, string $tmp_path, int $size, ?int $local_id = null, bool $allow_animated = false ): Status {
+	public function upload( int $central_id, string $tmp_path, int $size, bool $allow_animated = false ): Status {
+		if ( $central_id <= 0 ) {
+			return Status::newFatal( 'integratedprofiles-error-avatar-upload' );
+		}
+
 		$allow_animated = $allow_animated && (bool)$this->options->get( 'IntegratedProfilesEnableAnimatedAvatars' );
 		$validation = $this->validator->validate_upload( $tmp_path, $size, $allow_animated );
 		if ( !$validation['ok'] ) {
@@ -189,14 +189,10 @@ class AvatarService {
 			return $status;
 		}
 
-		if ( $local_id !== null && $local_id > 0 && $local_id !== $central_id ) {
-			$status->merge( $this->storage->delete_all( $local_id ) );
-		}
-
 		$mtime = $this->storage->find_extension_with_mtime( $central_id )['mtime'] ?? '';
-		$this->write_cache( $central_id, $central_id, $validation['ext'], $mtime );
+		$this->write_cache( $central_id, $validation['ext'], $mtime );
 
-		return Status::newGood( $this->get_avatar_info( $central_id, $local_id ) );
+		return Status::newGood( $this->get_avatar_info( $central_id ) );
 	}
 
 	/**
@@ -204,17 +200,13 @@ class AvatarService {
 	 */
 	public function delete_for_user( UserIdentity $user ): Status {
 		$ids = $this->subject_ids->ids_for( $user );
-		return $this->delete( $ids['central_id'], $ids['local_id'] );
+		return $this->delete( $ids['central_id'] );
 	}
 
-	public function delete( int $central_id, ?int $local_id = null ): Status {
+	public function delete( int $central_id ): Status {
 		$status = Status::newGood();
 		if ( $central_id > 0 ) {
 			$status->merge( $this->storage->delete_all( $central_id ) );
-		}
-
-		if ( $local_id !== null && $local_id > 0 && $local_id !== $central_id ) {
-			$status->merge( $this->storage->delete_all( $local_id ) );
 		}
 
 		if ( !$status->isOK() ) {
@@ -247,7 +239,7 @@ class AvatarService {
 	/**
 	 * @return array{owner_id: int, ext: string, mtime: string}|null
 	 */
-	private function resolve_file( int $central_id, int $local_id ): ?array {
+	private function resolve_file( int $central_id ): ?array {
 		$cached = $this->read_cache( $central_id );
 		if ( $cached === false ) {
 			return null;
@@ -257,27 +249,18 @@ class AvatarService {
 			return $cached;
 		}
 
-		return $this->resolve_file_from_storage( $central_id, $local_id );
+		return $this->resolve_file_from_storage( $central_id );
 	}
 
 	/**
 	 * @return array{owner_id: int, ext: string, mtime: string}|null
 	 */
-	private function resolve_file_from_storage( int $central_id, int $local_id ): ?array {
+	private function resolve_file_from_storage( int $central_id ): ?array {
 		$found = $this->storage->find_extension_with_mtime( $central_id );
 		if ( $found !== null ) {
-			$this->write_cache( $central_id, $central_id, $found['ext'], $found['mtime'] );
+			$this->write_cache( $central_id, $found['ext'], $found['mtime'] );
 
 			return [ 'owner_id' => $central_id, 'ext' => $found['ext'], 'mtime' => $found['mtime'] ];
-		}
-
-		if ( $local_id > 0 && $local_id !== $central_id ) {
-			$legacy = $this->storage->find_extension_with_mtime( $local_id );
-			if ( $legacy !== null ) {
-				$this->write_cache( $central_id, $local_id, $legacy['ext'], $legacy['mtime'] );
-
-				return [ 'owner_id' => $local_id, 'ext' => $legacy['ext'], 'mtime' => $legacy['mtime'] ];
-			}
 		}
 
 		$this->write_cache_negative( $central_id );
@@ -294,14 +277,14 @@ class AvatarService {
 			return null;
 		}
 
-		return $this->parse_cache_value( $raw );
+		return $this->parse_cache_value( $raw, $central_id );
 	}
 
 	/**
 	 * @return array{owner_id: int, ext: string, mtime: string}|false|null
 	 *   array on hit, false for negative cache, null for miss/invalid
 	 */
-	private function parse_cache_value( mixed $raw ): array|false|null {
+	private function parse_cache_value( mixed $raw, int $central_id ): array|false|null {
 		if ( $raw === false || $raw === null ) {
 			return null;
 		}
@@ -320,17 +303,17 @@ class AvatarService {
 		[ $owner_raw, $ext, $mtime ] = $parts;
 		$owner_id = (int)$owner_raw;
 
-		if ( $owner_id <= 0 || !in_array( $ext, AvatarStorage::EXTENSIONS, true ) ) {
+		if ( $owner_id !== $central_id || !in_array( $ext, AvatarStorage::EXTENSIONS, true ) ) {
 			return null;
 		}
 
 		return [ 'owner_id' => $owner_id, 'ext' => $ext, 'mtime' => $mtime ];
 	}
 
-	private function write_cache( int $central_id, int $owner_id, string $ext, string $mtime ): void {
+	private function write_cache( int $central_id, string $ext, string $mtime ): void {
 		$this->cache->set(
 			$this->cache_key( $central_id ),
-			$owner_id . ':' . $ext . ':' . $mtime,
+			$central_id . ':' . $ext . ':' . $mtime,
 			self::CACHE_TTL
 		);
 	}
@@ -343,6 +326,7 @@ class AvatarService {
 		return $this->cache->makeGlobalKey(
 			'integratedprofiles',
 			'avatar',
+			self::CACHE_KEY_VERSION,
 			(string)$central_id
 		);
 	}
