@@ -83,9 +83,6 @@ class AvatarServiceResolveTest extends MediaWikiUnitTestCase {
 		$this->assertFalse( $info['has_custom_avatar'] );
 	}
 
-	/**
-	 * @param array{central_id: int, local_id: int} $ids
-	 */
 	private function make_service(
 		AvatarStorage $storage,
 		array $ids,
