@@ -1,5 +1,64 @@
 # Changelog
 
+## [0.7.0](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/compare/v0.6.0...v0.7.0) (2026-10-08)
+
+
+### ⚠ BREAKING CHANGES
+
+* rename get_card_payload to get_preview_payload and make it independent of user cards ([#26](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/issues/26))
+
+### Features
+
+* cropping and sizing controls for avatar and banner uploads ([#23](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/issues/23)) ([745ae2e](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/745ae2ef4ab53f62bd932ae1c552c33b0b511e8c))
+* rename get_card_payload to get_preview_payload and make it independent of user cards ([#26](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/issues/26)) ([77f5300](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/77f53004b5fbb4be7edc692f58b2132a64b37f3b))
+
+
+### Bug Fixes
+
+* banner previews instead of saving on click ([#20](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/issues/20)) ([907ddae](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/907ddae49a52583bc526d9dd6849dce18fa5dcd6))
+* citizen languages indicator styling error ([987591b](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/987591b0bf9971f83f315cc5223307bc06588bb6))
+* **cropper:** block confirm/enter while a replacement image is being inspected ([a18f9e4](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/a18f9e4ae01ef7bbbdd7bfe75a489e46180a6bf0))
+* **cropper:** invalidate pending file inspections on close/cancel ([21c2aa5](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/21c2aa54eeeb24231c85fd715a0b7f7644d03eb2))
+* **cropper:** preserve crop state on window resize ([1adbd7e](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/1adbd7e434f4372dd4b1df8019231812a7b65b1f))
+* **cropper:** prevent multiple touches from interfering with the dragger ([b25900b](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/b25900bf66918c4c536b9c195553b0d6dbb78a98))
+* discord username regex is incorrectly strict ([#19](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/issues/19)) ([4053f2f](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/4053f2fa8487a7b37adc45fe503286cb8d5e6a0c))
+* implement image density validation server-side ([aa8dae7](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/aa8dae748e0398027575a8b8f99955f7c7caa539))
+* match citizen's actual mobile width breakpoint ([0867e71](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/0867e71f6bdf2133c94c978e57e0d3bb39da81ab))
+* minor citizen styling issue ([6cf79e3](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/6cf79e3081540d8dc128f20b2d1fff71aa2ee33a))
+* php lint error ([4837f31](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/4837f3119c969fb863ce5d7d795312b7d92407c5))
+* prevent keyboard focus from leaving the modals ([b143632](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/b14363211dd23e65f498ff668cdccf618bbff023))
+* prevent toolbar style overrides from creeping into non-view actions on citizen where the masthead isn't present ([7a88052](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/7a8805210e148fbc341a76c5074239cde11759ac))
+* regression with how .citizen-page-aside was modified in 3.24+ ([77b692f](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/77b692f0c2ed2913d0fc112de2052625a13c19dd))
+* sticky actions bar being covered by citizen's mobile toolbar ([ec12216](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/ec122166a6d28a217c39dcac9da9895bc6ea8620))
+* stop falling back to local ids when a central id/provider is available ([8ccc51e](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/8ccc51edd4b2806376ff939c3df83422640b4a0f))
+
+
+### Performance Improvements
+
+* **cropper:** reject images over 16 megapixels or 16,384 pixels per side + release canvas buffers after encoding + reuse loaded previews for the  crop export ([c77edeb](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/c77edebbd800bbd67eb60b70c5086b2059c94485))
+
+
+### Miscellaneous Chores
+
+* add .node-version ([5e614ee](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/5e614ee8413438a5ca4fde77b55663ecc20d7a33))
+* add .nvmrc ([1a4ff8c](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/1a4ff8c1b95505c70bed87ac10c495fe5c4f21de))
+* add FloatingUI 1.0.5 as an extension suggestion ([4a05709](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/4a05709ea62cb2fce86169b649921f8c0dd8fa55))
+* configure markdownlint + fix issues ([e058fea](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/e058feaee274b8d477e3d7a9faae5350a4de4db5))
+* **deps-dev:** bump jsdom from 29.1.1 to 30.1.0 ([#4](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/issues/4)) ([5088b95](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/5088b9508b3d979a7357971ddf353c12fb5f4108))
+* disable md,i18n lints ([b461795](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/b46179511d4de7775990d92d2c0f2f47a4b94884))
+* enable i18n lint ([8cd40f3](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/8cd40f3ed5c7dbba0accfa50d8a926b728a22be0))
+* enable md lint ([33835dc](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/33835dcd2b69b66d3871067cfa2822d3be4e8e5e))
+* **eslint:** remove vue deps from config ([575bade](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/575bade142cce2cc5348e923c9fedc6427ffde38))
+* fix md lint ([1f8ea12](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/1f8ea12fabebaccb75e9fdbf1f2413089b092006))
+* fix style lints and re-enable ([f09caaa](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/f09caaa31db4377ee0fcc70558c1d389710bbe7e))
+* import .markdownlint.json ([87bfbb6](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/87bfbb607da4934ec6ab65a01ebd6d579c706227))
+* re-enable php lint ci ([3026d70](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/3026d70e4ae933ba6c02c6e033a44392fcdf4f5d))
+* re-enable php lint ci ([dd3eb98](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/dd3eb98fd6a9d9ba47edac8c4c5d750d57d967d4))
+* regen lockfiles ([2c98293](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/2c98293838cdb4a386b9bc21ef20aa7014d32ba5))
+* rename lint:css script to lint:styles ([b8afdf3](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/b8afdf3268560b5da9985a115ad20d08d0bedf2d))
+* update pnpm ([f8de29f](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/f8de29fc3d01dae30ef6cd01751eb6d14ffff578))
+* use lint:styles in the package lint script ([cacabe5](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/cacabe5a57fbcf16a136bb2ca1ffe2e98747e9f1))
+
 ## [0.6.0](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/compare/v0.5.0...v0.6.0) (2026-09-12)
 
 
