@@ -14,13 +14,13 @@
 	margin-inline-start: 0;
 }
 
-/* stylelint-disable declaration-no-important */
-.citizen-page-languages .citizen-dropdown-summary::after {
-	background-color: light-dark( #000, var( --color-surface-0 ) ) !important;
-}
-/* stylelint-enable declaration-no-important */
-
 @media ( min-width: 1120px ) {
+	/* stylelint-disable declaration-no-important */
+	.citizen-page-languages .citizen-dropdown-summary::after {
+		background-color: light-dark( #000, var( --color-surface-0 ) ) !important;
+	}
+	/* stylelint-enable declaration-no-important */
+
 	.integratedprofiles-profile #content {
 		position: relative;
 	}
