@@ -38,6 +38,9 @@ class AvatarValidator {
 		if ( $image_info === false ) {
 			return [ 'ok' => false, 'error' => 'integratedprofiles-error-avatar-type' ];
 		}
+		if ( !ImageLimits::allows_dimensions( $image_info[0], $image_info[1] ) ) {
+			return [ 'ok' => false, 'error' => 'integratedprofiles-error-image-dimensions' ];
+		}
 
 		if ( !$allow_animated && $this->is_animated( $tmp_path, $ext ) ) {
 			return [ 'ok' => false, 'error' => 'integratedprofiles-error-avatar-animated' ];

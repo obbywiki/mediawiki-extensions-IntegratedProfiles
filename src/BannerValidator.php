@@ -38,6 +38,9 @@ class BannerValidator {
 		if ( $image_info === false ) {
 			return [ 'ok' => false, 'error' => 'integratedprofiles-error-banner-type' ];
 		}
+		if ( !ImageLimits::allows_dimensions( $image_info[0], $image_info[1] ) ) {
+			return [ 'ok' => false, 'error' => 'integratedprofiles-error-image-dimensions' ];
+		}
 
 		return [ 'ok' => true, 'ext' => $ext ];
 	}

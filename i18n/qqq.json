@@ -61,7 +61,7 @@
 	"integratedprofiles-banner-crop-help": "Help text shown while cropping a static banner image before upload.",
 	"integratedprofiles-banner-crop-callout": "Short notice under the banner cropper. The saved crop is shown differently on phones, tablets, and computers (based on screen size).",
 	"integratedprofiles-banner-error": "Error message for banner mutations.",
-	"integratedprofiles-error-image-dimensions": "Error shown before previewing an avatar or banner whose dimensions exceed the client memory limits (16 megapixels or 16,384 pixels on either side).",
+	"integratedprofiles-error-image-dimensions": "Error shown when selecting or uploading an avatar or banner whose dimensions exceed 16 megapixels or 16,384 pixels on either side.",
 	"integratedprofiles-banner-preset-accent": "Label for the farm-accent gradient banner preset.",
 	"integratedprofiles-banner-preset-ocean": "Label for the ocean gradient banner preset.",
 	"integratedprofiles-banner-preset-sunset": "Label for the sunset gradient banner preset.",
