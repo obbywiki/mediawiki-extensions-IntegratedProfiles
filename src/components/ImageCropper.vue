@@ -88,6 +88,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { msg } from '../utils/api';
+import { image_size_within_limits } from '../utils/image_dimensions';
 import { crop_around_center, frame_aspect_for_image, inscribed_guide_rect, is_default_cover_crop, is_identity_crop, max_cover_rect, pan_crop, resize_crop_from_handle, type CropHandle, type CropRect } from '../utils/crop';
 
 const props = withDefaults( defineProps<{
@@ -246,6 +247,10 @@ function on_image_load(): void {
 	const img = image_el.value;
 
 	if ( !img ) { return; }
+	if ( !image_size_within_limits( img.naturalWidth, img.naturalHeight ) ) {
+		on_image_error();
+		return;
+	}
 
 	image_width.value = img.naturalWidth;
 	image_height.value = img.naturalHeight;
@@ -462,13 +467,17 @@ function get_image_size(): { width: number; height: number } {
 	return { width: image_width.value, height: image_height.value };
 }
 
+function get_image_source(): HTMLImageElement | null {
+	return crop.value ? image_el.value : null;
+}
+
 function is_identity(): boolean {
 	if ( !crop.value ) { return true; }
 
 	return is_identity_crop( crop.value, image_width.value, image_height.value );
 }
 
-defineExpose( { get_crop_rect, get_image_size, is_identity, reset_crop } );
+defineExpose( { get_crop_rect, get_image_size, get_image_source, is_identity, reset_crop } );
 
 watch( can_reset, ( value ) => {
 	emit( 'can-reset', value );

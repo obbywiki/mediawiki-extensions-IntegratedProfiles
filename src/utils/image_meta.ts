@@ -4,6 +4,8 @@
 
 /* eslint-disable no-bitwise */
 
+import { validate_image_dimensions, type ImageDimensions } from './image_dimensions';
+
 export type ImageExt = 'jpg' | 'png' | 'gif' | 'webp';
 
 const MIME_MAP: Record<string, ImageExt> = {
@@ -225,6 +227,14 @@ export async function file_is_animated( file: File ): Promise<boolean> {
 	return bytes_are_animated( new Uint8Array( buffer ), ext === 'jpg' ? null : ext );
 }
 
+export async function inspect_image_file(
+	file: File,
+): Promise<ImageDimensions & { animated: boolean }> {
+	const bytes = new Uint8Array( await file.arrayBuffer() );
+	const dimensions = validate_image_dimensions( bytes );
+	return { ...dimensions, animated: bytes_are_animated( bytes, null ) };
+}
+
 function load_html_image( file: File ): Promise<HTMLImageElement> {
 	return new Promise( ( resolve, reject ) => {
 		const url = URL.createObjectURL( file );
@@ -261,6 +271,7 @@ export function close_image_source( source: ImageSource ): void {
 }
 
 export async function load_image_source( file: File ): Promise<ImageSource> {
+	validate_image_dimensions( new Uint8Array( await file.arrayBuffer() ) );
 	if ( typeof createImageBitmap === 'function' ) {
 		try {
 			return await createImageBitmap( file, { imageOrientation: 'from-image' } );

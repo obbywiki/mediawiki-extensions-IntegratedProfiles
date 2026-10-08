@@ -161,11 +161,13 @@ import {
 } from '../utils/api';
 import { AVATAR_ASPECT, AVATAR_MAX_EDGE, type CropRect } from '../utils/crop';
 import { prepare_upload_file } from '../utils/crop_export';
-import { file_is_animated } from '../utils/image_meta';
+import { inspect_image_file } from '../utils/image_meta';
+import { ImageDimensionsError } from '../utils/image_dimensions';
 
 type CropperExpose = {
 	get_crop_rect: () => CropRect | null;
 	get_image_size: () => { width: number; height: number };
+	get_image_source: () => HTMLImageElement | null;
 	is_identity: () => boolean;
 	reset_crop: () => void;
 };
@@ -287,6 +289,7 @@ function on_backdrop_click(): void {
 }
 
 function on_cropper_error(): void {
+	cropper_ready.value = false;
 	error_message.value = msg( 'integratedprofiles-avatar-error' );
 }
 
@@ -329,9 +332,13 @@ async function on_file_selected( event: Event ): Promise<void> {
 
 	let animated;
 	try {
-		animated = await file_is_animated( file );
-	} catch {
-		animated = file.type === 'image/gif';
+		animated = ( await inspect_image_file( file ) ).animated;
+	} catch ( err ) {
+		if ( generation !== pick_generation ) { return; }
+		error_message.value = msg( err instanceof ImageDimensionsError ? 'integratedprofiles-error-image-dimensions' : 'integratedprofiles-avatar-error' );
+		input.value = '';
+
+		return;
 	}
 
 	if ( generation !== pick_generation ) { return; }
@@ -374,6 +381,7 @@ async function on_confirm(): Promise<void> {
 				to_upload = await prepare_upload_file( file, {
 					skip_crop: false,
 					crop: cropper_el.value.get_crop_rect(),
+					source: cropper_el.value.get_image_source(),
 					image_width: size.width,
 					image_height: size.height,
 					max_bytes: avatar_max_bytes.value,

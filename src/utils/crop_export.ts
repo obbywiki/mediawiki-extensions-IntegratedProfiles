@@ -1,5 +1,6 @@
 import { is_default_cover_crop, is_identity_crop, output_size, type CropRect } from './crop';
 import { close_image_source, export_mime_for_file, file_name_for_mime, load_image_source, source_size, type ImageSource } from './image_meta';
+import { image_size_within_limits, ImageDimensionsError } from './image_dimensions';
 
 const JPEG_QUALITIES = [ 0.92, 0.8, 0.65, 0.5 ];
 const SIZE_STEP = 0.85;
@@ -77,6 +78,9 @@ function draw_crop( source: ImageSource, rect: CropRect, out_width: number, out_
 
 export async function export_crop( source: ImageSource, rect: CropRect, mime: string, max_bytes: number, max_width: number, max_height: number ): Promise<Blob> {
 	const size = source_size( source );
+	if ( !image_size_within_limits( size.width, size.height ) ) {
+		throw new ImageDimensionsError( 'image dimensions too large or invalid' );
+	}
 	const src_rect = integer_source_rect( rect, size.width, size.height );
 
 	let out = output_size( src_rect, max_width, max_height );
@@ -88,19 +92,25 @@ export async function export_crop( source: ImageSource, rect: CropRect, mime: st
 	for ( let step = 0; step < MAX_SHRINK_STEPS; step++ ) {
 		const canvas = draw_crop( source, src_rect, out.width, out.height );
 
-		for ( const quality of qualities ) {
-			try {
-				last_blob = await canvas_to_blob( canvas, export_mime, quality );
-			} catch ( _err ) {
-				if ( export_mime !== 'image/png' ) {
-					last_blob = await canvas_to_blob( canvas, 'image/png' );
-					export_mime = 'image/png';
-				} else {
-					throw _err;
+		try {
+			for ( const quality of qualities ) {
+				try {
+					last_blob = await canvas_to_blob( canvas, export_mime, quality );
+				} catch ( _err ) {
+					if ( export_mime !== 'image/png' ) {
+						last_blob = await canvas_to_blob( canvas, 'image/png' );
+						export_mime = 'image/png';
+					} else {
+						throw _err;
+					}
 				}
-			}
 
-			if ( last_blob.size <= max_bytes ) { return last_blob; }
+				if ( last_blob.size <= max_bytes ) { return last_blob; }
+			}
+		} finally {
+			// Release the pixel buffer on success, retry, or failed encoding.
+			canvas.width = 0;
+			canvas.height = 0;
 		}
 
 		out = {
@@ -118,6 +128,7 @@ export async function prepare_upload_file( file: File,
 	options: {
 		skip_crop: boolean;
 		crop: CropRect | null;
+		source?: ImageSource | null;
 		image_width: number;
 		image_height: number;
 		max_bytes: number;
@@ -133,7 +144,7 @@ export async function prepare_upload_file( file: File,
 
 	if ( options.pass_through_default_cover && options.aspect && is_default_cover_crop( options.crop, options.image_width, options.image_height, options.aspect ) ) { return file; }
 
-	const source = await load_image_source( file );
+	const source = options.source || await load_image_source( file );
 	try {
 		const loaded = source_size( source );
 		const rect = map_rect( options.crop, options.image_width, options.image_height, loaded.width, loaded.height );
@@ -145,6 +156,6 @@ export async function prepare_upload_file( file: File,
 
 		return new File( [ blob ], file_name_for_mime( file.name, mime ), { type: mime } );
 	} finally {
-		close_image_source( source );
+		if ( !options.source ) { close_image_source( source ); }
 	}
 }
