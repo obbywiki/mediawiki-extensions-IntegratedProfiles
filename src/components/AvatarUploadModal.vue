@@ -185,6 +185,7 @@ const file_input = ref<HTMLInputElement | null>( null );
 const cropper_el = ref<CropperExpose | null>( null );
 
 const busy = ref( false );
+const inspecting_file = ref( false );
 const error_message = ref( '' );
 const has_custom_avatar = ref( !!props.config.has_custom_avatar );
 const current_avatar_url = ref( props.config.avatar_url || '' );
@@ -238,7 +239,7 @@ const choose_label = computed( () => {
 } );
 
 const can_confirm = computed( () => {
-	if ( !pending_file.value ) { return false; }
+	if ( !pending_file.value || inspecting_file.value ) { return false; }
 
 	return skip_crop.value || cropper_ready.value;
 } );
@@ -250,6 +251,7 @@ function read_masthead_avatar_url(): string {
 
 function revoke_preview(): void {
 	pick_generation++;
+	inspecting_file.value = false;
 	if ( preview_url.value ) {
 		URL.revokeObjectURL( preview_url.value );
 		preview_url.value = '';
@@ -315,6 +317,7 @@ async function on_file_selected( event: Event ): Promise<void> {
 	if ( !file ) { return; }
 
 	const generation = ++pick_generation;
+	inspecting_file.value = false;
 
 	if ( file.size > avatar_max_bytes.value ) {
 		error_message.value = msg( 'integratedprofiles-error-avatar-size' );
@@ -331,6 +334,7 @@ async function on_file_selected( event: Event ): Promise<void> {
 	}
 
 	let animated;
+	inspecting_file.value = true;
 	try {
 		animated = ( await inspect_image_file( file ) ).animated;
 	} catch ( err ) {
@@ -339,6 +343,8 @@ async function on_file_selected( event: Event ): Promise<void> {
 		input.value = '';
 
 		return;
+	} finally {
+		if ( generation === pick_generation ) { inspecting_file.value = false; }
 	}
 
 	if ( generation !== pick_generation ) { return; }
