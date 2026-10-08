@@ -422,6 +422,12 @@
 	pointer-events: none;
 }
 
+@media ( max-width: 1119.98px ) {
+	.skin-citizen .ip-editor__footer {
+		padding-bottom: calc( 0.85rem + var( --header-size-block-end, 0px ) + max( env( safe-area-inset-bottom, 0px ), var( --space-xs, 0.5rem ) ) + var( --toolbar-size, 2.5rem ) + var( --border-width-base, 1px ) * 2 + var( --space-xs, 0.5rem ) );
+	}
+}
+
 .ip-editor__actions {
 	display: flex;
 	flex-wrap: wrap;
