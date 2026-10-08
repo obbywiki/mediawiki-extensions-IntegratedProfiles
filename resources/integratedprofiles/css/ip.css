@@ -20,7 +20,7 @@
 }
 /* stylelint-enable declaration-no-important */
 
-@media ( min-width: 768px ) {
+@media ( min-width: 1120px ) {
 	.integratedprofiles-profile #content {
 		position: relative;
 	}
