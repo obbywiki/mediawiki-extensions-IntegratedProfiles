@@ -247,6 +247,7 @@ const can_confirm = computed( () => {
 } );
 
 function revoke_preview(): void {
+	pick_generation++;
 	if ( preview_url.value ) {
 		URL.revokeObjectURL( preview_url.value );
 		preview_url.value = '';

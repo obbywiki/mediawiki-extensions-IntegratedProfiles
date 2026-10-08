@@ -247,6 +247,7 @@ function read_masthead_avatar_url(): string {
 }
 
 function revoke_preview(): void {
+	pick_generation++;
 	if ( preview_url.value ) {
 		URL.revokeObjectURL( preview_url.value );
 		preview_url.value = '';
