@@ -12,6 +12,7 @@
 			@pointermove="on_pointer_move"
 			@pointerup="on_pointer_up"
 			@pointercancel="on_pointer_up"
+			@lostpointercapture="on_pointer_up"
 		>
 			<img
 				ref="image_el"
@@ -125,6 +126,7 @@ const active_handle = ref<CropHandle | null>( null );
 
 let last_pointer_x = 0;
 let last_pointer_y = 0;
+let active_pointer_id: number | null = null;
 let resize_origin: CropRect | null = null;
 let resize_observer: ResizeObserver | null = null;
 
@@ -229,6 +231,7 @@ function measure_host(): void {
 }
 
 function reset_crop(): void {
+	end_gesture();
 	if ( image_width.value <= 0 || image_height.value <= 0 ) {
 		crop.value = null;
 
@@ -254,24 +257,27 @@ function on_image_load(): void {
 }
 
 function on_image_error(): void {
+	end_gesture();
 	crop.value = null;
 	emit( 'error' );
 }
 
-function end_gesture( event: PointerEvent ): void {
+function end_gesture(): void {
+	const pointer_id = active_pointer_id;
+	active_pointer_id = null;
 	moving.value = false;
 	active_handle.value = null;
 	resize_origin = null;
 
-	const target = event.currentTarget as HTMLElement;
+	const target = viewport_el.value;
 
-	if ( target.hasPointerCapture( event.pointerId ) ) {
-		target.releasePointerCapture( event.pointerId );
+	if ( target && pointer_id !== null && target.hasPointerCapture( pointer_id ) ) {
+		target.releasePointerCapture( pointer_id );
 	}
 }
 
 function on_pointer_down( event: PointerEvent ): void {
-	if ( props.disabled || !crop.value ) { return; }
+	if ( props.disabled || !crop.value || active_pointer_id !== null ) { return; }
 	if ( event.button !== 0 && event.pointerType === 'mouse' ) { return; }
 
 	const target = event.target;
@@ -290,10 +296,12 @@ function on_pointer_down( event: PointerEvent ): void {
 
 	last_pointer_x = event.clientX;
 	last_pointer_y = event.clientY;
+	active_pointer_id = event.pointerId;
 	( event.currentTarget as HTMLElement ).setPointerCapture( event.pointerId );
 }
 
 function on_pointer_move( event: PointerEvent ): void {
+	if ( active_pointer_id === null || event.pointerId !== active_pointer_id ) { return; }
 	if ( !crop.value || image_width.value <= 0 || image_height.value <= 0 ) { return; }
 
 	const viewport = viewport_el.value;
@@ -337,8 +345,8 @@ function on_pointer_move( event: PointerEvent ): void {
 }
 
 function on_pointer_up( event: PointerEvent ): void {
-	if ( !moving.value && !active_handle.value ) { return; }
-	end_gesture( event );
+	if ( active_pointer_id === null || event.pointerId !== active_pointer_id ) { return; }
+	end_gesture();
 }
 
 function corner_of( rect: CropRect, handle: CropHandle ): { x: number; y: number } {
@@ -467,6 +475,7 @@ watch( can_reset, ( value ) => {
 }, { immediate: true } );
 
 watch( () => props.src, () => {
+	end_gesture();
 	crop.value = null;
 	image_width.value = 0;
 	image_height.value = 0;
@@ -491,9 +500,11 @@ watch( () => props.aspect, ( _aspect, previous_aspect ) => {
 		image_height.value
 	);
 
-	moving.value = false;
-	active_handle.value = null;
-	resize_origin = null;
+	end_gesture();
+} );
+
+watch( () => props.disabled, ( disabled ) => {
+	if ( disabled ) { end_gesture(); }
 } );
 
 onMounted( () => {
@@ -512,6 +523,7 @@ onMounted( () => {
 } );
 
 onUnmounted( () => {
+	end_gesture();
 	window.removeEventListener( 'resize', measure_host );
 	if ( resize_observer ) {
 		resize_observer.disconnect();
