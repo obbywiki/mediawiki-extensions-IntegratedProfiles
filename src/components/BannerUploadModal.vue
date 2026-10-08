@@ -157,6 +157,7 @@ import { BANNER_GUIDE_ASPECT, BANNER_MAX_WIDTH, banner_output_max_height, read_b
 import { prepare_upload_file } from '../utils/crop_export';
 import { inspect_image_file } from '../utils/image_meta';
 import { ImageDimensionsError } from '../utils/image_dimensions';
+import { contain_modal_focus } from '../utils/modal_focus';
 
 type CropperExpose = {
 	get_crop_rect: () => CropRect | null;
@@ -210,6 +211,7 @@ const cropper_ready = ref( false );
 const can_reset_crop = ref( false );
 const banner_aspect = ref( read_banner_frame_aspect() );
 let pick_generation = 0;
+let release_focus_guard: ( () => void ) | null = null;
 
 const banner_max_bytes = computed( () => ( props.config.limits && props.config.limits.banner_max_bytes ) || 4194304 );
 const banner_max_mb = computed( () => {
@@ -441,6 +443,9 @@ function sync_banner_aspect(): void {
 onMounted( () => {
 	sync_banner_aspect();
 	document.body.classList.add( 'ip-banner-modal-open' );
+	if ( dialog_el.value ) {
+		release_focus_guard = contain_modal_focus( dialog_el.value, props.return_focus );
+	}
 	window.addEventListener( 'resize', sync_banner_aspect );
 	nextTick( () => {
 		sync_banner_aspect();
@@ -453,9 +458,6 @@ onUnmounted( () => {
 	revoke_preview();
 	document.body.classList.remove( 'ip-banner-modal-open' );
 
-	const focus_target = props.return_focus;
-	if ( focus_target && typeof focus_target.focus === 'function' ) {
-		focus_target.focus();
-	}
+	release_focus_guard?.();
 } );
 </script>

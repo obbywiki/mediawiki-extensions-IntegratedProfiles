@@ -163,6 +163,7 @@ import { AVATAR_ASPECT, AVATAR_MAX_EDGE, type CropRect } from '../utils/crop';
 import { prepare_upload_file } from '../utils/crop_export';
 import { inspect_image_file } from '../utils/image_meta';
 import { ImageDimensionsError } from '../utils/image_dimensions';
+import { contain_modal_focus } from '../utils/modal_focus';
 
 type CropperExpose = {
 	get_crop_rect: () => CropRect | null;
@@ -195,6 +196,7 @@ const skip_crop = ref( false );
 const cropper_ready = ref( false );
 const can_reset_crop = ref( false );
 let pick_generation = 0;
+let release_focus_guard: ( () => void ) | null = null;
 
 const avatar_max_bytes = computed(
 	() => ( props.config.limits && props.config.limits.avatar_max_bytes ) || 2097152
@@ -445,6 +447,9 @@ async function on_delete(): Promise<void> {
 onMounted( () => {
 	current_avatar_url.value = read_masthead_avatar_url();
 	document.body.classList.add( 'ip-avatar-modal-open' );
+	if ( dialog_el.value ) {
+		release_focus_guard = contain_modal_focus( dialog_el.value, props.return_focus );
+	}
 
 	nextTick( () => {
 		dialog_el.value?.focus();
@@ -455,9 +460,6 @@ onUnmounted( () => {
 	revoke_preview();
 	document.body.classList.remove( 'ip-avatar-modal-open' );
 
-	const focus_target = props.return_focus;
-	if ( focus_target && typeof focus_target.focus === 'function' ) {
-		focus_target.focus();
-	}
+	release_focus_guard?.();
 } );
 </script>
