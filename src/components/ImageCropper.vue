@@ -472,8 +472,28 @@ watch( () => props.src, () => {
 	image_height.value = 0;
 } );
 
-watch( () => props.aspect, () => {
-	reset_crop();
+watch( () => props.aspect, ( _aspect, previous_aspect ) => {
+	const rect = crop.value;
+	if ( !rect || image_width.value <= 0 || image_height.value <= 0 ) { return; }
+
+	const previous_frame_aspect = props.fit_image ? frame_aspect_for_image( previous_aspect, image_width.value, image_height.value ) : previous_aspect;
+	if ( previous_frame_aspect === frame_aspect.value ) { return; }
+
+	const previous_max = max_cover_rect( image_width.value, image_height.value, previous_frame_aspect );
+	const next_max = max_cover_rect( image_width.value, image_height.value, frame_aspect.value );
+
+	crop.value = crop_around_center(
+		rect.x + rect.width / 2,
+		rect.y + rect.height / 2,
+		rect.width / previous_max.width * next_max.width,
+		frame_aspect.value,
+		image_width.value,
+		image_height.value
+	);
+
+	moving.value = false;
+	active_handle.value = null;
+	resize_origin = null;
 } );
 
 onMounted( () => {
