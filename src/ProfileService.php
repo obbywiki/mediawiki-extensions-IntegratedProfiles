@@ -30,7 +30,8 @@ class ProfileService {
 		'IntegratedProfilesEnableAnimatedAvatars',
 		'IntegratedProfilesEnabledSocialLinks',
 		'IntegratedProfilesBannerPresetImages',
-		'IntegratedProfilesBannerPresetDefault'
+		'IntegratedProfilesBannerPresetDefault',
+		'HiddenPrefs'
 	];
 
 	private readonly ProfileFields $fields;
@@ -279,7 +280,7 @@ class ProfileService {
 			'user_id' => $subject->getId(),
 			'central_id' => $this->subject_ids->central_id_for( $subject ),
 			'user_name' => $subject->getName(),
-			'real_name' => $subject->getRealName(),
+			'real_name' => $this->get_public_real_name( $subject ),
 			'gender' => ProfileFields::normalize_gender(
 				(string)$this->user_options_lookup->getOption( $subject, 'gender', 'unknown' )
 			),
@@ -380,7 +381,7 @@ class ProfileService {
 			$registration = $this->user_registration_lookup->getFirstRegistration( $subject );
 		}
 
-		$preview['real_name'] = $subject->getRealName();
+		$preview['real_name'] = $this->get_public_real_name( $subject );
 		$preview['about'] = is_string( $about ) ? trim( $about ) : '';
 		$preview['location'] = is_string( $location ) ? trim( $location ) : '';
 		$preview['edit_count'] = (int)$subject->getEditCount();
@@ -466,6 +467,17 @@ class ProfileService {
 		}
 
 		return $previews;
+	}
+
+	/**
+	 * Subject's real name, or just an empty string instead when the wiki disables it via `$wgHiddenPrefs[] = 'realname'`.
+	 */
+	public function get_public_real_name( User $subject ): string {
+		if ( in_array( 'realname', (array)$this->options->get( 'HiddenPrefs' ), true ) ) {
+			return '';
+		}
+
+		return trim( $subject->getRealName() );
 	}
 
 	/**
