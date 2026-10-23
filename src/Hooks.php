@@ -47,7 +47,7 @@ class Hooks implements
 
 	/** @inheritDoc */
 	public function onArticleFromTitle( $title, &$article, $context ): void {
-		$subject = $this->profile_service->resolve_subject_user( $title );
+		$subject = $this->profile_service->resolve_subject_user( $title, $context->getUser() );
 		if ( !$subject ) {
 			return;
 		}
@@ -73,7 +73,7 @@ class Hooks implements
 			return;
 		}
 
-		$subject = $this->profile_service->resolve_user_by_name( $user->getName() );
+		$subject = $this->profile_service->resolve_visible_user_by_name( $user->getName(), $sp->getUser() );
 		if ( !$subject || !$subject->isNamed() ) {
 			return;
 		}
@@ -179,7 +179,7 @@ class Hooks implements
 		}
 
 		if ( $this->profile_service->is_profile_title( $title ) ) {
-			if ( !$this->profile_service->resolve_subject_user( $title ) ) {
+			if ( !$this->profile_service->resolve_subject_user( $title, $out->getUser() ) ) {
 				return;
 			}
 
@@ -203,7 +203,7 @@ class Hooks implements
 				return;
 			}
 
-			$subject = $this->profile_service->resolve_user_by_name( $target );
+			$subject = $this->profile_service->resolve_visible_user_by_name( $target, $out->getUser() );
 			if ( !$subject || !$subject->isNamed() ) {
 				return;
 			}

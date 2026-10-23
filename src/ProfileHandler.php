@@ -37,6 +37,10 @@ class ProfileHandler {
 		$out = $context->getOutput();
 		$viewer = $context->getUser();
 
+		if ( !$this->profile_service->can_see_subject( $viewer, $subject_user ) ) {
+			return [ 'active' => ProfileTabs::ID_ABOUT, 'payload' => [] ];
+		}
+
 		$payload = $this->profile_service->get_payload( $subject_user, $viewer );
 		$can_edit = $this->profile_service->can_edit( $viewer, $subject_user );
 

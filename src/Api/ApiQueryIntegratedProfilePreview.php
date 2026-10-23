@@ -34,7 +34,7 @@ class ApiQueryIntegratedProfilePreview extends ApiQueryBase {
 		$seen_names = [];
 		foreach ( $usernames as $username ) {
 			$username = (string)$username;
-			$subject = $this->profile_service->resolve_user_by_name( $username );
+			$subject = $this->profile_service->resolve_visible_user_by_name( $username, $this->getUser() );
 
 			if ( !$subject ) {
 				$this->addWarning( [ 'integratedprofiles-error-user-not-found', $username ] );

@@ -25,6 +25,15 @@ class ProfilePermissions {
 	}
 
 	/**
+	 * Returns whether the viewer may know this subject exists or not.
+	 *
+	 * Hidden (hideuser / oversight) accounts must look missing unless the viewer has the hideuser right (this matches core). This is independent of ip-visibility and integratedprofiles-manage.
+	 */
+	public function can_see_subject( bool $subject_is_hidden, bool $viewer_has_hideuser ): bool {
+		return !$subject_is_hidden || $viewer_has_hideuser;
+	}
+
+	/**
 	 * Returns whether the actor may see masthead details for the given visibility mode or not, refer to the docs for what each setting means.
 	 */
 	public function can_view_details( UserIdentity $actor, int $owner_id, bool $has_manage_right, string $visibility = ProfileFields::VISIBILITY_PUBLIC ): bool {

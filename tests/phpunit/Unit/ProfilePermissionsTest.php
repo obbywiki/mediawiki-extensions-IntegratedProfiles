@@ -63,6 +63,13 @@ class ProfilePermissionsTest extends MediaWikiUnitTestCase {
 		);
 	}
 
+	public function test_hidden_subject_requires_hideuser(): void {
+		$this->assertFalse( $this->permissions->can_see_subject( true, false ) );
+		$this->assertTrue( $this->permissions->can_see_subject( true, true ) );
+		$this->assertTrue( $this->permissions->can_see_subject( false, false ) );
+		$this->assertTrue( $this->permissions->can_see_subject( false, true ) );
+	}
+
 	public function test_public_visibility_allows_everyone(): void {
 		$anon = $this->user( 0, false );
 		$other = $this->user( 8, true );

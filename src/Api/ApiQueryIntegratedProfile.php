@@ -24,7 +24,7 @@ class ApiQueryIntegratedProfile extends ApiQueryBase {
 		$params = $this->extractRequestParams();
 		$username = (string)$params['user'];
 
-		$subject = $this->profile_service->resolve_user_by_name( $username );
+		$subject = $this->profile_service->resolve_visible_user_by_name( $username, $this->getUser() );
 		if ( !$subject ) {
 			$this->dieWithError( [ 'integratedprofiles-error-user-not-found', $username ], 'usernotfound' );
 		}

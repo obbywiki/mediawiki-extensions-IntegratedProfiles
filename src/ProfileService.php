@@ -94,9 +94,11 @@ class ProfileService {
 	}
 
 	/**
-	 * Resolve a registered, usable subject user from a profile title, or null.
+	 * Resolves a registered, usable subject user from a profile title, or null.
+	 *
+	 * When `$viewer` is provided, hidden users are treated as missing unless that viewer has hideuser (this matches core).
 	 */
-	public function resolve_subject_user( Title $title ): ?User {
+	public function resolve_subject_user( Title $title, ?UserIdentity $viewer = null ): ?User {
 		if ( !$this->is_profile_title( $title ) ) {
 			return null;
 		}
@@ -106,11 +108,15 @@ class ProfileService {
 			return null;
 		}
 
+		if ( $viewer !== null && !$this->can_see_subject( $viewer, $user ) ) {
+			return null;
+		}
+
 		return $user;
 	}
 
 	/**
-	 * Resolve a registered subject by username for APIs.
+	 * Resolves a registered subject by username for APIs. Does not apply hideuser intentionally.
 	 */
 	public function resolve_user_by_name( string $username ): ?User {
 		$key = strtr( $username, '_', ' ' );
@@ -135,6 +141,35 @@ class ProfileService {
 		}
 
 		return $user;
+	}
+
+	/**
+	 * Resolve a registered subject the viewer is allowed to know exists.
+	 *
+	 * Hidden (suppressed) accounts return null, same as a missing user.
+	 */
+	public function resolve_visible_user_by_name( string $username, UserIdentity $viewer ): ?User {
+		$user = $this->resolve_user_by_name( $username );
+		if ( !$user || !$this->can_see_subject( $viewer, $user ) ) {
+			return null;
+		}
+
+		return $user;
+	}
+
+	/**
+	 * Returns whether the viewer may know this subject exists or not (hideuser / oversight).
+	 *
+	 * (!) Callers that fail this check must treat the subject as missing, not as a private profile. `integratedprofiles-manage` is not a substitute.
+	 */
+	public function can_see_subject( UserIdentity $viewer, User $subject ): bool {
+		$has_hideuser = method_exists( $viewer, 'isAllowed' )
+			&& (bool)$viewer->isAllowed( 'hideuser' );
+		if ( $has_hideuser ) {
+			return true;
+		}
+
+		return $this->permissions->can_see_subject( $subject->isHidden(), false );
 	}
 
 	public function can_edit( UserIdentity $actor, User $subject ): bool {
@@ -202,11 +237,11 @@ class ProfileService {
 	}
 
 	/**
-	 * Full public profile payload.
+	 * Returns the full public profile payload.
 	 *
-	 * When the subject's visibility restricts `$viewer`, returns a scrubbed
-	 * payload (avatar + username only extras cleared). Pass `null` (or omit)
-	 * for mutation/API responses that must stay unscrubbed.
+	 * When the subject's visibility restricts `$viewer`, returns a scrubbed payload (avatar + username only extras cleared). Pass `null` (or omit) for mutation/API responses that must stay unscrubbed.
+	 *
+	 * Hideuser is not applied here. Callers must use resolve_visible_user_by_name() / can_see_subject() so a suppressed account is omitted entirely rather than scrubbed.
 	 *
 	 * @return array<string, mixed>
 	 */
@@ -397,6 +432,14 @@ class ProfileService {
 	 * }>
 	 */
 	public function get_preview_payloads_for_users( array $subjects, UserIdentity $viewer ): array {
+		$visible = [];
+		foreach ( $subjects as $subject ) {
+			if ( $this->can_see_subject( $viewer, $subject ) ) {
+				$visible[] = $subject;
+			}
+		}
+		$subjects = $visible;
+
 		$avatars = $this->avatar_service->get_avatar_info_for_users( $subjects );
 
 		$viewable = [];
