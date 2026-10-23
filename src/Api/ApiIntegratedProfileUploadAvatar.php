@@ -12,6 +12,7 @@ use Wikimedia\ParamValidator\ParamValidator;
  * Handles avatar upload requests.
  */
 class ApiIntegratedProfileUploadAvatar extends ApiBase {
+	use ApiUploadRateLimitTrait;
 
 	public function __construct(
 		ApiMain $main,
@@ -40,6 +41,8 @@ class ApiIntegratedProfileUploadAvatar extends ApiBase {
 		if ( !$this->profile_service->can_edit( $actor, $subject ) ) {
 			$this->dieWithError( 'integratedprofiles-error-permission', 'permissiondenied' );
 		}
+
+		$this->die_if_upload_rate_limited();
 
 		$upload = $this->getRequest()->getUpload( 'file' );
 		if ( !$upload->exists() || $upload->getError() !== UPLOAD_ERR_OK ) {

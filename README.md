@@ -198,6 +198,7 @@ Below are open-source integrations that implement IntegratedProfiles' hooks or A
 | `$wgIntegratedProfilesBannerPresetImages` | array | `[]` | Map of preset ID => image URL (max 8). Replaces gradients on a single wiki, or creates a local extra row with GlobalPreferences per-wiki. |
 | `$wgIntegratedProfilesBannerPresetDefault` | ![string](https://img.shields.io/badge/-string-blue?style=flat-square) | `''` | Optional preset ID to use as the single-wiki default. If empty, the first item in `$wgIntegratedProfilesBannerPresetImages` will be used. |
 | `$wgIntegratedProfilesLanguageInterwikis` | array | `[]` | Language interwiki prefixes to inject on user/user talk pages (e.g. ["en","ko","ja"]). Skips the wiki content language and $wgLocalInterwikis. See below. |
+| `$wgRateLimits['integratedprofiles-upload']` | array | `ip`/`newbie`/`user`: 8/60s; `user-global`: 12/60s | Throttle for avatar and banner upload/delete. Uses core `User::pingLimiter`. `user-global` counts across a farm when CentralAuth is present. Users with `noratelimit` are exempt. |
 
 ### Local settings
 
@@ -291,6 +292,8 @@ mw.hook('wikipage.content').add(function ($content) {
 
 * `integratedprofiles-manage`: Users with this right can edit other users' profile details, including avatars and banners. Granted to `sysop` by default. If settings are shared globally (e.g., via GlobalPreferences), then anyone with this right can edit profile details of a user for every other wiki at once.
 * `integratedprofiles-animated-avatar`: Allows users to upload animated (GIF, animated WebP files, or APNG) avatars. Granted to `sysop` by default. Again, with shared avatars, this right on one wiki technically applies to all, as a user can upload an animated avatar on any wiki where they have this right, and that avatar is then used anywhere. This has no effect if `$wgIntegratedProfilesEnableAnimatedAvatars` is set to false.
+
+Avatar and banner upload/delete requests share the `integratedprofiles-upload` rate limit (see `$wgRateLimits` above). `noratelimit` (granted to sysops by default) bypasses it. Rate limits require `$wgMainCacheType` to be something other than `CACHE_NONE`.
 
 ---
 

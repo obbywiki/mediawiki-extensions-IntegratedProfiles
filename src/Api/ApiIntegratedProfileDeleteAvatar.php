@@ -12,6 +12,7 @@ use Wikimedia\ParamValidator\ParamValidator;
  * Handles avatar deletion requests.
  */
 class ApiIntegratedProfileDeleteAvatar extends ApiBase {
+	use ApiUploadRateLimitTrait;
 
 	public function __construct(
 		ApiMain $main,
@@ -40,6 +41,8 @@ class ApiIntegratedProfileDeleteAvatar extends ApiBase {
 		if ( !$this->profile_service->can_edit( $actor, $subject ) ) {
 			$this->dieWithError( 'integratedprofiles-error-permission', 'permissiondenied' );
 		}
+
+		$this->die_if_upload_rate_limited();
 
 		$status = $this->avatar_service->delete_for_user( $subject );
 		if ( !$status->isOK() ) {

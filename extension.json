@@ -34,6 +34,14 @@
 			"integratedprofiles-animated-avatar": true
 		}
 	},
+	"RateLimits": {
+		"integratedprofiles-upload": {
+			"ip": [ 8, 60 ],
+			"newbie": [ 8, 60 ],
+			"user": [ 8, 60 ],
+			"user-global": [ 12, 60 ]
+		}
+	},
 	"HookHandlers": {
 		"main": {
 			"class": "MediaWiki\\Extension\\IntegratedProfiles\\Hooks",

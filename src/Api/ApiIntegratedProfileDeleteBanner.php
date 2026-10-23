@@ -11,6 +11,7 @@ use Wikimedia\ParamValidator\ParamValidator;
  * Handles banner deletion requests.
  */
 class ApiIntegratedProfileDeleteBanner extends ApiBase {
+	use ApiUploadRateLimitTrait;
 
 	public function __construct(
 		ApiMain $main,
@@ -38,6 +39,8 @@ class ApiIntegratedProfileDeleteBanner extends ApiBase {
 		if ( !$this->profile_service->can_edit( $actor, $subject ) ) {
 			$this->dieWithError( 'integratedprofiles-error-permission', 'permissiondenied' );
 		}
+
+		$this->die_if_upload_rate_limited();
 
 		$status = $this->profile_service->delete_banner( $subject );
 		if ( !$status->isOK() ) {
