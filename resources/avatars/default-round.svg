@@ -1,0 +1,17 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Default avatar">
+<g clip-path="url(#clip0_173_96)">
+<circle cx="64" cy="64" r="64" fill="#D9E2EF"/>
+<mask id="mask0_173_96" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="128" height="128">
+<circle cx="64" cy="64" r="64" fill="#D9E2EF"/>
+</mask>
+<g mask="url(#mask0_173_96)">
+<ellipse cx="64" cy="123.5" rx="41" ry="46.5" fill="#7F8EA3"/>
+<circle cx="64" cy="41" r="25" fill="#7F8EA3"/>
+</g>
+</g>
+<defs>
+<clipPath id="clip0_173_96">
+<rect width="128" height="128" fill="white"/>
+</clipPath>
+</defs>
+</svg>
