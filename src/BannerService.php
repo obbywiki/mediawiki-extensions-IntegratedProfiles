@@ -144,9 +144,18 @@ class BannerService {
 			return Status::newFatal( $validation['error'] );
 		}
 
-		$status = $this->storage->store( $central_id, $validation['ext'], $tmp_path );
+		$status = ImageUploadSanitizer::with_sanitized_file(
+			$tmp_path,
+			$validation['ext'],
+			function ( string $path ) use ( $central_id, $validation ): Status {
+				$stored = $this->storage->store( $central_id, $validation['ext'], $path );
+				if ( !$stored->isOK() ) {
+					$stored->fatal( 'integratedprofiles-error-banner-upload' );
+				}
+				return $stored;
+			}
+		);
 		if ( !$status->isOK() ) {
-			$status->fatal( 'integratedprofiles-error-banner-upload' );
 			return $status;
 		}
 

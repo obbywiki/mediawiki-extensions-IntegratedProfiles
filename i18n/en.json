@@ -48,6 +48,7 @@
 	"integratedprofiles-crop-reset": "Reset crop",
 	"integratedprofiles-avatar-error": "Could not update avatar.",
 	"integratedprofiles-error-image-dimensions": "This image is too large. Choose an image with no more than 16 megapixels or 16,384 pixels on either side.",
+	"integratedprofiles-error-image-unsafe": "This image cannot be used. Try a different photo.",
 	"integratedprofiles-banner-label": "Banner",
 	"integratedprofiles-banner-help": "Choose a gradient or upload your own cover image.",
 	"integratedprofiles-banner-upload": "Upload banner",

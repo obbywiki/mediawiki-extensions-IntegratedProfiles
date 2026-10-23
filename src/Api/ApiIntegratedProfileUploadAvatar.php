@@ -41,6 +41,10 @@ class ApiIntegratedProfileUploadAvatar extends ApiBase {
 			$this->dieWithError( 'integratedprofiles-error-permission', 'permissiondenied' );
 		}
 
+		if ( $actor->pingLimiter( 'integratedprofile-upload' ) ) {
+			$this->dieWithError( 'apierror-ratelimited' );
+		}
+
 		$upload = $this->getRequest()->getUpload( 'file' );
 		if ( !$upload->exists() || $upload->getError() !== UPLOAD_ERR_OK ) {
 			$this->dieWithError( 'integratedprofiles-error-avatar-size', 'avatarsize' );

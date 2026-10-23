@@ -21,6 +21,7 @@
 	"AutoloadNamespaces": {
 		"MediaWiki\\Extension\\IntegratedProfiles\\": "src/"
 	},
+	"callback": "MediaWiki\\Extension\\IntegratedProfiles\\Hooks::onRegistration",
 	"ServiceWiringFiles": [
 		"src/ServiceWiring.php"
 	],
@@ -248,6 +249,7 @@
 				"integratedprofiles-avatar-modal-title",
 				"integratedprofiles-avatar-error",
 				"integratedprofiles-error-image-dimensions",
+				"integratedprofiles-error-image-unsafe",
 				"integratedprofiles-banner-label",
 				"integratedprofiles-banner-help",
 				"integratedprofiles-banner-upload",

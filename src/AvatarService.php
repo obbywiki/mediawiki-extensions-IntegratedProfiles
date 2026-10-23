@@ -182,10 +182,18 @@ class AvatarService {
 			return Status::newFatal( $validation['error'] );
 		}
 
-		$status = $this->storage->store( $central_id, $validation['ext'], $tmp_path );
+		$status = ImageUploadSanitizer::with_sanitized_file(
+			$tmp_path,
+			$validation['ext'],
+			function ( string $path ) use ( $central_id, $validation ): Status {
+				$stored = $this->storage->store( $central_id, $validation['ext'], $path );
+				if ( !$stored->isOK() ) {
+					$stored->fatal( 'integratedprofiles-error-avatar-upload' );
+				}
+				return $stored;
+			}
+		);
 		if ( !$status->isOK() ) {
-			// keep the backend's own errors ahead, as they describe the real cause better instead of a generic failure
-			$status->fatal( 'integratedprofiles-error-avatar-upload' );
 			return $status;
 		}
 

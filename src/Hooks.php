@@ -36,6 +36,22 @@ class Hooks implements
 	 */
 	private ?string $header_avatar_url = null;
 
+	/**
+	 * Register a dedicated upload rate-limit bucket so avatar/banner writes
+	 * are throttled without sharing the core `upload` quota.
+	 */
+	public static function onRegistration(): void {
+		global $wgRateLimits;
+
+		if ( !isset( $wgRateLimits['integratedprofile-upload'] ) ) {
+			$wgRateLimits['integratedprofile-upload'] = [
+				'ip' => [ 4, 60 ],
+				'newbie' => [ 4, 60 ],
+				'user' => [ 10, 60 ],
+			];
+		}
+	}
+
 	public function __construct(
 		private readonly ProfileService $profile_service,
 		private readonly ProfileHandler $profile_chrome,
