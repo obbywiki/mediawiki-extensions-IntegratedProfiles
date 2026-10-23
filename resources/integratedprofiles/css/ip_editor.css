@@ -512,7 +512,7 @@
 	flex: 0 0 auto;
 	width: var( --ip-editor-avatar-size );
 	height: var( --ip-editor-avatar-size );
-	border-radius: 50%;
+	border-radius: var( --ip-avatar-radius );
 	overflow: hidden;
 	box-shadow: 0 0 0 var( --ip-editor-avatar-cutout ) var( --background-color-base );
 }
@@ -525,7 +525,7 @@
 	display: block;
 	width: 100%;
 	height: 100%;
-	border-radius: 50%;
+	border-radius: var( --ip-avatar-radius );
 	object-fit: cover;
 	background: var( --background-color-neutral );
 }
@@ -536,7 +536,7 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	border-radius: 50%;
+	border-radius: var( --ip-avatar-radius );
 	background: rgba( 0, 0, 0, 0.45 );
 	color: #fff;
 	opacity: 0;
