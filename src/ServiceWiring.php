@@ -1,5 +1,6 @@
 <?php
 
+use MediaWiki\Cache\HTMLCacheUpdater;
 use MediaWiki\Config\ServiceOptions;
 use MediaWiki\Extension\IntegratedProfiles\AvatarService;
 use MediaWiki\Extension\IntegratedProfiles\AvatarStorage;
@@ -63,7 +64,11 @@ return [
 	},
 
 	ProfilePagePurger::SERVICE_NAME => static function ( MediaWikiServices $services ): ProfilePagePurger {
-		return new ProfilePagePurger( $services->getHtmlCacheUpdater(), $services->getTitleFactory() );
+		// 1.45: HtmlCacheUpdater; 1.46+: HTMLCacheUpdater
+		/** @var HTMLCacheUpdater $html_cache */
+		$html_cache = $services->hasService( 'HTMLCacheUpdater' ) ? $services->getService( 'HTMLCacheUpdater' ) : $services->getService( 'HtmlCacheUpdater' );
+
+		return new ProfilePagePurger( $html_cache, $services->getTitleFactory() );
 	},
 
 	AvatarStorage::SERVICE_NAME => static function ( MediaWikiServices $services ): AvatarStorage {

@@ -2,7 +2,7 @@
 
 namespace MediaWiki\Extension\IntegratedProfiles;
 
-use MediaWiki\Cache\HtmlCacheUpdater;
+use MediaWiki\Cache\HTMLCacheUpdater;
 use MediaWiki\Title\TitleFactory;
 use MediaWiki\User\UserIdentity;
 
@@ -14,7 +14,7 @@ class ProfilePagePurger {
 	public const SERVICE_NAME = 'IntegratedProfiles.ProfilePagePurger';
 
 	public function __construct(
-		private readonly HtmlCacheUpdater $html_cache_updater,
+		private readonly HTMLCacheUpdater $html_cache_updater,
 		private readonly TitleFactory $title_factory,
 	) {
 	}
@@ -67,7 +67,7 @@ class ProfilePagePurger {
 			return;
 		}
 
-		$this->html_cache_updater->purgeTitleUrls( $titles, HtmlCacheUpdater::PURGE_INTENT_TXROUND_REFLECTED );
+		$this->html_cache_updater->purgeTitleUrls( $titles );
 	}
 
 }

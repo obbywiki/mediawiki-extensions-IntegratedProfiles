@@ -3,7 +3,7 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\IntegratedProfiles\Tests\Unit;
 
-use MediaWiki\Cache\HtmlCacheUpdater;
+use MediaWiki\Cache\HTMLCacheUpdater;
 use MediaWiki\Extension\IntegratedProfiles\ProfileFields;
 use MediaWiki\Extension\IntegratedProfiles\ProfilePagePurger;
 use MediaWiki\Title\Title;
@@ -18,14 +18,14 @@ use MediaWikiUnitTestCase;
 class ProfilePagePurgerTest extends MediaWikiUnitTestCase {
 
 	public function test_skips_when_visibility_not_modified(): void {
-		$html_cache = $this->createMock( HtmlCacheUpdater::class );
+		$html_cache = $this->createMock( HTMLCacheUpdater::class );
 		$html_cache->expects( $this->never() )->method( 'purgeTitleUrls' );
 
 		$this->purger( $html_cache )->maybe_purge_on_visibility_change( $this->identity(), [ ProfileFields::KEY_ABOUT => 'Hello' ], [] );
 	}
 
 	public function test_skips_when_normalized_visibility_is_unchanged(): void {
-		$html_cache = $this->createMock( HtmlCacheUpdater::class );
+		$html_cache = $this->createMock( HTMLCacheUpdater::class );
 		$html_cache->expects( $this->never() )->method( 'purgeTitleUrls' );
 
 		$purger = $this->purger( $html_cache );
@@ -37,10 +37,10 @@ class ProfilePagePurgerTest extends MediaWikiUnitTestCase {
 		$user_title = $this->createMock( Title::class );
 		$talk_title = $this->createMock( Title::class );
 
-		$html_cache = $this->createMock( HtmlCacheUpdater::class );
+		$html_cache = $this->createMock( HTMLCacheUpdater::class );
 		$html_cache->expects( $this->once() )
 			->method( 'purgeTitleUrls' )
-			->with( [ $user_title, $talk_title ], HtmlCacheUpdater::PURGE_INTENT_TXROUND_REFLECTED );
+			->with( [ $user_title, $talk_title ] );
 
 		$this->purger( $html_cache, $user_title, $talk_title )->maybe_purge_on_visibility_change( $this->identity(), [ ProfileFields::KEY_VISIBILITY => ProfileFields::VISIBILITY_PRIVATE ], [ ProfileFields::KEY_VISIBILITY => ProfileFields::VISIBILITY_PUBLIC ] );
 	}
@@ -49,14 +49,14 @@ class ProfilePagePurgerTest extends MediaWikiUnitTestCase {
 		$user_title = $this->createMock( Title::class );
 		$talk_title = $this->createMock( Title::class );
 
-		$html_cache = $this->createMock( HtmlCacheUpdater::class );
+		$html_cache = $this->createMock( HTMLCacheUpdater::class );
 		$html_cache->expects( $this->once() )->method( 'purgeTitleUrls' );
 
 		$this->purger( $html_cache, $user_title, $talk_title )->maybe_purge_on_visibility_change( $this->identity(), [ ProfileFields::KEY_VISIBILITY => null ], [ ProfileFields::KEY_VISIBILITY => ProfileFields::VISIBILITY_PRIVATE ] );
 	}
 
 	public function test_skips_empty_username(): void {
-		$html_cache = $this->createMock( HtmlCacheUpdater::class );
+		$html_cache = $this->createMock( HTMLCacheUpdater::class );
 		$html_cache->expects( $this->never() )->method( 'purgeTitleUrls' );
 
 		$title_factory = $this->createMock( TitleFactory::class );
@@ -66,7 +66,7 @@ class ProfilePagePurgerTest extends MediaWikiUnitTestCase {
 		$purger->maybe_purge_on_visibility_change( $this->identity( '' ), [ ProfileFields::KEY_VISIBILITY => ProfileFields::VISIBILITY_PRIVATE ], [] );
 	}
 
-	private function purger( HtmlCacheUpdater $html_cache, ?Title $user_title = null, ?Title $talk_title = null ): ProfilePagePurger {
+	private function purger( HTMLCacheUpdater $html_cache, ?Title $user_title = null, ?Title $talk_title = null ): ProfilePagePurger {
 		$title_factory = $this->createMock( TitleFactory::class );
 		$title_factory->method( 'makeTitleSafe' )->willReturnCallback(
 			static function ( int $ns ) use ( $user_title, $talk_title ): ?Title {
