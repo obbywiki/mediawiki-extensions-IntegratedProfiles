@@ -42,6 +42,7 @@ class Hooks implements
 		private readonly HookRunner $hook_runner,
 		private readonly AvatarService $avatar_service,
 		private readonly ProfileLanguageLinks $profile_language_links,
+		private readonly ProfilePagePurger $profile_page_purger,
 	) {
 	}
 
@@ -140,19 +141,20 @@ class Hooks implements
 
 	/**
 	 * Cleans up unused custom banner files when a save leaves an orphaned banner (a user uploads a banner but uses a preset instead).
+	 * Purges local User:X / User_talk:X when ip-visibility changes so anonymous CDN copies drop.
 	 *
 	 * @param UserIdentity $user
 	 * @param array<string,mixed> &$modifiedOptions
 	 * @param array<string,mixed> $originalOptions
 	 */
 	public function onSaveUserOptions( $user, &$modifiedOptions, $originalOptions ): void {
-		if ( !array_key_exists( ProfileFields::KEY_BANNER, $modifiedOptions ) ) {
-			return;
+		if ( array_key_exists( ProfileFields::KEY_BANNER, $modifiedOptions ) ) {
+			$previous = ProfileFields::normalize_banner( isset( $originalOptions[ ProfileFields::KEY_BANNER ] ) ? (string)$originalOptions[ ProfileFields::KEY_BANNER ] : '' );
+			$next = ProfileFields::normalize_banner( (string)$modifiedOptions[ ProfileFields::KEY_BANNER ] );
+			$this->profile_service->maybe_delete_unused_banner( $user, $previous, $next );
 		}
 
-		$previous = ProfileFields::normalize_banner( isset( $originalOptions[ ProfileFields::KEY_BANNER ] ) ? (string)$originalOptions[ ProfileFields::KEY_BANNER ] : '' );
-		$next = ProfileFields::normalize_banner( (string)$modifiedOptions[ ProfileFields::KEY_BANNER ] );
-		$this->profile_service->maybe_delete_unused_banner( $user, $previous, $next );
+		$this->profile_page_purger->maybe_purge_on_visibility_change( $user, $modifiedOptions, $originalOptions );
 	}
 
 	/**

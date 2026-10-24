@@ -62,7 +62,8 @@
 				"IntegratedProfiles.ProfileHandler",
 				"IntegratedProfiles.HookRunner",
 				"IntegratedProfiles.AvatarService",
-				"IntegratedProfiles.ProfileLanguageLinks"
+				"IntegratedProfiles.ProfileLanguageLinks",
+				"IntegratedProfiles.ProfilePagePurger"
 			]
 		}
 	},

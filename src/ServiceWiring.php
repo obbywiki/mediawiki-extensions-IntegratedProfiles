@@ -9,6 +9,7 @@ use MediaWiki\Extension\IntegratedProfiles\HookRunner;
 use MediaWiki\Extension\IntegratedProfiles\NewAuthBridge;
 use MediaWiki\Extension\IntegratedProfiles\ProfileHandler;
 use MediaWiki\Extension\IntegratedProfiles\ProfileLanguageLinks;
+use MediaWiki\Extension\IntegratedProfiles\ProfilePagePurger;
 use MediaWiki\Extension\IntegratedProfiles\ProfilePermissions;
 use MediaWiki\Extension\IntegratedProfiles\ProfileRenderer;
 use MediaWiki\Extension\IntegratedProfiles\ProfileService;
@@ -59,6 +60,10 @@ return [
 			$services->getContentLanguage()->getCode(),
 			(array)$config->get( 'LocalInterwikis' )
 		);
+	},
+
+	ProfilePagePurger::SERVICE_NAME => static function ( MediaWikiServices $services ): ProfilePagePurger {
+		return new ProfilePagePurger( $services->getHtmlCacheUpdater(), $services->getTitleFactory() );
 	},
 
 	AvatarStorage::SERVICE_NAME => static function ( MediaWikiServices $services ): AvatarStorage {
