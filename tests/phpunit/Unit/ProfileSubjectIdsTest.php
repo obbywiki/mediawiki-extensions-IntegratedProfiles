@@ -5,6 +5,7 @@ namespace MediaWiki\Extension\IntegratedProfiles\Tests\Unit;
 
 use MediaWiki\Extension\IntegratedProfiles\ProfileSubjectIds;
 use MediaWiki\User\CentralId\CentralIdLookup;
+use MediaWiki\User\CentralId\LocalIdLookup;
 use MediaWiki\User\UserIdentity;
 use MediaWikiUnitTestCase;
 
@@ -50,6 +51,16 @@ class ProfileSubjectIdsTest extends MediaWikiUnitTestCase {
 	public function test_central_id_zero_for_anon(): void {
 		$ids = new ProfileSubjectIds( $this->lookup_returning( 99 ) );
 		$this->assertSame( 0, $ids->central_id_for( $this->identity( 0 ) ) );
+	}
+
+	public function test_uses_local_ids_for_local_lookup(): void {
+		$ids = new ProfileSubjectIds( $this->createMock( LocalIdLookup::class ) );
+		$this->assertTrue( $ids->uses_local_ids() );
+	}
+
+	public function test_uses_local_ids_false_for_shared_lookup(): void {
+		$ids = new ProfileSubjectIds( $this->lookup_returning( 9001 ) );
+		$this->assertFalse( $ids->uses_local_ids() );
 	}
 
 	private function identity( int $local_id ): UserIdentity {

@@ -157,11 +157,16 @@ class Hooks implements
 
 	/**
 	 * Cleans up avatar/banner files when a local account is deleted.
+	 * Skipped when CentralIdLookup is shared (CentralAuth / a farm): those files belong to the central account.
 	 *
 	 * @param UserIdentity $user
 	 */
 	public function onDeleteAccount( $user ): void {
 		if ( !$user instanceof UserIdentity || $user->getId() <= 0 ) {
+			return;
+		}
+
+		if ( !$this->profile_service->get_subject_ids()->uses_local_ids() ) {
 			return;
 		}
 

@@ -3,6 +3,7 @@
 namespace MediaWiki\Extension\IntegratedProfiles;
 
 use MediaWiki\User\CentralId\CentralIdLookup;
+use MediaWiki\User\CentralId\LocalIdLookup;
 use MediaWiki\User\UserIdentity;
 
 /**
@@ -47,6 +48,13 @@ class ProfileSubjectIds {
 
 	public function local_id_for( UserIdentity $user ): int {
 		return $user->getId();
+	}
+
+	/**
+	 * True when files are keyed by local user id (no shared CentralIdLookup provider).
+	 */
+	public function uses_local_ids(): bool {
+		return $this->central_id_lookup instanceof LocalIdLookup;
 	}
 
 	/**
