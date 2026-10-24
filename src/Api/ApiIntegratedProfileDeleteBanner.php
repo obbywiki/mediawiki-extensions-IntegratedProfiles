@@ -43,7 +43,7 @@ class ApiIntegratedProfileDeleteBanner extends ApiBase {
 
 		$this->die_if_upload_rate_limited();
 
-		$status = $this->profile_service->delete_banner( $subject );
+		$status = $this->profile_service->delete_banner( $subject, $actor );
 		if ( !$status->isOK() ) {
 			$this->dieStatus( $status );
 		}

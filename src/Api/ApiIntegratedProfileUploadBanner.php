@@ -53,7 +53,8 @@ class ApiIntegratedProfileUploadBanner extends ApiBase {
 			$subject,
 			(string)$upload->getTempName(),
 			(int)$upload->getSize(),
-			$allow_animated
+			$allow_animated,
+			$actor
 		);
 
 		if ( !$status->isOK() ) {

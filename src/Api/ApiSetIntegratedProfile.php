@@ -46,7 +46,7 @@ class ApiSetIntegratedProfile extends ApiBase {
 			$this->dieWithError( 'integratedprofiles-error-invalid-json', 'invalidjson' );
 		}
 
-		$status = $this->profile_service->save_fields( $subject, $decoded );
+		$status = $this->profile_service->save_fields( $subject, $decoded, $actor );
 		if ( !$status->isOK() ) {
 			$this->dieStatus( $status );
 		}

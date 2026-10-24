@@ -67,7 +67,7 @@ class ApiIntegratedProfileUploadAvatar extends ApiBase {
 
 		ProfileChangeLogger::log_if_other( $actor, $subject, ProfileChangeLogger::ACTION_AVATAR );
 
-		$payload = $this->profile_service->get_payload( $subject );
+		$payload = $this->profile_service->get_payload( $subject, $actor );
 		$this->getResult()->addValue( null, $this->getModuleName(), [ 'result' => 'success', 'profile' => $payload ] );
 	}
 

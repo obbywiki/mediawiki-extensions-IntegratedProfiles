@@ -242,6 +242,8 @@ class ProfileService {
 	 *
 	 * When the subject's visibility restricts `$viewer`, returns a scrubbed payload (avatar + username only extras cleared). Pass `null` (or omit) for mutation/API responses that must stay unscrubbed.
 	 *
+	 * Featured articles still require `$viewer` to have `read` on the target page. Missing and unreadable pages both omit the descriptor.
+	 *
 	 * Hideuser is not applied here. Callers must use resolve_visible_user_by_name() / can_see_subject() so a suppressed account is omitted entirely rather than scrubbed.
 	 *
 	 * @return array<string, mixed>
@@ -276,6 +278,11 @@ class ProfileService {
 			$connections
 		);
 
+		$featured = $this->resolve_featured_article( (string)( $field_values[ ProfileFields::KEY_FEATURED_ARTICLE ] ?? '' ), $viewer );
+		if ( $viewer !== null && !$this->can_edit( $viewer, $subject ) ) {
+			$field_values[ ProfileFields::KEY_FEATURED_ARTICLE ] = is_array( $featured ) ? (string)$featured['title'] : '';
+		}
+
 		return [
 			'user_id' => $subject->getId(),
 			'central_id' => $this->subject_ids->central_id_for( $subject ),
@@ -292,9 +299,7 @@ class ProfileService {
 			'fields' => $field_values,
 			'links' => $links,
 			'wiki_profiles' => $this->fields->build_wiki_profiles( $field_values ),
-			'featured_article' => $this->resolve_featured_article(
-				(string)( $field_values[ ProfileFields::KEY_FEATURED_ARTICLE ] ?? '' )
-			),
+			'featured_article' => $featured,
 			'avatar_url' => $avatar['avatar_url'],
 			'has_custom_avatar' => $avatar['has_custom_avatar'],
 			'banner_url' => $this->resolve_banner_paint_url(
@@ -392,9 +397,7 @@ class ProfileService {
 			is_string( $stored_wiki_banner ) ? $stored_wiki_banner : '',
 			$banner
 		);
-		$preview['featured_article'] = $this->resolve_featured_article(
-			is_string( $stored_featured ) ? $stored_featured : ''
-		);
+		$preview['featured_article'] = $this->resolve_featured_article( is_string( $stored_featured ) ? $stored_featured : '', $viewer );
 
 		$website_raw = $this->user_options_lookup->getOption( $subject, ProfileFields::KEY_WEBSITE );
 		$website_links = $this->fields->build_public_links( [
@@ -485,17 +488,28 @@ class ProfileService {
 	 *
 	 * @return array{title: string, display_title: string, url: string}|null
 	 */
-	public function resolve_featured_article( string $title_text ): ?array {
+	public function resolve_featured_article( string $title_text, ?UserIdentity $viewer = null ): ?array {
 		$title_text = trim( $title_text );
 		if ( $title_text === '' ) {
 			return null;
 		}
 
-		$title = Title::newFromText( $title_text );
+		return $this->featured_article_for_title( Title::newFromText( $title_text ), $viewer );
+	}
+
+	/**
+	 * Permission-aware featured-article descriptor for an already-parsed title.
+	 *
+	 * @return array{title: string, display_title: string, url: string}|null
+	 */
+	public function featured_article_for_title( ?Title $title, ?UserIdentity $viewer = null ): ?array {
 		if ( !$title || !$title->canExist() || $title->isSpecialPage() ) {
 			return null;
 		}
 		if ( !$title->exists() ) {
+			return null;
+		}
+		if ( $viewer === null || !$this->viewer_can_read_title( $viewer, $title ) ) {
 			return null;
 		}
 
@@ -533,9 +547,10 @@ class ProfileService {
 	 *
 	 * @param User $subject Profile owner
 	 * @param array $input Raw field map from the client
+	 * @param UserIdentity|null $viewer Actor receiving the response payload
 	 * @return Status
 	 */
-	public function save_fields( User $subject, array $input ): Status {
+	public function save_fields( User $subject, array $input, ?UserIdentity $viewer = null ): Status {
 		$result = $this->fields->sanitize_fields( $input );
 		if ( $result['invalid'] !== [] ) {
 			return Status::newFatal(
@@ -545,7 +560,7 @@ class ProfileService {
 		}
 
 		if ( $result['fields'] === [] ) {
-			return Status::newGood( $this->get_payload( $subject ) );
+			return Status::newGood( $this->get_payload( $subject, $viewer ) );
 		}
 
 		$previous_banner = ProfileFields::normalize_banner(
@@ -564,7 +579,7 @@ class ProfileService {
 			$this->maybe_delete_unused_banner( $subject, $previous_banner, $new_banner );
 		}
 
-		return Status::newGood( $this->get_payload( $subject ) );
+		return Status::newGood( $this->get_payload( $subject, $viewer ) );
 	}
 
 	/**
@@ -597,7 +612,7 @@ class ProfileService {
 	/**
 	 * Store a custom banner and set ip-banner to custom. Caller must check can_edit.
 	 */
-	public function upload_banner( User $subject, string $tmp_path, int $size, bool $allow_animated = false ): Status {
+	public function upload_banner( User $subject, string $tmp_path, int $size, bool $allow_animated = false, ?UserIdentity $viewer = null ): Status {
 		$status = $this->banner_service->upload_for_user( $subject, $tmp_path, $size, $allow_animated );
 		if ( !$status->isOK() ) {
 			return $status;
@@ -611,13 +626,13 @@ class ProfileService {
 		$this->set_profile_option( $subject, ProfileFields::KEY_BANNER_WIKI, '' );
 		$this->user_options_manager->saveOptions( $subject );
 
-		return Status::newGood( $this->get_payload( $subject ) );
+		return Status::newGood( $this->get_payload( $subject, $viewer ) );
 	}
 
 	/**
 	 * Delete a custom banner and reset ip-banner to accent. Caller must check can_edit.
 	 */
-	public function delete_banner( User $subject ): Status {
+	public function delete_banner( User $subject, ?UserIdentity $viewer = null ): Status {
 		$status = $this->banner_service->delete_for_user( $subject );
 		if ( !$status->isOK() ) {
 			return $status;
@@ -631,7 +646,7 @@ class ProfileService {
 		$this->set_profile_option( $subject, ProfileFields::KEY_BANNER_WIKI, '' );
 		$this->user_options_manager->saveOptions( $subject );
 
-		return Status::newGood( $this->get_payload( $subject ) );
+		return Status::newGood( $this->get_payload( $subject, $viewer ) );
 	}
 
 	public function default_avatar_url(): string {
@@ -687,6 +702,15 @@ class ProfileService {
 				'IntegratedProfilesAvatarBorderRadius'
 			),
 		];
+	}
+
+	/**
+	 * Whether `$viewer` may read `$title`.
+	 */
+	private function viewer_can_read_title( UserIdentity $viewer, Title $title ): bool {
+		$user = $viewer instanceof User ? $viewer : $this->user_factory->newFromUserIdentity( $viewer );
+
+		return $user->definitelyCan( 'read', $title );
 	}
 
 	/**
