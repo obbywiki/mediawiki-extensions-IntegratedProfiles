@@ -23,7 +23,7 @@ class BannerValidator {
 	/**
 	 * @return array{ok: true, ext: string}|array{ok: false, error: string}
 	 */
-	public function validate_upload( string $tmp_path, int $size ): array {
+	public function validate_upload( string $tmp_path, int $size, bool $allow_animated = false ): array {
 		if ( $tmp_path === '' || !is_readable( $tmp_path ) || $size <= 0 || $size > $this->max_bytes ) {
 			return [ 'ok' => false, 'error' => 'integratedprofiles-error-banner-size' ];
 		}
@@ -40,6 +40,10 @@ class BannerValidator {
 		}
 		if ( !ImageLimits::allows_dimensions( $image_info[0], $image_info[1] ) ) {
 			return [ 'ok' => false, 'error' => 'integratedprofiles-error-image-dimensions' ];
+		}
+
+		if ( !$allow_animated && ImageAnimation::is_animated( $tmp_path, $ext ) ) {
+			return [ 'ok' => false, 'error' => 'integratedprofiles-error-banner-animated' ];
 		}
 
 		return [ 'ok' => true, 'ext' => $ext ];

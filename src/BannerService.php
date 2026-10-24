@@ -17,6 +17,7 @@ class BannerService {
 	public const CACHE_KEY_VERSION = '2'; // also bump in AvatarService
 	public const CONSTRUCTOR_OPTIONS = [
 		'IntegratedProfilesBannerMaxBytes',
+		'IntegratedProfilesEnableAnimatedAvatars',
 	];
 
 	private readonly BannerValidator $validator;
@@ -123,23 +124,27 @@ class BannerService {
 
 	/**
 	 * Validates and stores an uploaded banner temp file under the central ID.
+	 *
+	 * @param bool $allow_animated Whether animated GIF / WebP / APNG is allowed
 	 */
-	public function upload_for_user( UserIdentity $user, string $tmp_path, int $size ): Status {
+	public function upload_for_user( UserIdentity $user, string $tmp_path, int $size, bool $allow_animated = false ): Status {
 		$ids = $this->subject_ids->ids_for( $user );
-		return $this->upload( $ids['central_id'], $tmp_path, $size );
+		return $this->upload( $ids['central_id'], $tmp_path, $size, $allow_animated );
 	}
 
 	/**
 	 * @param int $central_id Storage owner ID
 	 * @param string $tmp_path Local filesystem path to the upload
 	 * @param int $size Byte length reported by the upload
+	 * @param bool $allow_animated Whether animated GIF / WebP / APNG is allowed
 	 */
-	public function upload( int $central_id, string $tmp_path, int $size ): Status {
+	public function upload( int $central_id, string $tmp_path, int $size, bool $allow_animated = false ): Status {
 		if ( $central_id <= 0 ) {
 			return Status::newFatal( 'integratedprofiles-error-banner-upload' );
 		}
 
-		$validation = $this->validator->validate_upload( $tmp_path, $size );
+		$allow_animated = $allow_animated && (bool)$this->options->get( 'IntegratedProfilesEnableAnimatedAvatars' );
+		$validation = $this->validator->validate_upload( $tmp_path, $size, $allow_animated );
 		if ( !$validation['ok'] ) {
 			return Status::newFatal( $validation['error'] );
 		}

@@ -57,7 +57,7 @@
 						ref="file_input"
 						class="ip-banner-modal__file-input"
 						type="file"
-						accept="image/jpeg,image/png,image/gif,image/webp"
+						:accept="file_accept"
 						:disabled="busy"
 						@change="on_file_selected"
 					>
@@ -99,11 +99,7 @@
 					</div>
 
 					<p class="ip-upload-modal__help">
-						{{ pending_file ?
-							( skip_crop ?
-								msg( 'integratedprofiles-banner-preview-help' ) :
-								msg( 'integratedprofiles-banner-crop-help' ) ) :
-							msg( 'integratedprofiles-banner-help-size', banner_max_mb ) }}
+						{{ help_text }}
 					</p>
 
 					<p
@@ -220,6 +216,22 @@ const banner_max_mb = computed( () => {
 	return Number.isInteger( megabytes ) ? String( megabytes ) : megabytes.toFixed( 1 );
 } );
 
+const can_upload_animated_avatar = computed(
+	() => !!props.config.can_upload_animated_avatar
+);
+
+const file_accept = computed( () => can_upload_animated_avatar.value ? 'image/jpeg,image/png,image/gif,image/webp' : 'image/jpeg,image/png,image/webp' );
+
+const help_text = computed( () => {
+	if ( pending_file.value ) {
+		return skip_crop.value ? msg( 'integratedprofiles-banner-preview-help' ) : msg( 'integratedprofiles-banner-crop-help' );
+	}
+
+	const key = can_upload_animated_avatar.value ? 'integratedprofiles-banner-help-size' : 'integratedprofiles-banner-help-size-static';
+
+	return msg( key, banner_max_mb.value );
+} );
+
 const display_url = computed( () => preview_url.value || current_banner_url.value );
 
 const preview_style = computed( () => {
@@ -327,6 +339,13 @@ async function on_file_selected( event: Event ): Promise<void> {
 		return;
 	}
 
+	if ( !can_upload_animated_avatar.value && file.type === 'image/gif' ) {
+		error_message.value = msg( 'integratedprofiles-error-banner-animated' );
+		input.value = '';
+
+		return;
+	}
+
 	let animated;
 	inspecting_file.value = true;
 	try {
@@ -342,6 +361,13 @@ async function on_file_selected( event: Event ): Promise<void> {
 	}
 
 	if ( generation !== pick_generation ) {
+		return;
+	}
+
+	if ( animated && !can_upload_animated_avatar.value ) {
+		error_message.value = msg( 'integratedprofiles-error-banner-animated' );
+		input.value = '';
+
 		return;
 	}
 

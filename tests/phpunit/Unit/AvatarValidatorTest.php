@@ -9,6 +9,7 @@ use MediaWikiUnitTestCase;
 /**
  * @group IntegratedProfiles
  * @covers \MediaWiki\Extension\IntegratedProfiles\AvatarValidator
+ * @covers \MediaWiki\Extension\IntegratedProfiles\ImageAnimation
  */
 class AvatarValidatorTest extends MediaWikiUnitTestCase {
 

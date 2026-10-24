@@ -264,6 +264,7 @@
 				"integratedprofiles-banner-replace",
 				"integratedprofiles-banner-delete",
 				"integratedprofiles-banner-help-size",
+				"integratedprofiles-banner-help-size-static",
 				"integratedprofiles-banner-preview-help",
 				"integratedprofiles-banner-crop-help",
 				"integratedprofiles-banner-crop-callout",
@@ -356,6 +357,7 @@
 				"integratedprofiles-error-banner-upload",
 				"integratedprofiles-error-banner-size",
 				"integratedprofiles-error-banner-type",
+				"integratedprofiles-error-banner-animated",
 				"integratedprofiles-error-upload-too-large"
 			]
 		},
@@ -427,7 +429,7 @@
 		},
 		"IntegratedProfilesEnableAnimatedAvatars": {
 			"value": true,
-			"description": "When false, reject all animated avatar uploads regardless of user rights. Existing GIFs will still be displayed."
+			"description": "When false, reject all animated avatar and banner uploads regardless of user rights. Existing animated files will still be displayed."
 		},
 		"IntegratedProfilesBannerMaxBytes": {
 			"value": 4194304,

@@ -193,7 +193,7 @@ Below are open-source integrations that implement IntegratedProfiles' hooks or A
 | `$wgIntegratedProfilesLinkMaxLength` | ![number](https://img.shields.io/badge/-number-green?style=flat-square) | `255` | Maximum length in characters for freeform profile link fields. |
 | `$wgIntegratedProfilesEnabledSocialLinks` | array | `['website','twitter','github','discord','roblox','youtube']` | Only accepts one of the presets. Feel free to request or add any. |
 | `$wgIntegratedProfilesAvatarMaxBytes` | ![number](https://img.shields.io/badge/-number-green?style=flat-square) | `2097152` | Maximum avatar upload size in bytes (default 2 MiB). |
-| `$wgIntegratedProfilesEnableAnimatedAvatars` | ![boolean](https://img.shields.io/badge/-boolean-orange?style=flat-square) | `true` | When false, reject all animated avatar uploads regardless of user rights. Existing GIFs will still be displayed. |
+| `$wgIntegratedProfilesEnableAnimatedAvatars` | ![boolean](https://img.shields.io/badge/-boolean-orange?style=flat-square) | `true` | When false, reject all animated avatar and banner uploads regardless of user rights. Existing animated files will still be displayed. |
 | `$wgIntegratedProfilesBannerMaxBytes` | ![number](https://img.shields.io/badge/-number-green?style=flat-square) | `4194304` | Maximum banner upload size in bytes (default 4 MiB). |
 | `$wgIntegratedProfilesBannerPresetImages` | array | `[]` | Map of preset ID => image URL (max 8). Replaces gradients on a single wiki, or creates a local extra row with GlobalPreferences per-wiki. |
 | `$wgIntegratedProfilesBannerPresetDefault` | ![string](https://img.shields.io/badge/-string-blue?style=flat-square) | `''` | Optional preset ID to use as the single-wiki default. If empty, the first item in `$wgIntegratedProfilesBannerPresetImages` will be used. |
@@ -291,7 +291,7 @@ mw.hook('wikipage.content').add(function ($content) {
 ## Rights
 
 * `integratedprofiles-manage`: Users with this right can edit other users' profile details, including avatars and banners. Granted to `sysop` by default. If settings are shared globally (e.g., via GlobalPreferences), then anyone with this right can edit profile details of a user for every other wiki at once.
-* `integratedprofiles-animated-avatar`: Allows users to upload animated (GIF, animated WebP files, or APNG) avatars. Granted to `sysop` by default. Again, with shared avatars, this right on one wiki technically applies to all, as a user can upload an animated avatar on any wiki where they have this right, and that avatar is then used anywhere. This has no effect if `$wgIntegratedProfilesEnableAnimatedAvatars` is set to false.
+* `integratedprofiles-animated-avatar`: Allows users to upload animated (GIF, animated WebP files, or APNG) avatars and banners. Granted to `sysop` by default. Again, with shared avatars, this right on one wiki technically applies to all, as a user can upload an animated avatar or banner on any wiki where they have this right, and that image is then used anywhere. This has no effect if `$wgIntegratedProfilesEnableAnimatedAvatars` is set to false.
 
 Avatar and banner upload/delete requests share the `integratedprofiles-upload` rate limit (see `$wgRateLimits` above). `noratelimit` (granted to sysops by default) bypasses it. Rate limits require `$wgMainCacheType` to be something other than `CACHE_NONE`.
 
