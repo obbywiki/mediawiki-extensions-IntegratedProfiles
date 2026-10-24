@@ -68,6 +68,7 @@ class ProfilePermissionsTest extends MediaWikiUnitTestCase {
 		$this->assertTrue( $this->permissions->can_see_subject( true, true ) );
 		$this->assertTrue( $this->permissions->can_see_subject( false, false ) );
 		$this->assertTrue( $this->permissions->can_see_subject( false, true ) );
+		$this->assertTrue( $this->permissions->can_see_subject( true, false, true ) );
 	}
 
 	public function test_public_visibility_allows_everyone(): void {

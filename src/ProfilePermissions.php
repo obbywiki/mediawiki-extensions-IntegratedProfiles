@@ -27,9 +27,13 @@ class ProfilePermissions {
 	/**
 	 * Returns whether the viewer may know this subject exists or not.
 	 *
-	 * Hidden (hideuser / oversight) accounts must look missing unless the viewer has the hideuser right (this matches core). This is independent of ip-visibility and integratedprofiles-manage.
+	 * Hidden (hideuser / oversight) accounts must look missing unless the viewer has the hideuser right (this matches core), or is the subject. This is independent of ip-visibility and integratedprofiles-manage.
 	 */
-	public function can_see_subject( bool $subject_is_hidden, bool $viewer_has_hideuser ): bool {
+	public function can_see_subject( bool $subject_is_hidden, bool $viewer_has_hideuser, bool $is_owner = false ): bool {
+		if ( $is_owner ) {
+			return true;
+		}
+
 		return !$subject_is_hidden || $viewer_has_hideuser;
 	}
 

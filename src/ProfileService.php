@@ -164,6 +164,11 @@ class ProfileService {
 	 * (!) Callers that fail this check must treat the subject as missing, not as a private profile. `integratedprofiles-manage` is not a substitute.
 	 */
 	public function can_see_subject( UserIdentity $viewer, User $subject ): bool {
+		$is_owner = $viewer->isRegistered() && $viewer->getId() === $subject->getId();
+		if ( $is_owner ) {
+			return true;
+		}
+
 		$has_hideuser = method_exists( $viewer, 'isAllowed' )
 			&& (bool)$viewer->isAllowed( 'hideuser' );
 		if ( $has_hideuser ) {
