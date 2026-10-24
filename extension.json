@@ -1,7 +1,7 @@
 {
 	"manifest_version": 2,
 	"name": "IntegratedProfiles",
-	"version": "0.7.0",
+	"version": "0.8.0",
 	"author": [
 		"[https://wolfite.dev Wolfite]",
 		"[https://obby.wiki The Obby Wiki]"
@@ -48,10 +48,22 @@
 	},
 	"RateLimits": {
 		"integratedprofiles-upload": {
-			"ip": [ 8, 60 ],
-			"newbie": [ 8, 60 ],
-			"user": [ 8, 60 ],
-			"user-global": [ 12, 60 ]
+			"ip": [
+				8,
+				60
+			],
+			"newbie": [
+				8,
+				60
+			],
+			"user": [
+				8,
+				60
+			],
+			"user-global": [
+				12,
+				60
+			]
 		}
 	},
 	"HookHandlers": {

@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.8.0](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/compare/v0.7.0...v0.8.0) (2026-10-24)
+
+
+### Features
+
+* **avatars:** make default avatar square ([759bf2e](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/759bf2e9b8558adb31b93035d39b2295bed1a5c7))
+* **avatars:** optimize default.svg ([34e64e1](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/34e64e1780358dfb56e7ac3f882e2edcb2e7519f))
+* configurable upload base URL ([a3f1fdf](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/a3f1fdfff500d11ce7f4971b9547e0e95a97f537))
+* log edits and uploads to profiles when changes by other users ([89ea962](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/89ea9624ef1d304bb3aeb5faf8891907a62d1379))
+* purge local cache when a user's profile visibility changes ([7ade369](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/7ade36978c2737a1d5b5713ab6870e131646d7a5))
+* strengthen image animation checks ([a3e1362](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/a3e1362e70d67a38d6c155517b1067608c1d9e85))
+
+
+### Bug Fixes
+
+* check for read rights before revealing featured articles ([3037703](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/3037703fa7eaf55642defe560aa0f476a799a4bf))
+* class mismatches with HTMLCacheUpdater ([84d99cd](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/84d99cd8018ae0390ea789b382e893cdb92170a3))
+* **editor:** make avatar preview respect --ip-avatar-radius ([2c377fb](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/2c377fbbac4694f4e379abe62d1e48c64a1adb62))
+* hide suppressed users in all surfaces ([68b1ef5](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/68b1ef54d0b0ec89fc977a358b2c56a22563a69f))
+* implement rate limit defaults for uploads ([fa31175](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/fa31175c8407137c300f7386bf5ce5a97499dd00))
+* prevent local UserMerge DeleteAccount events from deleting global files on wiki farms ([83dd19e](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/83dd19e43adcc92c9aedda61fa07cefaf8543f84))
+* respect realname in wgHiddenPrefs ([7122563](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/71225638a263962f3909d94776bd080d91fae814))
+
+
+### Miscellaneous Chores
+
+* update FUNDING ([24db8fd](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/24db8fd60a4e1c70103cd8028478410d53c83897))
+
 ## [0.7.0](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/compare/v0.6.0...v0.7.0) (2026-10-08)
 
 
