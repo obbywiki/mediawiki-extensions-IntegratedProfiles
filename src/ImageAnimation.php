@@ -4,9 +4,9 @@ namespace MediaWiki\Extension\IntegratedProfiles;
 
 /**
  * Detects animated GIF, animated WebP, and APNG. Shared by avatar and banner validation. A lot of the code here was previously in AvatarValidator.php.
- * 
+ *
  * TODO: support animated AVI/AVIF
- * 
+ *
  * @see AvatarValidator
  * @see BannerValidator
  */

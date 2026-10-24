@@ -34,6 +34,18 @@
 			"integratedprofiles-animated-avatar": true
 		}
 	},
+	"LogTypes": [
+		"integratedprofiles"
+	],
+	"LogNames": {
+		"integratedprofiles": "log-name-integratedprofiles"
+	},
+	"LogHeaders": {
+		"integratedprofiles": "log-description-integratedprofiles"
+	},
+	"LogActionsHandlers": {
+		"integratedprofiles/*": "MediaWiki\\Logging\\LogFormatter"
+	},
 	"RateLimits": {
 		"integratedprofiles-upload": {
 			"ip": [ 8, 60 ],

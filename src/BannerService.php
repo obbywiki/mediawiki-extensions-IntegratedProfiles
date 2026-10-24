@@ -124,8 +124,6 @@ class BannerService {
 
 	/**
 	 * Validates and stores an uploaded banner temp file under the central ID.
-	 *
-	 * @param bool $allow_animated Whether animated GIF / WebP / APNG is allowed
 	 */
 	public function upload_for_user( UserIdentity $user, string $tmp_path, int $size, bool $allow_animated = false ): Status {
 		$ids = $this->subject_ids->ids_for( $user );

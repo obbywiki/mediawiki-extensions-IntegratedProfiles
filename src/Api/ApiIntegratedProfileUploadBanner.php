@@ -4,6 +4,7 @@ namespace MediaWiki\Extension\IntegratedProfiles\Api;
 
 use MediaWiki\Api\ApiBase;
 use MediaWiki\Api\ApiMain;
+use MediaWiki\Extension\IntegratedProfiles\ProfileChangeLogger;
 use MediaWiki\Extension\IntegratedProfiles\ProfileService;
 use Wikimedia\ParamValidator\ParamValidator;
 
@@ -62,6 +63,8 @@ class ApiIntegratedProfileUploadBanner extends ApiBase {
 
 			$this->dieStatus( $status );
 		}
+
+		ProfileChangeLogger::log_if_other( $actor, $subject, ProfileChangeLogger::ACTION_BANNER );
 
 		$this->getResult()->addValue( null, $this->getModuleName(), [ 'result' => 'success', 'profile' => $status->getValue() ] );
 	}

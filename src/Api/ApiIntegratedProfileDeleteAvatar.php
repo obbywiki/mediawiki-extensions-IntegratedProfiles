@@ -5,6 +5,7 @@ namespace MediaWiki\Extension\IntegratedProfiles\Api;
 use MediaWiki\Api\ApiBase;
 use MediaWiki\Api\ApiMain;
 use MediaWiki\Extension\IntegratedProfiles\AvatarService;
+use MediaWiki\Extension\IntegratedProfiles\ProfileChangeLogger;
 use MediaWiki\Extension\IntegratedProfiles\ProfileService;
 use Wikimedia\ParamValidator\ParamValidator;
 
@@ -48,6 +49,8 @@ class ApiIntegratedProfileDeleteAvatar extends ApiBase {
 		if ( !$status->isOK() ) {
 			$this->dieStatus( $status );
 		}
+
+		ProfileChangeLogger::log_if_other( $actor, $subject, ProfileChangeLogger::ACTION_DELETE_AVATAR );
 
 		$payload = $this->profile_service->get_payload( $subject );
 		$this->getResult()->addValue( null, $this->getModuleName(), [

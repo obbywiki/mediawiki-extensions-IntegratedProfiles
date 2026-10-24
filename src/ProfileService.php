@@ -596,8 +596,6 @@ class ProfileService {
 
 	/**
 	 * Store a custom banner and set ip-banner to custom. Caller must check can_edit.
-	 *
-	 * @param bool $allow_animated Whether animated GIF / WebP / APNG is allowed
 	 */
 	public function upload_banner( User $subject, string $tmp_path, int $size, bool $allow_animated = false ): Status {
 		$status = $this->banner_service->upload_for_user( $subject, $tmp_path, $size, $allow_animated );

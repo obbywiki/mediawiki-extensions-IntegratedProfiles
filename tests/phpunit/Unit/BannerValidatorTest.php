@@ -11,7 +11,7 @@ use MediaWikiUnitTestCase;
  * @group IntegratedProfiles
  * @covers \MediaWiki\Extension\IntegratedProfiles\BannerValidator
  * @covers \MediaWiki\Extension\IntegratedProfiles\ImageAnimation
- * 
+ *
  * TODO: largely a duplicate of AvatarValidatorTest.php, could be merged.
  */
 class BannerValidatorTest extends MediaWikiUnitTestCase {
