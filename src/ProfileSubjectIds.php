@@ -50,9 +50,6 @@ class ProfileSubjectIds {
 		return $user->getId();
 	}
 
-	/**
-	 * True when files are keyed by local user id (no shared CentralIdLookup provider).
-	 */
 	public function uses_local_ids(): bool {
 		return $this->central_id_lookup instanceof LocalIdLookup;
 	}

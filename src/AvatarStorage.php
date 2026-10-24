@@ -28,6 +28,7 @@ class AvatarStorage {
 	public const EXTENSIONS = [ 'jpg', 'png', 'gif', 'webp' ];
 	public const CONSTRUCTOR_OPTIONS = [
 		'IntegratedProfilesBackend',
+		'IntegratedProfilesUploadBaseUrl',
 		'UploadDirectory',
 		'UploadPath',
 		'UploadBaseUrl'
@@ -152,9 +153,14 @@ class AvatarStorage {
 		$backend = $this->get_backend();
 		$path = $this->storage_path( $owner_id, $ext );
 
-		$url = $backend->getFileHttpUrl( [ 'src' => $path ] );
-		if ( !is_string( $url ) || $url === '' ) {
-			$url = $this->default_http_base() . '/' . $this->file_name( $owner_id, $ext );
+		$override = trim( (string)$this->options->get( 'IntegratedProfilesUploadBaseUrl' ) );
+		if ( $override !== '' ) {
+			$url = rtrim( $override, '/' ) . '/' . self::CONTAINER . '/' . $this->file_name( $owner_id, $ext );
+		} else {
+			$url = $backend->getFileHttpUrl( [ 'src' => $path ] );
+			if ( !is_string( $url ) || $url === '' ) {
+				$url = $this->default_http_base() . '/' . $this->file_name( $owner_id, $ext );
+			}
 		}
 
 		$bust = $mtime;

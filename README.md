@@ -110,7 +110,10 @@ $wgFileBackends[] = [
 	'fileMode' => 0644,
 ];
 $wgIntegratedProfilesBackend = 'ip-shared';
+$wgIntegratedProfilesUploadBaseUrl = 'https://static.example.com/images';
 ```
+
+`$wgIntegratedProfilesUploadBaseUrl` is the public URL every wiki should use for avatars and banners. Do not include ipavatars/ipbanners, as those containers are appended automatically. Set this when wikis have different hosts or a wiki-local `$wgUploadPath` (often including `$wgDBname`). Leave it empty on a single wiki.
 
 #### Shared `$wgUploadDirectory`
 
@@ -188,6 +191,7 @@ Below are open-source integrations that implement IntegratedProfiles' hooks or A
 | Config | Type(s) | Default | Purpose |
 |--------|---------|---------|---------|
 | `$wgIntegratedProfilesBackend` | ![string](https://img.shields.io/badge/-string-blue?style=flat-square) | `''` | Named entry in `$wgFileBackends`. Empty uses `{UploadDirectory}/ipavatars` and `{UploadDirectory}/ipbanners`. Must already exist if set. See Setup. |
+| `$wgIntegratedProfilesUploadBaseUrl` | ![string](https://img.shields.io/badge/-string-blue?style=flat-square) | `''` | Stable public URL root for avatars and banners. Do not include `ipavatars`/`ipbanners`. When empty, defaults to `$wgUploadBaseUrl` + `$wgUploadPath`. |
 | `$wgIntegratedProfilesEnableUserCards` | ![boolean](https://img.shields.io/badge/-boolean-orange?style=flat-square) | `false` | On-click profile cards for username links. Requires FloatingUI. |
 | `$wgIntegratedProfilesAboutMaxLength` | ![number](https://img.shields.io/badge/-number-green?style=flat-square) | `300` | Maximum length in characters for the about tagline. |
 | `$wgIntegratedProfilesLinkMaxLength` | ![number](https://img.shields.io/badge/-number-green?style=flat-square) | `255` | Maximum length in characters for freeform profile link fields. |

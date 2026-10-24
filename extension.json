@@ -408,6 +408,10 @@
 			"value": "",
 			"description": "A FileBackend from $wgFileBackends. If left empty, $IP/<ipavatars|ipbanners> will be used instead."
 		},
+		"IntegratedProfilesUploadBaseUrl": {
+			"value": "",
+			"description": "Stable public URL root for avatars and banners. Do not include ipavatars/ipbanners, as those containers are appended automatically. Defaults to $wgUploadBaseUrl + $wgUploadPath (single-wiki default) when empty."
+		},
 		"IntegratedProfilesEnableNewAuthPanel": {
 			"value": true,
 			"description": "Show verified NewAuth connections on profiles when NewAuth is loaded."
