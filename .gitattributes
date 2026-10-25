@@ -6,3 +6,13 @@ resources/dist/* linguist-vendored
 *.gif binary
 *.svg text
 *.woff2 binary
+
+/.github/** export-ignore
+/tests/** export-ignore
+/docs/** export-ignore
+/CONTRIBUTING.md export-ignore
+/phpcs.xml export-ignore
+/eslint.config.cjs export-ignore
+/vitest.config.mjs export-ignore
+/.markdownlint.json export-ignore
+/.stylelintrc.cjs export-ignore
