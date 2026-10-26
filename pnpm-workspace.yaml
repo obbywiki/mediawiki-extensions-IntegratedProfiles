@@ -7,3 +7,12 @@ ignoredBuiltDependencies:
 
 minimumReleaseAge: 1440 # strictly enforced for security reasons
 blockExoticSubdeps: true # prevents malicious packages from being installed
+
+overrides:
+  '@typescript-eslint/eslint-plugin': ^8.68.0
+  '@typescript-eslint/parser': ^8.68.0
+  eslint-plugin-vue: ^10.10.0
+
+peerDependencyRules:
+  allowedVersions:
+    eslint-config-wikimedia>eslint: '10'

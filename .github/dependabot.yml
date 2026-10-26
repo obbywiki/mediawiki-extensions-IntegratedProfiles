@@ -4,6 +4,9 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+    ignore:
+      # ignore deps pinned in mw core
+      - dependency-name: "vue"
     groups:
       patch-updates:
         patterns:

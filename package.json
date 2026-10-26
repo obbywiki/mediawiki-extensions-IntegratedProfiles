@@ -36,27 +36,8 @@
 		"typescript": "^6.0.3",
 		"vite": "^8.0.16",
 		"vitest": "^4.0.18",
-		"vue": "3.5.44",
+		"vue": "3.5.13",
 		"vue-eslint-parser": "^10.4.1",
 		"vue-tsc": "^3.3.13"
-	},
-	"overrides": {
-		"eslint": "$eslint",
-		"eslint-plugin-vue": "$eslint-plugin-vue",
-		"@typescript-eslint/eslint-plugin": "$@typescript-eslint/eslint-plugin",
-		"@typescript-eslint/parser": "$@typescript-eslint/parser"
-	},
-	"pnpm": {
-		"overrides": {
-			"eslint-plugin-vue": "^10.10.0",
-			"@typescript-eslint/eslint-plugin": "^8.68.0",
-			"@typescript-eslint/parser": "^8.68.0"
-		},
-		"peerDependencyRules": {
-			"allowedVersions": {
-				"eslint": "*",
-				"typescript": "*"
-			}
-		}
 	}
 }
