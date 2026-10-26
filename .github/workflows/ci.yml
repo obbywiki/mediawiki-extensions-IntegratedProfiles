@@ -9,26 +9,89 @@ permissions:
   contents: read
 
 jobs:
-  lint:
-    uses: StarCitizenTools/mediawiki-ci-workflows/.github/workflows/lint.yml@main
+  lint-php:
+    uses: StarCitizenTools/mediawiki-ci-workflows/.github/workflows/lint.yml@b6de99f7945b70dcbb2203eeabe6bca3f88ddd17
     with:
       lint-php: true
-      lint-js: true
-      lint-styles: true
-      # lint-i18n: true
-      lint-md: true
+
+  lint-js-css-md:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm lint:md
 
   test-js:
-    uses: StarCitizenTools/mediawiki-ci-workflows/.github/workflows/test-js.yml@main
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test
+      - run: pnpm typecheck
+      - run: pnpm build
+      - name: Check committed app bundle is current
+        run: git diff --exit-code -- resources/dist/integratedprofiles-app.js
 
   test-php:
-    uses: StarCitizenTools/mediawiki-ci-workflows/.github/workflows/test-php.yml@main
-    with:
-      project-type: extension
-      project-name: IntegratedProfiles
-      matrix: >-
-        [
-          {"mw":"REL1_45", "php":"8.3", "coverage":"xdebug", "experimental":false},
-          {"mw":"REL1_46", "php":"8.5", "coverage":"none", "experimental":false},
-          {"mw":"master", "php":"8.5", "coverage":"none", "experimental":true}
-        ]
+    name: MW ${{ matrix.mw }}, PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    continue-on-error: ${{ matrix.experimental }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - mw: REL1_45
+            php: '8.3'
+            experimental: false
+          - mw: REL1_46
+            php: '8.5'
+            experimental: false
+          - mw: master
+            php: '8.5'
+            experimental: true
+    defaults:
+      run:
+        working-directory: mediawiki
+    steps:
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: mbstring, intl, pdo_sqlite
+          coverage: none
+          tools: composer
+      - name: Check out MediaWiki
+        uses: actions/checkout@v6
+        with:
+          repository: wikimedia/mediawiki
+          ref: ${{ matrix.mw }}
+          path: mediawiki
+      - name: Check out IntegratedProfiles
+        uses: actions/checkout@v6
+        with:
+          path: mediawiki/extensions/IntegratedProfiles
+      - name: Install MediaWiki dependencies
+        run: composer install --no-interaction --no-progress
+      - name: Install test wiki
+        run: >-
+          php maintenance/run.php install
+          --dbtype sqlite --dbname mw --dbpath "$PWD"
+          --server http://localhost --scriptpath ''
+          --pass AdminPassword WikiName AdminUser
+      - name: Load IntegratedProfiles
+        run: echo "wfLoadExtension( 'IntegratedProfiles' );" >> LocalSettings.php
+      - name: Run PHPUnit
+        run: composer phpunit -- extensions/IntegratedProfiles/tests/phpunit
