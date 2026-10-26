@@ -8,6 +8,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   lint-php:
     uses: StarCitizenTools/mediawiki-ci-workflows/.github/workflows/lint.yml@b6de99f7945b70dcbb2203eeabe6bca3f88ddd17
@@ -26,7 +30,6 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
-      - run: pnpm lint:md
 
   test-js:
     runs-on: ubuntu-latest

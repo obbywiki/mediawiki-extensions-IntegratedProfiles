@@ -6,12 +6,13 @@
 	"scripts": {
 		"build": "vite build -c vite.build.config.mjs",
 		"typecheck": "vue-tsc --noEmit",
-		"lint": "pnpm lint:js && pnpm lint:styles",
+		"lint": "pnpm lint:js && pnpm lint:styles && pnpm lint:md",
 		"lint:js": "eslint resources src tests",
 		"lint:md": "markdownlint \"*.md\"",
 		"lint:styles": "stylelint \"resources/**/*.css\" \"src/**/*.vue\"",
 		"test": "vitest run",
-		"test:watch": "vitest"
+		"test:watch": "vitest",
+		"preflight": "pnpm lint && pnpm typecheck && pnpm test && pnpm build && composer test"
 	},
 	"author": "ObbyWiki",
 	"license": "GPL-3.0-or-later",
