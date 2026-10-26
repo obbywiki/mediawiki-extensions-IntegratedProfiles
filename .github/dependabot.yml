@@ -19,6 +19,8 @@ updates:
       separator: "-"
     cooldown:
       default-days: 1
+    assignees:
+      - "wlft"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
