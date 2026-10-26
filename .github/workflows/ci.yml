@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v6
         with:
@@ -35,7 +35,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v6
         with:
@@ -77,13 +77,13 @@ jobs:
           coverage: none
           tools: composer
       - name: Check out MediaWiki
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: wikimedia/mediawiki
           ref: ${{ matrix.mw }}
           path: mediawiki
       - name: Check out IntegratedProfiles
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           path: mediawiki/extensions/IntegratedProfiles
       - name: Install MediaWiki dependencies
