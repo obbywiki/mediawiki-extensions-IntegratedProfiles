@@ -17,6 +17,8 @@ updates:
           - "minor"
     pull-request-branch-name:
       separator: "-"
+    cooldown:
+      default-days: 1
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
