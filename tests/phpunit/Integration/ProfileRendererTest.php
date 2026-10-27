@@ -27,6 +27,19 @@ class ProfileRendererTest extends MediaWikiIntegrationTestCase {
 		$this->assertStringNotContainsString( 'id="integratedprofiles-avatar-edit"', $html );
 	}
 
+	public function test_editing_without_avatar_upload_permission_keeps_only_profile_edit_controls(): void {
+		$html = $this->renderer->render_masthead(
+			[ 'user_name' => 'Example', 'avatar_url' => '/avatar.png' ],
+			true,
+			[ 'edit' => 'Edit profile' ],
+			'/wiki/Special:Contributions/Example',
+			can_upload_avatar: false
+		);
+		$this->assertStringContainsString( 'id="integratedprofiles-edit"', $html );
+		$this->assertStringContainsString( 'id="integratedprofiles-editor-root"', $html );
+		$this->assertStringNotContainsString( 'id="integratedprofiles-avatar-edit"', $html );
+	}
+
 	public function test_removal_right_does_not_expose_controls_on_private_payloads(): void {
 		$renderer = new ProfileRenderer( new TemplateParser( __DIR__ . '/../../../templates' ) );
 		$html = $renderer->render_masthead(
@@ -88,7 +101,8 @@ class ProfileRendererTest extends MediaWikiIntegrationTestCase {
 				'edit' => 'Edit profile',
 				'featured_label' => 'Featured article',
 			],
-			'/wiki/Special:Contributions/User1'
+			'/wiki/Special:Contributions/User1',
+			can_upload_avatar: true
 		);
 
 		$this->assertStringContainsString( 'class="ip-masthead"', $html );
@@ -242,7 +256,8 @@ class ProfileRendererTest extends MediaWikiIntegrationTestCase {
 			'',
 			false,
 			false,
-			'<span class="ext-flair">badge</span>'
+			'<span class="ext-flair">badge</span>',
+			can_upload_avatar: true
 		);
 
 		$this->assertMatchesRegularExpression(
@@ -276,7 +291,8 @@ class ProfileRendererTest extends MediaWikiIntegrationTestCase {
 			'',
 			false,
 			false,
-			'<span class="ext-flair">badge</span>'
+			'<span class="ext-flair">badge</span>',
+			can_upload_avatar: true
 		);
 
 		$this->assertStringContainsString( 'ip-masthead--private', $html );
@@ -543,7 +559,8 @@ class ProfileRendererTest extends MediaWikiIntegrationTestCase {
 				],
 			],
 			'',
-			true
+			true,
+			can_upload_avatar: true
 		);
 
 		$this->assertStringContainsString( 'ext-floatingui-reference', $html );

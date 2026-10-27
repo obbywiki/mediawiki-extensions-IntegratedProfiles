@@ -306,7 +306,7 @@ Both upload rights also require permission to edit the target profile. This righ
 
 ```php
 // disallow regular users from uploading banners:
-$wgRevokePermissions['user']['integratedprofiles-upload-banner'] = false;
+$wgGroupPermissions['user']['integratedprofiles-upload-banner'] = false;
 // and, optionally, give it to sysops:
 $wgGroupPermissions['sysop']['integratedprofiles-upload-banner'] = true;
 ```

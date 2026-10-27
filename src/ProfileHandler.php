@@ -44,6 +44,7 @@ class ProfileHandler {
 		$payload = $this->profile_service->get_payload( $subject_user, $viewer );
 		$can_edit = $this->profile_service->can_edit( $viewer, $subject_user );
 		$can_remove = $this->profile_service->can_remove( $viewer, $subject_user );
+		$can_upload_avatar = $this->profile_service->can_upload_avatar( $viewer, $subject_user );
 
 		$out->addBodyClasses( [ 'integratedprofiles-profile' ] );
 		$out->addModuleStyles( [ 'ext.IntegratedProfiles.styles' ] );
@@ -115,7 +116,7 @@ class ProfileHandler {
 		$decoration = '';
 		$this->hook_runner->onIntegratedProfilesAfterAvatar( $payload, $decoration );
 
-		$html = $this->profile_renderer->render_masthead( $render_payload, $can_edit, $messages, $contributions_url, $use_floating_ui, $is_owner, $decoration, $can_remove );
+		$html = $this->profile_renderer->render_masthead( $render_payload, $can_edit, $messages, $contributions_url, $use_floating_ui, $is_owner, $decoration, $can_remove, $can_upload_avatar );
 
 		$after = '';
 		$this->hook_runner->onIntegratedProfilesAfterMasthead( $after, $payload );
@@ -135,7 +136,7 @@ class ProfileHandler {
 					'central_id' => $payload['central_id'] ?? 0,
 
 					'can_edit' => $can_edit,
-					'can_upload_avatar' => $this->profile_service->can_upload_avatar( $viewer, $subject_user ),
+					'can_upload_avatar' => $can_upload_avatar,
 					'can_upload_banner' => $this->profile_service->can_upload_banner( $viewer, $subject_user ),
 					'can_remove' => $can_remove,
 					'removable_fields' => $this->profile_service->get_fields_helper()->removable_keys(),

@@ -32,9 +32,10 @@ class ProfileRenderer {
 	 * @param string $avatar_decoration Unescaped companion HTML from
 	 *   IntegratedProfilesAfterAvatar (IP wraps it in `.ip-avatar__decoration`)
 	 * @param bool $can_remove Whether to show removal-only moderation controls
+	 * @param bool $can_upload_avatar Whether to show the avatar upload control
 	 */
-	public function render_masthead( array $payload, bool $can_edit, array $messages, string $contributions_url, bool $use_floating_ui = false, bool $is_owner = false, string $avatar_decoration = '', bool $can_remove = false ): string {
-		return $this->process_template( 'masthead', $this->build_masthead_view( $payload, $can_edit, $messages, $contributions_url, $use_floating_ui, $is_owner, $avatar_decoration, $can_remove ) );
+	public function render_masthead( array $payload, bool $can_edit, array $messages, string $contributions_url, bool $use_floating_ui = false, bool $is_owner = false, string $avatar_decoration = '', bool $can_remove = false, bool $can_upload_avatar = false ): string {
+		return $this->process_template( 'masthead', $this->build_masthead_view( $payload, $can_edit, $messages, $contributions_url, $use_floating_ui, $is_owner, $avatar_decoration, $can_remove, $can_upload_avatar ) );
 	}
 
 	/**
@@ -124,9 +125,10 @@ class ProfileRenderer {
 	 * @param bool $is_owner Whether the viewer is the profile subject
 	 * @param string $avatar_decoration Unescaped companion HTML from AfterAvatar
 	 * @param bool $can_remove Whether to show removal-only moderation controls
+	 * @param bool $can_upload_avatar Whether to show the avatar upload control
 	 * @return array<string, mixed>
 	 */
-	private function build_masthead_view( array $payload, bool $can_edit, array $messages, string $contributions_url, bool $use_floating_ui, bool $is_owner, string $avatar_decoration, bool $can_remove ): array {
+	private function build_masthead_view( array $payload, bool $can_edit, array $messages, string $contributions_url, bool $use_floating_ui, bool $is_owner, string $avatar_decoration, bool $can_remove, bool $can_upload_avatar ): array {
 		$is_private = !empty( $payload['is_private'] );
 		$show_edit_controls = ( $can_edit || $can_remove ) && !$is_private;
 
@@ -225,7 +227,7 @@ class ProfileRenderer {
 		}
 
 		$avatar_edit = false;
-		if ( $can_edit && !$is_private ) {
+		if ( $can_edit && $can_upload_avatar && !$is_private ) {
 			$avatar_edit_label = (string)( $messages['avatar_edit'] ?? 'Change avatar' );
 			$avatar_edit = [
 				'label' => $avatar_edit_label,
