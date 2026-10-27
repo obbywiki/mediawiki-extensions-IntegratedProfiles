@@ -30,16 +30,16 @@
 					<div
 						class="ip-editor__appearance-avatar"
 						:class="{
-							'ip-editor__removal-target': removal_only,
-							'ip-editor__removal-target--active': removal_only && has_custom_avatar,
-							'ip-editor__removal-target--avatar': removal_only
+							'ip-editor__removal-target': !can_upload_avatar,
+							'ip-editor__removal-target--active': !can_upload_avatar && has_custom_avatar,
+							'ip-editor__removal-target--avatar': !can_upload_avatar
 						}"
 					>
 						<button
 							type="button"
 							class="ip-editor__avatar-button"
-							:disabled="busy || removal_only"
-							:aria-label="msg( removal_only ? 'integratedprofiles-avatar-alt' : 'integratedprofiles-avatar-edit' )"
+							:disabled="busy || !can_upload_avatar"
+							:aria-label="msg( !can_upload_avatar ? 'integratedprofiles-avatar-alt' : 'integratedprofiles-avatar-edit' )"
 							@click="on_open_avatar_modal"
 						>
 							<span class="ip-editor__avatar-preview">
@@ -51,7 +51,7 @@
 									height="128"
 								>
 								<span
-									v-if="!removal_only"
+									v-if="can_upload_avatar"
 									class="ip-editor__avatar-overlay"
 									aria-hidden="true">
 									<svg
@@ -67,14 +67,14 @@
 								</span>
 							</span>
 							<span
-								v-if="!removal_only"
+								v-if="can_upload_avatar"
 								class="ip-editor__avatar-hint"
 								aria-hidden="true">
 								{{ msg( 'integratedprofiles-avatar-change' ) }}
 							</span>
 						</button>
 						<button
-							v-if="removal_only && has_custom_avatar"
+							v-if="!can_upload_avatar && config.can_remove && has_custom_avatar"
 							type="button"
 							class="cdx-button cdx-button--icon-only cdx-button--action-destructive
 								cdx-button--weight-primary ip-editor__delete"
@@ -140,7 +140,7 @@
 									@click="on_select_banner( 'custom' )"
 								/>
 							</li>
-							<li role="presentation">
+							<li v-if="can_upload_banner" role="presentation">
 								<button
 									type="button"
 									class="ip-editor__banner-swatch ip-editor__banner-swatch--add"
@@ -164,7 +164,7 @@
 							</li>
 						</ul>
 						<div
-							v-if="removal_only"
+							v-if="removal_only || !can_upload_banner"
 							class="ip-editor__removal-target ip-editor__removal-target--banner"
 							:class="{ 'ip-editor__removal-target--active': has_custom_banner }"
 						>
@@ -176,7 +176,7 @@
 								:aria-label="msg( 'integratedprofiles-banner-label' )"
 							/>
 							<button
-								v-if="has_custom_banner"
+								v-if="config.can_remove && has_custom_banner"
 								type="button"
 								class="cdx-button cdx-button--icon-only cdx-button--action-destructive
 									cdx-button--weight-primary ip-editor__delete"
@@ -977,6 +977,8 @@ const props = defineProps<{
 
 const emit = defineEmits( [ 'close' ] );
 const removal_only = computed( () => !props.config.can_edit );
+const can_upload_avatar = computed( () => props.config.can_edit && props.config.can_upload_avatar );
+const can_upload_banner = computed( () => props.config.can_edit && props.config.can_upload_banner );
 
 function field_or_empty( value: string | undefined ): string {
 	return value || '';
@@ -1487,7 +1489,7 @@ function on_clear_field( key: keyof ProfileFieldsMap ): void {
 }
 
 async function on_remove_media( kind: 'avatar' | 'banner' ): Promise<void> {
-	if ( busy.value || !removal_only.value || !props.config.can_remove ) {
+	if ( busy.value || !props.config.can_remove ) {
 		return;
 	}
 	busy.value = true;
@@ -1543,7 +1545,7 @@ async function on_save(): Promise<void> {
 }
 
 function on_open_avatar_modal( event: MouseEvent ): void {
-	if ( removal_only.value || busy.value ) { return; }
+	if ( !can_upload_avatar.value || busy.value ) { return; }
 	const trigger = event.currentTarget as HTMLElement | null;
 
 	if ( mw.IntegratedProfiles && typeof mw.IntegratedProfiles.open_avatar_modal === 'function' ) {
@@ -1552,7 +1554,7 @@ function on_open_avatar_modal( event: MouseEvent ): void {
 }
 
 function on_open_banner_modal( event: MouseEvent ): void {
-	if ( removal_only.value || busy.value ) { return; }
+	if ( !can_upload_banner.value || busy.value ) { return; }
 	const trigger = event.currentTarget as HTMLElement | null;
 
 	if ( mw.IntegratedProfiles && typeof mw.IntegratedProfiles.open_banner_modal === 'function' ) {

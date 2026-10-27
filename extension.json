@@ -27,9 +27,15 @@
 	"AvailableRights": [
 		"integratedprofiles-manage",
 		"integratedprofiles-remove",
+		"integratedprofiles-upload-avatar",
+		"integratedprofiles-upload-banner",
 		"integratedprofiles-animated-avatar"
 	],
 	"GroupPermissions": {
+		"user": {
+			"integratedprofiles-upload-avatar": true,
+			"integratedprofiles-upload-banner": true
+		},
 		"sysop": {
 			"integratedprofiles-manage": true,
 			"integratedprofiles-remove": true,

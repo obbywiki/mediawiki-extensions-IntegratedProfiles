@@ -39,7 +39,7 @@ class ApiIntegratedProfileUploadAvatar extends ApiBase {
 			$this->dieWithError( [ 'integratedprofiles-error-user-not-found', $username ], 'usernotfound' );
 		}
 
-		if ( !$this->profile_service->can_edit( $actor, $subject ) ) {
+		if ( !$this->profile_service->can_upload_avatar( $actor, $subject ) ) {
 			$this->dieWithError( 'integratedprofiles-error-permission', 'permissiondenied' );
 		}
 

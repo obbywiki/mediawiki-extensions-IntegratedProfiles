@@ -34,6 +34,7 @@ describe( 'profile editor permission modes', () => {
 		vi.clearAllMocks();
 		config = {
 			user_name: 'Example', can_edit: false, can_remove: true,
+			can_upload_avatar: false, can_upload_banner: false,
 			fields: { 'ip-about': 'Hello', 'ip-location': '', 'ip-banner': 'custom', 'ip-visibility': 'public' },
 			removable_fields: [ 'ip-about', 'ip-location' ],
 			has_custom_avatar: true, has_custom_banner: true,
@@ -108,6 +109,44 @@ describe( 'profile editor permission modes', () => {
 		await flushPromises();
 		expect( api.clear ).toHaveBeenCalledWith( [ 'ip-about' ], 'Example' );
 		expect( wrapper.find( '.ip-editor__actions button:last-child' ).attributes( 'disabled' ) ).toBeDefined();
+		wrapper.unmount();
+	} );
+
+	it.each( [ [ true, false ], [ false, true ], [ false, false ], [ true, true ] ] )(
+		'controls avatar (%s) and banner (%s) uploads independently while keeping editing',
+		async ( avatar, banner ) => {
+			config.can_edit = true;
+			config.can_upload_avatar = avatar;
+			config.can_upload_banner = banner;
+			const open_avatar = vi.fn();
+			const open_banner = vi.fn();
+			mw.IntegratedProfiles = {
+				open_avatar_modal: open_avatar, open_banner_modal: open_banner,
+				mount_editor: vi.fn(), mount_avatar_modal: vi.fn(), mount_banner_modal: vi.fn(),
+			};
+			const wrapper = mount_editor();
+			expect( wrapper.find( '.ip-editor__avatar-button' ).attributes( 'disabled' ) !== undefined ).toBe( !avatar );
+			expect( wrapper.find( '.ip-editor__banner-swatch--add' ).exists() ).toBe( banner );
+			expect( wrapper.find( '.ip-editor__banner-presets' ).exists() ).toBe( true );
+			expect( wrapper.find( '#ip-field-about' ).attributes( 'readonly' ) ).toBeUndefined();
+			await wrapper.find( '.ip-editor__avatar-button' ).trigger( 'click' );
+			expect( open_avatar ).toHaveBeenCalledTimes( avatar ? 1 : 0 );
+			if ( banner ) {
+				await wrapper.find( '.ip-editor__banner-swatch--add' ).trigger( 'click' );
+				expect( open_banner ).toHaveBeenCalledOnce();
+			}
+			wrapper.unmount();
+		}
+	);
+
+	it.each( [ 'avatar', 'banner' ] )( 'keeps %s deletion available without upload permission', async ( kind ) => {
+		config.can_edit = true;
+		api.delete_avatar.mockResolvedValue( profile() );
+		api.delete_banner.mockResolvedValue( profile() );
+		const wrapper = mount_editor();
+		await wrapper.find( `[aria-label="integratedprofiles-${ kind }-delete"]` ).trigger( 'click' );
+		await flushPromises();
+		expect( kind === 'avatar' ? api.delete_avatar : api.delete_banner ).toHaveBeenCalledWith( 'Example' );
 		wrapper.unmount();
 	} );
 

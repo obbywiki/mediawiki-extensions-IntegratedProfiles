@@ -206,6 +206,21 @@ class ProfileService {
 	}
 
 	/**
+	 * Uploads require both profile editing access and the media-specific right.
+	 */
+	public function can_upload_avatar( UserIdentity $actor, User $subject ): bool {
+		return $this->can_edit( $actor, $subject )
+			&& method_exists( $actor, 'isAllowed' )
+			&& (bool)$actor->isAllowed( 'integratedprofiles-upload-avatar' );
+	}
+
+	public function can_upload_banner( UserIdentity $actor, User $subject ): bool {
+		return $this->can_edit( $actor, $subject )
+			&& method_exists( $actor, 'isAllowed' )
+			&& (bool)$actor->isAllowed( 'integratedprofiles-upload-banner' );
+	}
+
+	/**
 	 * Whether the actor may upload an animated avatar or banner (GIF / animated WebP / APNG).
 	 *
 	 * Requires `$wgIntegratedProfilesEnableAnimatedAvatars` and the
@@ -648,7 +663,7 @@ class ProfileService {
 	}
 
 	/**
-	 * Store a custom banner and set ip-banner to custom. Caller must check can_edit.
+	 * Store a custom banner and set ip-banner to custom. Caller must check can_upload_banner.
 	 */
 	public function upload_banner( User $subject, string $tmp_path, int $size, bool $allow_animated = false, ?UserIdentity $viewer = null ): Status {
 		$status = $this->banner_service->upload_for_user( $subject, $tmp_path, $size, $allow_animated );

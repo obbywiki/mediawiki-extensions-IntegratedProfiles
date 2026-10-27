@@ -135,6 +135,8 @@ class ProfileHandler {
 					'central_id' => $payload['central_id'] ?? 0,
 
 					'can_edit' => $can_edit,
+					'can_upload_avatar' => $this->profile_service->can_upload_avatar( $viewer, $subject_user ),
+					'can_upload_banner' => $this->profile_service->can_upload_banner( $viewer, $subject_user ),
 					'can_remove' => $can_remove,
 					'removable_fields' => $this->profile_service->get_fields_helper()->removable_keys(),
 					'can_upload_animated_avatar' => $this->profile_service->can_use_animated_avatar( $viewer ),
