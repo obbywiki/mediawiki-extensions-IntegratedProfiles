@@ -141,9 +141,18 @@ describe( 'profile editor permission modes', () => {
 
 	it.each( [ 'avatar', 'banner' ] )( 'keeps %s deletion available without upload permission', async ( kind ) => {
 		config.can_edit = true;
+		config.fields[ 'ip-banner' ] = 'ocean';
+		config.custom_banner_url = '/custom-banner.png';
 		api.delete_avatar.mockResolvedValue( profile() );
 		api.delete_banner.mockResolvedValue( profile() );
 		const wrapper = mount_editor();
+		if ( kind === 'banner' ) {
+			expect( wrapper.find( '.ip-editor__removal-target--banner' ).exists() ).toBe( false );
+			const custom_swatch = wrapper.find( '.ip-editor__banner-swatch--custom' );
+			expect( custom_swatch.attributes( 'style' ) ).toContain( '/custom-banner.png' );
+			expect( custom_swatch.classes() ).not.toContain( 'ip-editor__banner-swatch--selected' );
+			expect( custom_swatch.element.parentElement?.querySelector( '[aria-label="integratedprofiles-banner-delete"]' ) ).not.toBeNull();
+		}
 		await wrapper.find( `[aria-label="integratedprofiles-${ kind }-delete"]` ).trigger( 'click' );
 		await flushPromises();
 		expect( kind === 'avatar' ? api.delete_avatar : api.delete_banner ).toHaveBeenCalledWith( 'Example' );

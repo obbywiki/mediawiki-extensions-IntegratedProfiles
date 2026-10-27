@@ -126,6 +126,8 @@
 							</li>
 							<li
 								v-if="has_custom_banner"
+								class="ip-editor__removal-target"
+								:class="{ 'ip-editor__removal-target--active': !can_upload_banner && config.can_remove }"
 								role="option"
 								:aria-selected="gradient_selected === 'custom'"
 							>
@@ -139,6 +141,28 @@
 									:disabled="busy"
 									@click="on_select_banner( 'custom' )"
 								/>
+								<button
+									v-if="!can_upload_banner && config.can_remove"
+									type="button"
+									class="cdx-button cdx-button--icon-only cdx-button--action-destructive cdx-button--weight-primary ip-editor__delete"
+									:disabled="busy"
+									:aria-label="msg( 'integratedprofiles-banner-delete' )"
+									:title="msg( 'integratedprofiles-banner-delete' )"
+									@click="on_remove_media( 'banner' )"
+								>
+									<svg
+										class="ip-editor__delete-icon"
+										viewBox="0 0 20 20"
+										aria-hidden="true"
+										focusable="false"
+									>
+										<path
+											fill="currentColor"
+											fill-rule="evenodd"
+											d="M7 2h6v2h4v2H3V4h4V2ZM5 7h10l-1 11H6L5 7Zm3 2v7h1V9H8Zm3 0v7h1V9h-1Z"
+										/>
+									</svg>
+								</button>
 							</li>
 							<li v-if="can_upload_banner" role="presentation">
 								<button
@@ -164,7 +188,7 @@
 							</li>
 						</ul>
 						<div
-							v-if="removal_only || !can_upload_banner"
+							v-if="removal_only"
 							class="ip-editor__removal-target ip-editor__removal-target--banner"
 							:class="{ 'ip-editor__removal-target--active': has_custom_banner }"
 						>
