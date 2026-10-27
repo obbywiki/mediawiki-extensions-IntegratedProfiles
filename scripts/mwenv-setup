@@ -1,21 +1,19 @@
 #!/usr/bin/env bash
 # Starts an mwenv test wiki for this worktree with IntegratedProfiles and its soft dependency FloatingUI.
 # NewAuth is private, so its integration is left for manual testing.
-# Safe to run again. Extra arguments go to `mwenv start`, e.g. `bin/mwenv-setup --db sqlite`.
+# Safe to run again. Extra arguments go to `mwenv start`, e.g. `scripts/mwenv-setup --db sqlite`.
 set -euo pipefail
 
 FLOATINGUI_TAG=v1.0.5
 
 mwenv start --mw "${MW:-1.46}" --php "${PHP:-8.3}" "$@"
 
-# mwenv run starts in extensions/IntegratedProfiles; core is two levels up.
 mwenv run -- sh -s "$FLOATINGUI_TAG" <<'SH'
 set -eu
 cd ../..
 [ -d extensions/FloatingUI ] || git -c advice.detachedHead=false clone --quiet --depth 1 --branch "$1" \
 	https://github.com/StarCitizenTools/mediawiki-extensions-FloatingUI extensions/FloatingUI
 
-# mwenv already loads IntegratedProfiles; loading it twice throws.
 grep -q "'FloatingUI'" LocalSettings.php || echo "wfLoadExtension( 'FloatingUI' );" >> LocalSettings.php
 php maintenance/run.php update --quick >/dev/null
 echo "Test wiki ready. Run: mwenv run -- composer phpunit"
