@@ -295,50 +295,30 @@ mw.hook('wikipage.content').add(function ($content) {
 
 ## Rights
 
-* `integratedprofiles-remove`: Remove other users' avatars, (custom) banners, and content fields (about/tagline, location, featured article, and links). This does not permit replacement uploads, replacement text, privacy changes, or viewing private profiles. Granted to `sysop` by default. Owners and users with `integratedprofiles-manage` retain their existing removal permissions. Blocked and anonymous users cannot remove content.
+As of v0.8.0+ user rights are fine-grained. The default permissions are intended for single wikis, not farms. Please review each permission carefully.
+
+* `integratedprofiles-remove`: Remove other users' avatars, (custom) banners, and content fields (about/tagline, location, featured article, and links). This does not permit replacement uploads, replacement text, privacy changes, or viewing private profiles. Granted to `sysop` by default. Owners and users with `integratedprofiles-manage` retain their existing removal permissions. Blocked and anonymous users cannot remove content. If settings are shared globally (e.g., via GlobalPreferences), then anyone with this right can edit profile details of a user for every other wiki at once. In a farm, locking this right to stewards or globally-trusted moderators is recommended.
 
 * `integratedprofiles-upload-avatar`: Upload or replace avatars. Granted to registered users (`user`) by default.
 * `integratedprofiles-upload-banner`: Upload or replace custom banners. Granted to registered users (`user`) by default. Selecting a banner preset does not require this right.
 
-Both upload rights also require permission to edit the target profile: owners can upload to their own profiles, while replacing another user's media requires `integratedprofiles-manage` as well as the corresponding upload right. Management and animation rights do not bypass the upload rights. Blocked and anonymous users cannot upload. Withholding an upload right does not prevent profile text edits or removal of existing media by authorized users. To disable an upload type, remove its default `user` grant and audit other group grants; rights are additive.
+Both upload rights also require permission to edit the target profile. This rights allow users to upload avatars and banners to their own profiles, not others. Replacing another user's media requires `integratedprofiles-manage` as well as the corresponding upload right. Blocked and anonymous users cannot upload. Withholding an upload right does not prevent profile text edits or removal of existing media by authorized users. To disable an upload type, remove its default `user` grant like so:
 
-* `integratedprofiles-view-private`: View profile details regardless of profile visibility (`users` or `private`). Granted to `sysop` by default. This grants no editing, upload, or removal privileges, and does not reveal suppressed accounts; those still require `hideuser` (or ownership).
-* `integratedprofiles-manage`: Users with this right can edit other users' visible profile details, including avatars and banners. Private profiles also require `integratedprofiles-view-private` to edit or upload replacements. Management alone does not bypass visibility restrictions. Granted to `sysop` by default. Those edits are recorded in `Special:Log/integratedprofiles`. If settings are shared globally (e.g., via GlobalPreferences), then anyone with this right can edit profile details of a user for every other wiki at once.
+```php
+// disallow regular users from uploading banners:
+$wgRevokePermissions['user']['integratedprofiles-upload-banner'] = false;
+// and, optionally, give it to sysops:
+$wgGroupPermissions['sysop']['integratedprofiles-upload-banner'] = true;
+```
+
+* `integratedprofiles-view-private`: View profile details regardless of profile visibility (`users` or `private`). Granted to `sysop` by default. This grants no editing, upload, or removal privileges. It does not reveal suppressed accounts, as those still require `hideuser` (or ownership).
+* `integratedprofiles-manage`: Users with this right can edit other users' visible profile details, including avatars and banners. Private profiles also require `integratedprofiles-view-private` to edit or upload replacements, as this right alone does not bypass visibility restrictions. Granted to `sysop` by default. Those edits are recorded in `Special:Log/integratedprofiles`. If settings are shared globally (e.g., via GlobalPreferences), then anyone with this right can edit profile details of a user for every other wiki at once. In a farm, locking this right to stewards or globally-trusted moderators is recommended.
 * `integratedprofiles-animated-avatar`: Allows animated (GIF, animated WebP, or APNG) avatar uploads when `$wgIntegratedProfilesEnableAnimatedAvatars` is true. Granted to `sysop` by default. Also requires `integratedprofiles-upload-avatar` and permission to edit the target profile.
 * `integratedprofiles-animated-banner`: Allows animated (GIF, animated WebP, or APNG) banner uploads when `$wgIntegratedProfilesEnableAnimatedBanners` is true. Granted to `sysop` by default. Also requires `integratedprofiles-upload-banner` and permission to edit the target profile.
 
-Animation rights and switches are independent for each media type. Existing animated files remain visible when either switch is disabled. With shared storage, an animated upload made on any wiki where it is allowed can appear across the farm.
+Animation rights and toggles are independent for each media type. Existing animated files remain visible when either toggle is disabled. With shared storage, an animated upload made on any wiki where it is allowed can appear across the farm.
 
 For removal-only administrators, disable `integratedprofiles-manage` for their group and grant `integratedprofiles-remove`. Rights are additive, meaning that membership in another group with `integratedprofiles-manage` still allows editing. Users retain the ability to edit their own profiles.
-
-Removal-only moderators use the existing profile editor in **Remove profile content** mode, with read-only content fields and removal actions. Field removals are applied with the editor's save action; media deletions take effect immediately, as in the normal editor. The `clearintegratedprofile` API accepts a pipe-separated list of content field names, such as `fields=ip-about|ip-location`, and always clears them. It rejects privacy and banner preference keys; banner files use `integratedprofiledeletebanner`. Disabled social fields remain protected by the existing enabled-social-links configuration. Changes to others' profiles are logged in `Special:Log/integratedprofiles`. With shared storage or GlobalPreferences, removals can affect other wikis too.
-
-Removal-only moderation, separate avatar/banner upload rights, and separate animation rights and switches are implemented. Independent private-profile access is also implemented. Explicit own-profile editing permission and separate local/global moderation scope remain follow-up work.
-
-### Migrating private-profile access
-
-`integratedprofiles-manage` no longer bypasses profile visibility. Grant `integratedprofiles-view-private` separately to local or global groups that should retain that access. Sysops receive both rights by default; other management groups need an explicit viewing grant. Update farm permission-management restrictions for the new right as appropriate.
-
-A viewing-only role can inspect restricted profiles without editing or removing content. A manager without the viewing right can edit profiles they can see (`public` or `users`), but cannot edit private profiles or change their privacy setting to expose them. Authorized clear-only removals remain available through the removal APIs; their responses respect profile visibility. The editor is only available when profile details are visible. Owners retain access to their own profiles.
-
-### Migrating animation permissions
-
-Before upgrading from the combined animation permission, review local and global group grants on every wiki:
-
-* Groups that should retain animated-banner access need an explicit `integratedprofiles-animated-banner` grant. Copy any custom grants or restrictions from `integratedprofiles-animated-avatar` as appropriate, including overrides for `sysop` and any `$wgRevokePermissions` entries. The new banner right is granted to `sysop` by default, just like the avatar right.
-* If `$wgIntegratedProfilesEnableAnimatedAvatars` was false to disable both types, also set `$wgIntegratedProfilesEnableAnimatedBanners = false;`. The old switch now controls avatars only; the new banner switch defaults to true.
-* Update permission-management interfaces or farm restrictions that reserve the avatar animation right to handle the banner animation right separately.
-
-For example, to retain both animation types for a custom group while keeping banner animation disabled site-wide:
-
-```php
-$wgGroupPermissions['profile-uploader']['integratedprofiles-animated-avatar'] = true;
-$wgGroupPermissions['profile-uploader']['integratedprofiles-animated-banner'] = true;
-$wgIntegratedProfilesEnableAnimatedAvatars = true;
-$wgIntegratedProfilesEnableAnimatedBanners = false;
-```
-
-There is no compatibility fallback from avatar permissions or settings to banners. Default sysop grants retain both animation types; customized grants and disabled-animation settings require the explicit migration above.
 
 Avatar and banner upload/delete requests share the `integratedprofiles-upload` rate limit (see `$wgRateLimits` above). `noratelimit` (granted to sysops by default) bypasses it. Rate limits require `$wgMainCacheType` to be something other than `CACHE_NONE`.
 
