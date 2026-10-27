@@ -1,0 +1,23 @@
+name: Dependabot
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions: {}
+
+concurrency:
+  group: dependabot-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  dependabot:
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    uses: obbywiki/shared-workflows/.github/workflows/dependabot.yml@v1
+    permissions:
+      contents: read
+    with:
+      rebuild: true
+    secrets:
+      app-id: ${{ secrets.OW_BOT_APP_ID }}
+      private-key: ${{ secrets.OW_BOT_PRIVATE_KEY }}

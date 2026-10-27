@@ -1,21 +1,15 @@
-on:
-    push:
-        branches:
-            - main
-  
-permissions:
-    contents: write
-    issues: write
-    pull-requests: write
-  
 name: release-please
-  
-jobs:
-    release-please:
-        if: github.repository == 'obbywiki/mediawiki-extensions-IntegratedProfiles'
-        runs-on: ubuntu-latest
 
-        steps:
-        - uses: googleapis/release-please-action@v5
-          with:
-            token: ${{ secrets.MASTER_RELEASE_TOKEN }}
+on:
+  push:
+    branches: [main]
+
+permissions: {}
+
+jobs:
+  release-please:
+    if: github.repository_owner == 'obbywiki'
+    uses: obbywiki/shared-workflows/.github/workflows/release-please.yml@v1
+    secrets:
+      app-id: ${{ secrets.OW_BOT_APP_ID }}
+      private-key: ${{ secrets.OW_BOT_PRIVATE_KEY }}
