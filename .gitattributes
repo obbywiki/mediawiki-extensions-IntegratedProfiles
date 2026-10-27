@@ -1,5 +1,6 @@
 * text=auto eol=lf
 resources/dist/* linguist-vendored
+scripts/* linguist-vendored
 *.png binary
 *.jpg binary
 *.jpeg binary
