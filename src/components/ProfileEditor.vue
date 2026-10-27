@@ -1554,18 +1554,14 @@ async function on_save(): Promise<void> {
 		if ( removal_only.value && !cleared_keys.length ) {
 			return;
 		}
-		const profile = removal_only.value ?
-			await clear_profile_fields( cleared_keys, props.config.user_name ) :
-			await save_profile_fields( build_save_fields(), props.config.user_name );
+		const profile = removal_only.value ? await clear_profile_fields( cleared_keys, props.config.user_name ) : await save_profile_fields( build_save_fields(), props.config.user_name );
 
 		apply_payload_to_dom( profile );
 		sync_banner_from_profile( profile );
 		remember_saved_fields();
 		success_message.value = msg( 'integratedprofiles-save-success' );
 	} catch ( err ) {
-		error_message.value = err instanceof Error ?
-			err.message :
-			msg( 'integratedprofiles-save-error' );
+		error_message.value = err instanceof Error ? err.message : msg( 'integratedprofiles-save-error' );
 	} finally {
 		busy.value = false;
 	}

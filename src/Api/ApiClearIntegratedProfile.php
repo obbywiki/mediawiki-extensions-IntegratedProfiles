@@ -27,6 +27,7 @@ class ApiClearIntegratedProfile extends ApiBase {
 		if ( !$actor->isRegistered() ) {
 			$this->dieWithError( 'apierror-mustbeloggedin', 'notloggedin' );
 		}
+
 		$username = $params['username'] !== null && $params['username'] !== '' ? (string)$params['username'] : $actor->getName();
 		$subject = $this->profile_service->resolve_visible_user_by_name( $username, $actor );
 		if ( !$subject ) {
@@ -35,14 +36,14 @@ class ApiClearIntegratedProfile extends ApiBase {
 		if ( !$this->profile_service->can_remove( $actor, $subject ) ) {
 			$this->dieWithError( 'integratedprofiles-error-permission', 'permissiondenied' );
 		}
+
 		$status = $this->profile_service->clear_fields( $actor, $subject, $params['fields'] );
 		if ( !$status->isOK() ) {
 			$this->dieStatus( $status );
 		}
+
 		ProfileChangeLogger::log_if_other( $actor, $subject, ProfileChangeLogger::ACTION_CLEAR );
-		$this->getResult()->addValue( null, $this->getModuleName(), [
-			'result' => 'success', 'profile' => $status->getValue(),
-		] );
+		$this->getResult()->addValue( null, $this->getModuleName(), [ 'result' => 'success', 'profile' => $status->getValue() ] );
 	}
 
 	/** @inheritDoc */
@@ -64,18 +65,12 @@ class ApiClearIntegratedProfile extends ApiBase {
 	protected function getAllowedParams(): array {
 		return [
 			'username' => [ ParamValidator::PARAM_TYPE => 'user' ],
-			'fields' => [
-				// Validate the complete list in clear_fields so a mixed request fails atomically.
-				ParamValidator::PARAM_TYPE => 'string',
-				ParamValidator::PARAM_ISMULTI => true,
-				ParamValidator::PARAM_REQUIRED => true,
-			],
+			'fields' => [ ParamValidator::PARAM_TYPE => 'string', ParamValidator::PARAM_ISMULTI => true, ParamValidator::PARAM_REQUIRED => true ],
 		];
 	}
 
 	/** @inheritDoc */
 	protected function getExamplesMessages(): array {
-		return [ 'action=clearintegratedprofile&username=Example&fields=ip-about&token=TOKEN'
-			=> 'apihelp-clearintegratedprofile-example-1' ];
+		return [ 'action=clearintegratedprofile&username=Example&fields=ip-about&token=TOKEN' => 'apihelp-clearintegratedprofile-example-1' ];
 	}
 }
