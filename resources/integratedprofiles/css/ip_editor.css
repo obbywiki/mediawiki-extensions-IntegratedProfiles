@@ -682,9 +682,14 @@
 	background-color: var( --background-color-neutral );
 }
 
+.ip-editor__removal-target--banner {
+	flex: 1 1 0;
+}
+
 .ip-editor__removal-target--banner > .ip-editor__banner-swatch {
-	width: var( --ip-editor-avatar-size );
+	width: 100%;
 	height: var( --ip-editor-avatar-size );
+	cursor: default;
 	background-size: cover;
 	background-position: center;
 }
