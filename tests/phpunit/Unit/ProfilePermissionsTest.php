@@ -113,10 +113,10 @@ class ProfilePermissionsTest extends MediaWikiUnitTestCase {
 		);
 	}
 
-	public function test_private_visibility_owner_and_manager_only(): void {
+	public function test_private_visibility_owner_and_private_viewer_only(): void {
 		$owner = $this->user( 7, true );
 		$other = $this->user( 8, true );
-		$manager = $this->user( 9, true );
+		$private_viewer = $this->user( 9, true );
 		$anon = $this->user( 0, false );
 
 		$this->assertTrue(
@@ -137,7 +137,7 @@ class ProfilePermissionsTest extends MediaWikiUnitTestCase {
 		);
 		$this->assertTrue(
 			$this->permissions->can_view_details(
-				$manager,
+				$private_viewer,
 				7,
 				true,
 				ProfileFields::VISIBILITY_PRIVATE

@@ -162,6 +162,8 @@
 	"action-integratedprofiles-upload-avatar": "{{doc-action|integratedprofiles-upload-avatar}}",
 	"right-integratedprofiles-upload-banner": "{{doc-right|integratedprofiles-upload-banner}}",
 	"action-integratedprofiles-upload-banner": "{{doc-action|integratedprofiles-upload-banner}}",
+	"right-integratedprofiles-view-private": "{{doc-right|integratedprofiles-view-private}}",
+	"action-integratedprofiles-view-private": "{{doc-action|integratedprofiles-view-private}}",
 	"right-integratedprofiles-manage": "{{doc-right|integratedprofiles-manage}}",
 	"action-integratedprofiles-manage": "{{doc-action|integratedprofiles-manage}}",
 	"log-name-integratedprofiles": "{{doc-logpage}}",

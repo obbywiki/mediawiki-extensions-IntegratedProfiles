@@ -173,6 +173,8 @@
 	"action-integratedprofiles-upload-avatar": "upload IntegratedProfiles avatars",
 	"right-integratedprofiles-upload-banner": "Upload IntegratedProfiles banners",
 	"action-integratedprofiles-upload-banner": "upload IntegratedProfiles banners",
+	"right-integratedprofiles-view-private": "View private IntegratedProfiles",
+	"action-integratedprofiles-view-private": "view private IntegratedProfiles",
 	"right-integratedprofiles-manage": "Edit other users' IntegratedProfiles",
 	"action-integratedprofiles-manage": "edit other users' IntegratedProfiles",
 	"log-name-integratedprofiles": "Profile log",

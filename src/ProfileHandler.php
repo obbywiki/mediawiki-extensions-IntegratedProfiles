@@ -125,7 +125,7 @@ class ProfileHandler {
 
 		$out->addHTML( '<div class="ip-profile-chrome">' . $html );
 
-		if ( $can_edit || $can_remove ) {
+		if ( ( $can_edit || $can_remove ) && empty( $payload['is_private'] ) ) {
 			$banner_presets = $this->profile_service->get_banner_presets();
 			$out->addModules( [ 'ext.IntegratedProfiles.profile' ] );
 			$out->addJsConfigVars( [

@@ -6,6 +6,7 @@ namespace MediaWiki\Extension\IntegratedProfiles\Tests\Unit;
 use MediaWiki\Block\DatabaseBlock;
 use MediaWiki\Extension\IntegratedProfiles\ProfilePermissions;
 use MediaWiki\Extension\IntegratedProfiles\ProfileService;
+use MediaWiki\User\Options\UserOptionsLookup;
 use MediaWiki\User\User;
 use MediaWikiUnitTestCase;
 use ReflectionClass;
@@ -24,6 +25,9 @@ class ProfileUploadPermissionsTest extends MediaWikiUnitTestCase {
 		$reflection = new ReflectionClass( ProfileService::class );
 		$service = $reflection->newInstanceWithoutConstructor();
 		$reflection->getProperty( 'permissions' )->setValue( $service, new ProfilePermissions() );
+		$lookup = $this->createMock( UserOptionsLookup::class );
+		$lookup->method( 'getOption' )->willReturn( 'public' );
+		$reflection->getProperty( 'user_options_lookup' )->setValue( $service, $lookup );
 		$actor = $this->actor( $rights, $actor_id, $blocked );
 		$subject = $this->actor( [], 7 );
 

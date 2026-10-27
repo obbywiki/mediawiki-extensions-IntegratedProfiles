@@ -302,7 +302,8 @@ mw.hook('wikipage.content').add(function ($content) {
 
 Both upload rights also require permission to edit the target profile: owners can upload to their own profiles, while replacing another user's media requires `integratedprofiles-manage` as well as the corresponding upload right. Management and animation rights do not bypass the upload rights. Blocked and anonymous users cannot upload. Withholding an upload right does not prevent profile text edits or removal of existing media by authorized users. To disable an upload type, remove its default `user` grant and audit other group grants; rights are additive.
 
-* `integratedprofiles-manage`: Users with this right can edit other users' profile details, including avatars and banners. Granted to `sysop` by default. Those edits are recorded in `Special:Log/integratedprofiles`. If settings are shared globally (e.g., via GlobalPreferences), then anyone with this right can edit profile details of a user for every other wiki at once.
+* `integratedprofiles-view-private`: View profile details regardless of profile visibility (`users` or `private`). Granted to `sysop` by default. This grants no editing, upload, or removal privileges, and does not reveal suppressed accounts; those still require `hideuser` (or ownership).
+* `integratedprofiles-manage`: Users with this right can edit other users' visible profile details, including avatars and banners. Private profiles also require `integratedprofiles-view-private` to edit or upload replacements. Management alone does not bypass visibility restrictions. Granted to `sysop` by default. Those edits are recorded in `Special:Log/integratedprofiles`. If settings are shared globally (e.g., via GlobalPreferences), then anyone with this right can edit profile details of a user for every other wiki at once.
 * `integratedprofiles-animated-avatar`: Allows animated (GIF, animated WebP, or APNG) avatar uploads when `$wgIntegratedProfilesEnableAnimatedAvatars` is true. Granted to `sysop` by default. Also requires `integratedprofiles-upload-avatar` and permission to edit the target profile.
 * `integratedprofiles-animated-banner`: Allows animated (GIF, animated WebP, or APNG) banner uploads when `$wgIntegratedProfilesEnableAnimatedBanners` is true. Granted to `sysop` by default. Also requires `integratedprofiles-upload-banner` and permission to edit the target profile.
 
@@ -312,7 +313,13 @@ For removal-only administrators, disable `integratedprofiles-manage` for their g
 
 Removal-only moderators use the existing profile editor in **Remove profile content** mode, with read-only content fields and removal actions. Field removals are applied with the editor's save action; media deletions take effect immediately, as in the normal editor. The `clearintegratedprofile` API accepts a pipe-separated list of content field names, such as `fields=ip-about|ip-location`, and always clears them. It rejects privacy and banner preference keys; banner files use `integratedprofiledeletebanner`. Disabled social fields remain protected by the existing enabled-social-links configuration. Changes to others' profiles are logged in `Special:Log/integratedprofiles`. With shared storage or GlobalPreferences, removals can affect other wikis too.
 
-Removal-only moderation, separate avatar/banner upload rights, and separate animation rights and switches are implemented. Independent private-profile access, explicit own-profile editing permission, and separate local/global moderation scope remain follow-up work.
+Removal-only moderation, separate avatar/banner upload rights, and separate animation rights and switches are implemented. Independent private-profile access is also implemented. Explicit own-profile editing permission and separate local/global moderation scope remain follow-up work.
+
+### Migrating private-profile access
+
+`integratedprofiles-manage` no longer bypasses profile visibility. Grant `integratedprofiles-view-private` separately to local or global groups that should retain that access. Sysops receive both rights by default; other management groups need an explicit viewing grant. Update farm permission-management restrictions for the new right as appropriate.
+
+A viewing-only role can inspect restricted profiles without editing or removing content. A manager without the viewing right can edit profiles they can see (`public` or `users`), but cannot edit private profiles or change their privacy setting to expose them. Authorized clear-only removals remain available through the removal APIs; their responses respect profile visibility. The editor is only available when profile details are visible. Owners retain access to their own profiles.
 
 ### Migrating animation permissions
 

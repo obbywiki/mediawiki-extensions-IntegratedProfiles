@@ -26,6 +26,7 @@
 	],
 	"AvailableRights": [
 		"integratedprofiles-manage",
+		"integratedprofiles-view-private",
 		"integratedprofiles-remove",
 		"integratedprofiles-upload-avatar",
 		"integratedprofiles-upload-banner",
@@ -39,6 +40,7 @@
 		},
 		"sysop": {
 			"integratedprofiles-manage": true,
+			"integratedprofiles-view-private": true,
 			"integratedprofiles-remove": true,
 			"integratedprofiles-animated-avatar": true,
 			"integratedprofiles-animated-banner": true
