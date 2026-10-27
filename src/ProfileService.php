@@ -271,11 +271,9 @@ class ProfileService {
 		);
 		$registration = $this->user_registration_lookup->getFirstRegistration( $subject );
 
-		$connections = $this->newauth_bridge->get_links_for_user( $subject );
-		if ( ProfileFields::is_flag_on(
-			(string)( $field_values[ ProfileFields::KEY_HIDE_CONNECTIONS ] ?? '0' )
-		) ) {
-			$connections = [];
+		$connections = [];
+		if ( ProfileFields::is_flag_on( (string)( $field_values[ ProfileFields::KEY_HIDE_CONNECTIONS ] ?? '0' ) ) === false ) {
+			$connections = $this->newauth_bridge->get_links_for_user( $subject );
 		}
 
 		$links = $this->fields->omit_verified_socials(
