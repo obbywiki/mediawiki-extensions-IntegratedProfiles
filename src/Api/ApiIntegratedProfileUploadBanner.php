@@ -48,7 +48,7 @@ class ApiIntegratedProfileUploadBanner extends ApiBase {
 			$this->dieWithError( 'integratedprofiles-error-banner-size', 'bannersize' );
 		}
 
-		$allow_animated = $this->profile_service->can_use_animated_avatar( $actor );
+		$allow_animated = $this->profile_service->can_use_animated_banner( $actor );
 		$status = $this->profile_service->upload_banner(
 			$subject,
 			(string)$upload->getTempName(),

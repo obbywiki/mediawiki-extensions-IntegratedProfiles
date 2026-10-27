@@ -21,6 +21,7 @@ class ProfileService {
 	public const SERVICE_NAME = 'IntegratedProfiles.ProfileService';
 
 	public const RIGHT_ANIMATED_AVATAR = 'integratedprofiles-animated-avatar';
+	public const RIGHT_ANIMATED_BANNER = 'integratedprofiles-animated-banner';
 
 	public const CONSTRUCTOR_OPTIONS = [
 		'IntegratedProfilesColor',
@@ -28,6 +29,7 @@ class ProfileService {
 		'IntegratedProfilesAboutMaxLength',
 		'IntegratedProfilesLinkMaxLength',
 		'IntegratedProfilesEnableAnimatedAvatars',
+		'IntegratedProfilesEnableAnimatedBanners',
 		'IntegratedProfilesEnabledSocialLinks',
 		'IntegratedProfilesBannerPresetImages',
 		'IntegratedProfilesBannerPresetDefault',
@@ -221,18 +223,29 @@ class ProfileService {
 	}
 
 	/**
-	 * Whether the actor may upload an animated avatar or banner (GIF / animated WebP / APNG).
+	 * Whether the actor may use animation in an avatar (GIF / animated WebP / APNG).
 	 *
-	 * Requires `$wgIntegratedProfilesEnableAnimatedAvatars` and the
-	 * `integratedprofiles-animated-avatar` right.
+	 * Requires `$wgIntegratedProfilesEnableAnimatedAvatars` and the `integratedprofiles-animated-avatar` right.
 	 */
 	public function can_use_animated_avatar( UserIdentity $actor ): bool {
 		if ( !(bool)$this->options->get( 'IntegratedProfilesEnableAnimatedAvatars' ) ) {
 			return false;
 		}
 
-		return method_exists( $actor, 'isAllowed' )
-			&& (bool)$actor->isAllowed( self::RIGHT_ANIMATED_AVATAR );
+		return method_exists( $actor, 'isAllowed' ) && (bool)$actor->isAllowed( self::RIGHT_ANIMATED_AVATAR );
+	}
+
+	/**
+	 * Whether the actor may use animation in a banner upload (GIF / animated WebP / APNG).
+	 *
+	 * Requires `$wgIntegratedProfilesEnableAnimatedBanners` and the `integratedprofiles-animated-banner` right.
+	 */
+	public function can_use_animated_banner( UserIdentity $actor ): bool {
+		if ( !(bool)$this->options->get( 'IntegratedProfilesEnableAnimatedBanners' ) ) {
+			return false;
+		}
+
+		return method_exists( $actor, 'isAllowed' ) && (bool)$actor->isAllowed( self::RIGHT_ANIMATED_BANNER );
 	}
 
 	/**

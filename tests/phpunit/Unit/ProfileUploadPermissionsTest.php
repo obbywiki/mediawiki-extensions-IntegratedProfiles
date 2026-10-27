@@ -51,6 +51,7 @@ class ProfileUploadPermissionsTest extends MediaWikiUnitTestCase {
 			'manager both' => [ [ $manage, $avatar, $banner ], 8, false, true, true ],
 			'removal does not grant replacement' => [ [ 'integratedprofiles-remove', $avatar, $banner ], 8, false, false, false ],
 			'animation does not grant uploads' => [ [ 'integratedprofiles-animated-avatar' ], 7, false, false, false ],
+			'banner animation does not grant uploads' => [ [ 'integratedprofiles-animated-banner' ], 7, false, false, false ],
 			'blocked owner' => [ [ $avatar, $banner ], 7, true, false, false ],
 			'blocked manager' => [ [ $manage, $avatar, $banner ], 8, true, false, false ],
 			'anonymous' => [ [ $manage, $avatar, $banner ], 0, false, false, false ],

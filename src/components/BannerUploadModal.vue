@@ -216,18 +216,18 @@ const banner_max_mb = computed( () => {
 	return Number.isInteger( megabytes ) ? String( megabytes ) : megabytes.toFixed( 1 );
 } );
 
-const can_upload_animated_avatar = computed(
-	() => !!props.config.can_upload_animated_avatar
+const can_upload_animated_banner = computed(
+	() => !!props.config.can_upload_animated_banner
 );
 
-const file_accept = computed( () => can_upload_animated_avatar.value ? 'image/jpeg,image/png,image/gif,image/webp' : 'image/jpeg,image/png,image/webp' );
+const file_accept = computed( () => can_upload_animated_banner.value ? 'image/jpeg,image/png,image/gif,image/webp' : 'image/jpeg,image/png,image/webp' );
 
 const help_text = computed( () => {
 	if ( pending_file.value ) {
 		return skip_crop.value ? msg( 'integratedprofiles-banner-preview-help' ) : msg( 'integratedprofiles-banner-crop-help' );
 	}
 
-	const key = can_upload_animated_avatar.value ? 'integratedprofiles-banner-help-size' : 'integratedprofiles-banner-help-size-static';
+	const key = can_upload_animated_banner.value ? 'integratedprofiles-banner-help-size' : 'integratedprofiles-banner-help-size-static';
 
 	return msg( key, banner_max_mb.value );
 } );
@@ -343,7 +343,7 @@ async function on_file_selected( event: Event ): Promise<void> {
 		return;
 	}
 
-	if ( !can_upload_animated_avatar.value && file.type === 'image/gif' ) {
+	if ( !can_upload_animated_banner.value && file.type === 'image/gif' ) {
 		error_message.value = msg( 'integratedprofiles-error-banner-animated' );
 		input.value = '';
 
@@ -368,7 +368,7 @@ async function on_file_selected( event: Event ): Promise<void> {
 		return;
 	}
 
-	if ( animated && !can_upload_animated_avatar.value ) {
+	if ( animated && !can_upload_animated_banner.value ) {
 		error_message.value = msg( 'integratedprofiles-error-banner-animated' );
 		input.value = '';
 

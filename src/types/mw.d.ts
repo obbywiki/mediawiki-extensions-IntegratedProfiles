@@ -62,6 +62,7 @@ export type IntegratedProfilesConfig = {
 	can_remove?: boolean;
 	removable_fields?: ( keyof ProfileFieldsMap )[];
 	can_upload_animated_avatar?: boolean;
+	can_upload_animated_banner?: boolean;
 	fields: ProfileFieldsMap;
 	links: Record<string, ProfileLink>;
 	wiki_profiles?: WikiProfile[];

@@ -29,7 +29,8 @@
 		"integratedprofiles-remove",
 		"integratedprofiles-upload-avatar",
 		"integratedprofiles-upload-banner",
-		"integratedprofiles-animated-avatar"
+		"integratedprofiles-animated-avatar",
+		"integratedprofiles-animated-banner"
 	],
 	"GroupPermissions": {
 		"user": {
@@ -39,7 +40,8 @@
 		"sysop": {
 			"integratedprofiles-manage": true,
 			"integratedprofiles-remove": true,
-			"integratedprofiles-animated-avatar": true
+			"integratedprofiles-animated-avatar": true,
+			"integratedprofiles-animated-banner": true
 		}
 	},
 	"LogTypes": [
@@ -462,7 +464,11 @@
 		},
 		"IntegratedProfilesEnableAnimatedAvatars": {
 			"value": true,
-			"description": "When false, reject all animated avatar and banner uploads regardless of user rights. Existing animated files will still be displayed."
+			"description": "When false, reject animated avatar uploads regardless of user rights. Existing animated files will still be displayed."
+		},
+		"IntegratedProfilesEnableAnimatedBanners": {
+			"value": true,
+			"description": "When false, reject animated banner uploads regardless of user rights. Existing animated files will still be displayed."
 		},
 		"IntegratedProfilesBannerMaxBytes": {
 			"value": 4194304,

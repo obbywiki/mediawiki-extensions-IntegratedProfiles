@@ -140,6 +140,7 @@ class ProfileHandler {
 					'can_remove' => $can_remove,
 					'removable_fields' => $this->profile_service->get_fields_helper()->removable_keys(),
 					'can_upload_animated_avatar' => $this->profile_service->can_use_animated_avatar( $viewer ),
+					'can_upload_animated_banner' => $this->profile_service->can_use_animated_banner( $viewer ),
 
 					'fields' => $payload['fields'],
 					'links' => $payload['links'],
