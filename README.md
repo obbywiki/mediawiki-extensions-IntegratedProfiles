@@ -297,6 +297,9 @@ mw.hook('wikipage.content').add(function ($content) {
 
 As of v0.8.0+ user rights are fine-grained. The default permissions are intended for single wikis, not farms. Please review each permission carefully.
 
+> [!WARNING]  
+> When updating before v0.8.0, if you had previously disabled `$wgIntegratedProfilesEnableAnimatedAvatars`, you should consider reviewing `$wgIntegratedProfilesEnableAnimatedBanners`.
+
 * `integratedprofiles-remove`: Remove other users' avatars, (custom) banners, and content fields (about/tagline, location, featured article, and links). This does not permit replacement uploads, replacement text, privacy changes, or viewing private profiles. Granted to `sysop` by default. Owners and users with `integratedprofiles-manage` retain their existing removal permissions. Blocked and anonymous users cannot remove content. If settings are shared globally (e.g., via GlobalPreferences), then removals can affect the user across all wikis sharing those settings. In a farm, locking this right to stewards or globally-trusted moderators is recommended.
 
 * `integratedprofiles-upload-avatar`: Upload or replace avatars. Granted to registered users (`user`) by default.
