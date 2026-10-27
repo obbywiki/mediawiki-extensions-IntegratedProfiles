@@ -141,7 +141,7 @@ export async function upload_avatar( file: File, username?: string ): Promise<Pr
 		}
 
 		// mw.Api only builds a FormData body when multipart is requested, otherwise it runs the File through jQuery.param and the browser throws "Illegal invocation"
-		const data = await post_with_token( payload, { contentType: 'multipart/form-data', } ) as { integratedprofileuploadavatar?: { profile?: ProfilePayload }; };
+		const data = await post_with_token( payload, { contentType: 'multipart/form-data' } ) as { integratedprofileuploadavatar?: { profile?: ProfilePayload } };
 
 		const profile = data.integratedprofileuploadavatar && data.integratedprofileuploadavatar.profile;
 		if ( !profile ) { throw new Error( msg( 'integratedprofiles-avatar-error' ) ); }
@@ -181,7 +181,7 @@ export async function upload_banner( file: File, username?: string ): Promise<Pr
 
 		if ( username ) { payload.username = username; }
 
-		const data = await post_with_token( payload, { contentType: 'multipart/form-data' } ) as { integratedprofileuploadbanner?: { profile?: ProfilePayload }; };
+		const data = await post_with_token( payload, { contentType: 'multipart/form-data' } ) as { integratedprofileuploadbanner?: { profile?: ProfilePayload } };
 
 		const profile = data.integratedprofileuploadbanner && data.integratedprofileuploadbanner.profile;
 		if ( !profile ) { throw new Error( msg( 'integratedprofiles-banner-error' ) ); }
@@ -198,7 +198,7 @@ export async function delete_banner( username?: string ): Promise<ProfilePayload
 
 		if ( username ) { payload.username = username; }
 
-		const data = await post_with_token( payload ) as { integratedprofiledeletebanner?: { profile?: ProfilePayload }; };
+		const data = await post_with_token( payload ) as { integratedprofiledeletebanner?: { profile?: ProfilePayload } };
 
 		const profile = data.integratedprofiledeletebanner && data.integratedprofiledeletebanner.profile;
 		if ( !profile ) { throw new Error( msg( 'integratedprofiles-banner-error' ) ); }
