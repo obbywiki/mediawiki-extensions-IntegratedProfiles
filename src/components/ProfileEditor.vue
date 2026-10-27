@@ -1526,6 +1526,9 @@ async function on_remove_media( kind: 'avatar' | 'banner' ): Promise<void> {
 			sync_avatar_from_profile( profile );
 		} else {
 			sync_banner_from_profile( profile );
+			if ( !removal_only.value ) {
+				remember_saved_fields( { 'ip-banner': draft[ 'ip-banner' ], 'ip-banner-wiki': draft[ 'ip-banner-wiki' ] } );
+			}
 		}
 		success_message.value = msg( 'integratedprofiles-save-success' );
 	} catch ( err ) {

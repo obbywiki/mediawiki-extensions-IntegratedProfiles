@@ -112,6 +112,35 @@ describe( 'profile editor permission modes', () => {
 		wrapper.unmount();
 	} );
 
+	it.each( [ false, true ] )( 'remembers banner deletion while preserving pending text edits (%s)', async ( edit_text ) => {
+		config.can_edit = true;
+		config.fields[ 'ip-banner-wiki' ] = 'local';
+		config.banner_preset_images = { local: '/local.png' };
+		api.delete_banner.mockResolvedValue( profile( {
+			fields: { ...config.fields, 'ip-banner': 'accent', 'ip-banner-wiki': '' },
+		} ) );
+		const wrapper = mount_editor();
+		if ( edit_text ) {
+			await wrapper.find( '#ip-field-about' ).setValue( 'Pending edit' );
+		}
+		await wrapper.find( '[aria-label="integratedprofiles-banner-delete"]' ).trigger( 'click' );
+		await flushPromises();
+		const save_button = wrapper.find( '.ip-editor__actions button:last-child' );
+		expect( save_button.attributes( 'disabled' ) !== undefined ).toBe( !edit_text );
+		expect( wrapper.find( '#ip-field-about' ).element ).toHaveProperty( 'value', edit_text ? 'Pending edit' : 'Hello' );
+		if ( edit_text ) {
+			api.save.mockResolvedValue( profile( {
+				fields: { ...config.fields, 'ip-about': 'Pending edit', 'ip-banner': 'accent', 'ip-banner-wiki': '' },
+			} ) );
+			await save_button.trigger( 'click' );
+			await flushPromises();
+			expect( api.save ).toHaveBeenCalledWith( expect.objectContaining( {
+				'ip-about': 'Pending edit', 'ip-banner': 'accent', 'ip-banner-wiki': '',
+			} ), 'Example' );
+		}
+		wrapper.unmount();
+	} );
+
 	it.each( [ [ true, false ], [ false, true ], [ false, false ], [ true, true ] ] )(
 		'controls avatar (%s) and banner (%s) uploads independently while keeping editing',
 		async ( avatar, banner ) => {

@@ -297,12 +297,12 @@ mw.hook('wikipage.content').add(function ($content) {
 
 As of v0.8.0+ user rights are fine-grained. The default permissions are intended for single wikis, not farms. Please review each permission carefully.
 
-* `integratedprofiles-remove`: Remove other users' avatars, (custom) banners, and content fields (about/tagline, location, featured article, and links). This does not permit replacement uploads, replacement text, privacy changes, or viewing private profiles. Granted to `sysop` by default. Owners and users with `integratedprofiles-manage` retain their existing removal permissions. Blocked and anonymous users cannot remove content. If settings are shared globally (e.g., via GlobalPreferences), then anyone with this right can edit profile details of a user for every other wiki at once. In a farm, locking this right to stewards or globally-trusted moderators is recommended.
+* `integratedprofiles-remove`: Remove other users' avatars, (custom) banners, and content fields (about/tagline, location, featured article, and links). This does not permit replacement uploads, replacement text, privacy changes, or viewing private profiles. Granted to `sysop` by default. Owners and users with `integratedprofiles-manage` retain their existing removal permissions. Blocked and anonymous users cannot remove content. If settings are shared globally (e.g., via GlobalPreferences), then removals can affect the user across all wikis sharing those settings. In a farm, locking this right to stewards or globally-trusted moderators is recommended.
 
 * `integratedprofiles-upload-avatar`: Upload or replace avatars. Granted to registered users (`user`) by default.
 * `integratedprofiles-upload-banner`: Upload or replace custom banners. Granted to registered users (`user`) by default. Selecting a banner preset does not require this right.
 
-Both upload rights also require permission to edit the target profile. This rights allow users to upload avatars and banners to their own profiles, not others. Replacing another user's media requires `integratedprofiles-manage` as well as the corresponding upload right. Blocked and anonymous users cannot upload. Withholding an upload right does not prevent profile text edits or removal of existing media by authorized users. To disable an upload type, remove its default `user` grant like so:
+Both upload rights also require permission to edit the target profile. These rights allow users to upload avatars and banners to their own profiles, not others. Replacing another user's media requires `integratedprofiles-manage` as well as the corresponding upload right. Blocked and anonymous users cannot upload. Withholding an upload right does not prevent profile text edits or removal of existing media by authorized users. To disable an upload type, remove its default `user` grant like so:
 
 ```php
 // disallow regular users from uploading banners:
@@ -319,6 +319,8 @@ $wgGroupPermissions['sysop']['integratedprofiles-upload-banner'] = true;
 Animation rights and toggles are independent for each media type. Existing animated files remain visible when either toggle is disabled. With shared storage, an animated upload made on any wiki where it is allowed can appear across the farm.
 
 For removal-only administrators, disable `integratedprofiles-manage` for their group and grant `integratedprofiles-remove`. Rights are additive, meaning that membership in another group with `integratedprofiles-manage` still allows editing. Users retain the ability to edit their own profiles.
+
+Revoking an upload right does not remove existing uploads. Existing uploads will remain visible and removable by both users with the `integratedprofiles-remove` or `integratedprofiles-manage` rights, as well as the users themselves.
 
 Avatar and banner upload/delete requests share the `integratedprofiles-upload` rate limit (see `$wgRateLimits` above). `noratelimit` (granted to sysops by default) bypasses it. Rate limits require `$wgMainCacheType` to be something other than `CACHE_NONE`.
 
@@ -394,6 +396,12 @@ action=query&list=integratedprofilepreview&ippuser=User1|User2|User3
 ```
 
 Returns a list of `{ user, user_id, real_name, about, location, website, edit_count, registration, avatar_url, has_custom_avatar, banner, banner_url, featured_article, is_private }`. `banner` is a preset id (`accent`, `ocean`, `sunset`, `forest`, `midnight`, `ember`, `sand`, `aurora`) or `custom`. `banner_url` is set for a custom upload or a wiki preset image. `featured_article` is `{ title, display_title, url }` or `null`. `website` is `{ label, url }` or `null`. Unknown names are warned and omitted. When `is_private` is true, extras are empty (`banner` falls back to `accent`).
+
+### Clear profile content
+
+`action=clearintegratedprofile` accepts `username` (defaults to the current user) and a required pipe-separated `fields` list, for example `fields=ip-about|ip-location`. Send a POST request with a CSRF `token`. Owners, users with `integratedprofiles-remove`, and users with `integratedprofiles-manage` may clear content.
+
+Accepted fields are `ip-about`, `ip-location`, `ip-featured-article`, `ip-website`, `ip-twitter`, `ip-github`, `ip-discord`, `ip-roblox`, and `ip-youtube`. Social fields disabled by the wiki configuration are ignored. Privacy preferences and banner settings are rejected, and a mixed valid/invalid list fails without clearing any fields. Use the media deletion APIs to remove avatars or custom banners programmatically. The response contains `result: success` and a `profile` payload filtered by the actor's viewing permissions.
 
 ---
 
