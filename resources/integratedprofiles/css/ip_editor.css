@@ -682,6 +682,13 @@
 	background-color: var( --background-color-neutral );
 }
 
+.ip-editor__removal-target--banner > .ip-editor__banner-swatch {
+	width: var( --ip-editor-avatar-size );
+	height: var( --ip-editor-avatar-size );
+	background-size: cover;
+	background-position: center;
+}
+
 .ip-editor__banner-swatch:disabled {
 	opacity: 0.6;
 	cursor: not-allowed;
@@ -799,6 +806,59 @@
 .ip-editor__social-bundle-row input {
 	width: 100%;
 	box-sizing: border-box;
+}
+
+.ip-editor__removal-target {
+	position: relative;
+	min-width: 0;
+}
+
+.ip-editor__removal-target--active::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+	border-radius: var( --border-radius-base );
+	background-color: var( --background-color-destructive );
+	opacity: 0.1;
+	pointer-events: none;
+	transition: opacity 120ms ease;
+}
+
+.ip-editor__removal-target--active:hover::after,
+.ip-editor__removal-target--active:focus-within::after {
+	opacity: 0.2;
+}
+
+.ip-editor__removal-target--avatar::after {
+	border-radius: var( --ip-avatar-radius );
+}
+
+.ip-editor__removal-target > .ip-editor__delete {
+	position: absolute;
+	inset-block-start: 0.25rem;
+	inset-inline-end: 0.25rem;
+	z-index: 2;
+}
+
+.ip-editor__delete-icon {
+	width: 1.25rem;
+	height: 1.25rem;
+}
+
+.ip-editor--removal-only .ip-editor__removal-target > input,
+.ip-editor--removal-only .ip-editor__removal-target > textarea {
+	min-height: 2.5rem;
+	padding-inline-end: 3rem;
+}
+
+.ip-editor--removal-only .ip-editor__avatar-button:disabled {
+	opacity: 1;
+	cursor: default;
+}
+
+.ip-editor--removal-only .ip-editor__appearance-banners {
+	height: auto;
 }
 
 .ip-editor__field .ip-editor__visibility-input {

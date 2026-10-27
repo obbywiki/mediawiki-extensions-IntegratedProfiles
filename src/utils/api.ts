@@ -91,6 +91,27 @@ export function msg( key: string, ...params: string[] ): string {
 	return mw.message( key, ...params ).text();
 }
 
+export async function clear_profile_fields(
+	fields: ( keyof ProfileFieldsMap )[],
+	username: string,
+): Promise<ProfilePayload> {
+	try {
+		const data = await post_with_token( {
+			action: 'clearintegratedprofile',
+			fields: fields.join( '|' ),
+			username,
+			format: 'json',
+		} ) as { clearintegratedprofile?: { profile?: ProfilePayload } };
+		const profile = data.clearintegratedprofile?.profile;
+		if ( !profile ) {
+			throw new Error( msg( 'integratedprofiles-save-error' ) );
+		}
+		return profile;
+	} catch ( err ) {
+		throw new Error( api_error_message( err ) || msg( 'integratedprofiles-save-error' ) );
+	}
+}
+
 export async function save_profile_fields(
 	fields: Partial<ProfileFieldsMap>,
 	username?: string,

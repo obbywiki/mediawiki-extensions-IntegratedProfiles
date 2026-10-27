@@ -31,9 +31,10 @@ class ProfileRenderer {
 	 * @param bool $is_owner Whether the viewer is the profile subject
 	 * @param string $avatar_decoration Unescaped companion HTML from
 	 *   IntegratedProfilesAfterAvatar (IP wraps it in `.ip-avatar__decoration`)
+	 * @param bool $can_remove Whether to show removal-only moderation controls
 	 */
-	public function render_masthead( array $payload, bool $can_edit, array $messages, string $contributions_url, bool $use_floating_ui = false, bool $is_owner = false, string $avatar_decoration = '' ): string {
-		return $this->process_template( 'masthead', $this->build_masthead_view( $payload, $can_edit, $messages, $contributions_url, $use_floating_ui, $is_owner, $avatar_decoration ) );
+	public function render_masthead( array $payload, bool $can_edit, array $messages, string $contributions_url, bool $use_floating_ui = false, bool $is_owner = false, string $avatar_decoration = '', bool $can_remove = false ): string {
+		return $this->process_template( 'masthead', $this->build_masthead_view( $payload, $can_edit, $messages, $contributions_url, $use_floating_ui, $is_owner, $avatar_decoration, $can_remove ) );
 	}
 
 	/**
@@ -122,11 +123,12 @@ class ProfileRenderer {
 	 * @param bool $use_floating_ui Soft-dep FloatingUI tips
 	 * @param bool $is_owner Whether the viewer is the profile subject
 	 * @param string $avatar_decoration Unescaped companion HTML from AfterAvatar
+	 * @param bool $can_remove Whether to show removal-only moderation controls
 	 * @return array<string, mixed>
 	 */
-	private function build_masthead_view( array $payload, bool $can_edit, array $messages, string $contributions_url, bool $use_floating_ui, bool $is_owner, string $avatar_decoration ): array {
+	private function build_masthead_view( array $payload, bool $can_edit, array $messages, string $contributions_url, bool $use_floating_ui, bool $is_owner, string $avatar_decoration, bool $can_remove ): array {
 		$is_private = !empty( $payload['is_private'] );
-		$show_edit_controls = $can_edit && !$is_private;
+		$show_edit_controls = ( $can_edit || $can_remove ) && !$is_private;
 
 		$color = (string)( $payload['ui']['color'] ?? '#5288F1' );
 		$radius = (string)( $payload['ui']['avatar_border_radius'] ?? '50%' );
@@ -210,13 +212,8 @@ class ProfileRenderer {
 
 		if ( !$is_private ) {
 			$featured = $this->build_featured_article_view( is_array( $payload['featured_article'] ?? null ) ? $payload['featured_article'] : null, $messages );
-			$location = $this->build_location_view(
-				trim( (string)( $payload['fields'][ ProfileFields::KEY_LOCATION ] ?? '' ) ),
-				$messages
-			);
-			$website_link = is_array( $payload['links'] ?? null ) && is_array( $payload['links']['website'] ?? null )
-				? $payload['links']['website']
-				: null;
+			$location = $this->build_location_view( trim( (string)( $payload['fields'][ ProfileFields::KEY_LOCATION ] ?? '' ) ), $messages );
+			$website_link = is_array( $payload['links'] ?? null ) && is_array( $payload['links']['website'] ?? null ) ? $payload['links']['website'] : null;
 			$website = $this->build_website_view( $website_link, $messages );
 
 			$about_view = $this->build_about_block_view(
@@ -228,7 +225,7 @@ class ProfileRenderer {
 		}
 
 		$avatar_edit = false;
-		if ( $show_edit_controls ) {
+		if ( $can_edit && !$is_private ) {
 			$avatar_edit_label = (string)( $messages['avatar_edit'] ?? 'Change avatar' );
 			$avatar_edit = [
 				'label' => $avatar_edit_label,

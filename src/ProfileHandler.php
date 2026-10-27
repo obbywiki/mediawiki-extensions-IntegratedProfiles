@@ -43,6 +43,7 @@ class ProfileHandler {
 
 		$payload = $this->profile_service->get_payload( $subject_user, $viewer );
 		$can_edit = $this->profile_service->can_edit( $viewer, $subject_user );
+		$can_remove = $this->profile_service->can_remove( $viewer, $subject_user );
 
 		$out->addBodyClasses( [ 'integratedprofiles-profile' ] );
 		$out->addModuleStyles( [ 'ext.IntegratedProfiles.styles' ] );
@@ -74,7 +75,7 @@ class ProfileHandler {
 			'avatar_alt' => $context->msg( 'integratedprofiles-avatar-alt' )->text(),
 			'avatar_edit' => $context->msg( 'integratedprofiles-avatar-edit' )->text(),
 
-			'edit' => $context->msg( 'integratedprofiles-edit' )->text(),
+			'edit' => $context->msg( $can_edit ? 'integratedprofiles-edit' : 'integratedprofiles-remove' )->text(),
 			'you' => $context->msg( 'integratedprofiles-you' )->text(),
 
 			'featured_label' => $context->msg( 'integratedprofiles-featured-label' )->text(),
@@ -114,7 +115,7 @@ class ProfileHandler {
 		$decoration = '';
 		$this->hook_runner->onIntegratedProfilesAfterAvatar( $payload, $decoration );
 
-		$html = $this->profile_renderer->render_masthead( $render_payload, $can_edit, $messages, $contributions_url, $use_floating_ui, $is_owner, $decoration );
+		$html = $this->profile_renderer->render_masthead( $render_payload, $can_edit, $messages, $contributions_url, $use_floating_ui, $is_owner, $decoration, $can_remove );
 
 		$after = '';
 		$this->hook_runner->onIntegratedProfilesAfterMasthead( $after, $payload );
@@ -124,7 +125,7 @@ class ProfileHandler {
 
 		$out->addHTML( '<div class="ip-profile-chrome">' . $html );
 
-		if ( $can_edit ) {
+		if ( $can_edit || $can_remove ) {
 			$banner_presets = $this->profile_service->get_banner_presets();
 			$out->addModules( [ 'ext.IntegratedProfiles.profile' ] );
 			$out->addJsConfigVars( [
@@ -133,7 +134,9 @@ class ProfileHandler {
 					'user_id' => $payload['user_id'],
 					'central_id' => $payload['central_id'] ?? 0,
 
-					'can_edit' => true,
+					'can_edit' => $can_edit,
+					'can_remove' => $can_remove,
+					'removable_fields' => $this->profile_service->get_fields_helper()->removable_keys(),
 					'can_upload_animated_avatar' => $this->profile_service->can_use_animated_avatar( $viewer ),
 
 					'fields' => $payload['fields'],

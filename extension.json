@@ -26,11 +26,13 @@
 	],
 	"AvailableRights": [
 		"integratedprofiles-manage",
+		"integratedprofiles-remove",
 		"integratedprofiles-animated-avatar"
 	],
 	"GroupPermissions": {
 		"sysop": {
 			"integratedprofiles-manage": true,
+			"integratedprofiles-remove": true,
 			"integratedprofiles-animated-avatar": true
 		}
 	},
@@ -99,6 +101,10 @@
 		}
 	},
 	"APIModules": {
+		"clearintegratedprofile": {
+			"class": "MediaWiki\\Extension\\IntegratedProfiles\\Api\\ApiClearIntegratedProfile",
+			"services": [ "IntegratedProfiles.ProfileService" ]
+		},
 		"setintegratedprofile": {
 			"class": "MediaWiki\\Extension\\IntegratedProfiles\\Api\\ApiSetIntegratedProfile",
 			"services": [
@@ -238,6 +244,10 @@
 			],
 			"messages": [
 				"integratedprofiles-edit",
+				"integratedprofiles-remove",
+				"integratedprofiles-remove-help",
+				"integratedprofiles-remove-selected",
+				"integratedprofiles-remove-field",
 				"integratedprofiles-edit-title",
 				"integratedprofiles-editor-section-appearance",
 				"integratedprofiles-editor-section-profile",

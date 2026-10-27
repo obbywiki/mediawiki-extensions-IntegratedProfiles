@@ -1,12 +1,19 @@
 <template>
-	<section class="ip-editor" aria-labelledby="ip-editor-title">
+	<section
+		class="ip-editor"
+		:class="{ 'ip-editor--removal-only': removal_only }"
+		aria-labelledby="ip-editor-title"
+	>
 		<header class="ip-editor__header">
 			<h2 id="ip-editor-title" class="ip-editor__title">
-				{{ msg( 'integratedprofiles-edit-title' ) }}
+				{{ msg( removal_only ? 'integratedprofiles-remove' : 'integratedprofiles-edit-title' ) }}
 			</h2>
 		</header>
 
 		<div class="ip-editor__body">
+			<p v-if="removal_only" class="ip-editor__help">
+				{{ msg( 'integratedprofiles-remove-help' ) }}
+			</p>
 			<fieldset
 				class="ip-editor__section"
 				aria-labelledby="ip-section-appearance"
@@ -20,12 +27,19 @@
 				</h3>
 
 				<div class="ip-editor__appearance">
-					<div class="ip-editor__appearance-avatar">
+					<div
+						class="ip-editor__appearance-avatar"
+						:class="{
+							'ip-editor__removal-target': removal_only,
+							'ip-editor__removal-target--active': removal_only && has_custom_avatar,
+							'ip-editor__removal-target--avatar': removal_only
+						}"
+					>
 						<button
 							type="button"
 							class="ip-editor__avatar-button"
-							:disabled="busy"
-							:aria-label="msg( 'integratedprofiles-avatar-edit' )"
+							:disabled="busy || removal_only"
+							:aria-label="msg( removal_only ? 'integratedprofiles-avatar-alt' : 'integratedprofiles-avatar-edit' )"
 							@click="on_open_avatar_modal"
 						>
 							<span class="ip-editor__avatar-preview">
@@ -36,7 +50,10 @@
 									width="128"
 									height="128"
 								>
-								<span class="ip-editor__avatar-overlay" aria-hidden="true">
+								<span
+									v-if="!removal_only"
+									class="ip-editor__avatar-overlay"
+									aria-hidden="true">
 									<svg
 										class="ip-editor__avatar-overlay-icon"
 										viewBox="0 0 20 20"
@@ -49,9 +66,35 @@
 									</svg>
 								</span>
 							</span>
-							<span class="ip-editor__avatar-hint" aria-hidden="true">
+							<span
+								v-if="!removal_only"
+								class="ip-editor__avatar-hint"
+								aria-hidden="true">
 								{{ msg( 'integratedprofiles-avatar-change' ) }}
 							</span>
+						</button>
+						<button
+							v-if="removal_only && has_custom_avatar"
+							type="button"
+							class="cdx-button cdx-button--icon-only cdx-button--action-destructive
+								cdx-button--weight-primary ip-editor__delete"
+							:disabled="busy"
+							:aria-label="msg( 'integratedprofiles-avatar-delete' )"
+							:title="msg( 'integratedprofiles-avatar-delete' )"
+							@click="on_remove_media( 'avatar' )"
+						>
+							<svg
+								class="ip-editor__delete-icon"
+								viewBox="0 0 20 20"
+								aria-hidden="true"
+								focusable="false"
+							>
+								<path
+									fill="currentColor"
+									fill-rule="evenodd"
+									d="M7 2h6v2h4v2H3V4h4V2ZM5 7h10l-1 11H6L5 7Zm3 2v7h1V9H8Zm3 0v7h1V9h-1Z"
+								/>
+							</svg>
 						</button>
 					</div>
 
@@ -59,6 +102,7 @@
 
 					<div class="ip-editor__appearance-banners">
 						<ul
+							v-if="!removal_only"
 							class="ip-editor__banner-presets"
 							role="listbox"
 							:aria-label="msg( 'integratedprofiles-banner-label' )"
@@ -119,11 +163,47 @@
 								</button>
 							</li>
 						</ul>
+						<div
+							v-if="removal_only"
+							class="ip-editor__removal-target ip-editor__removal-target--banner"
+							:class="{ 'ip-editor__removal-target--active': has_custom_banner }"
+						>
+							<span
+								class="ip-editor__banner-swatch"
+								:class="'ip-editor__banner-swatch--' + selected_banner"
+								:style="banner_url ? { backgroundImage: 'url(' + banner_url + ')' } : {}"
+								role="img"
+								:aria-label="msg( 'integratedprofiles-banner-label' )"
+							/>
+							<button
+								v-if="has_custom_banner"
+								type="button"
+								class="cdx-button cdx-button--icon-only cdx-button--action-destructive
+									cdx-button--weight-primary ip-editor__delete"
+								:disabled="busy"
+								:aria-label="msg( 'integratedprofiles-banner-delete' )"
+								:title="msg( 'integratedprofiles-banner-delete' )"
+								@click="on_remove_media( 'banner' )"
+							>
+								<svg
+									class="ip-editor__delete-icon"
+									viewBox="0 0 20 20"
+									aria-hidden="true"
+									focusable="false"
+								>
+									<path
+										fill="currentColor"
+										fill-rule="evenodd"
+										d="M7 2h6v2h4v2H3V4h4V2ZM5 7h10l-1 11H6L5 7Zm3 2v7h1V9H8Zm3 0v7h1V9h-1Z"
+									/>
+								</svg>
+							</button>
+						</div>
 					</div>
 				</div>
 
 				<div
-					v-if="show_wiki_banners"
+					v-if="!removal_only && show_wiki_banners"
 					class="ip-editor__banner-wiki"
 				>
 					<div class="ip-editor__banner-wiki-header">
@@ -203,15 +283,44 @@
 						<label for="ip-field-about">
 							{{ msg( 'integratedprofiles-field-about' ) }}
 						</label>
-						<textarea
-							id="ip-field-about"
-							v-model="draft['ip-about']"
-							class="cdx-text-area__textarea"
-							rows="4"
-							:maxlength="about_max"
-							:disabled="busy"
-							:placeholder="msg( 'integratedprofiles-field-about-placeholder' )"
-						/>
+						<div
+							class="ip-editor__removal-target"
+							:class="{ 'ip-editor__removal-target--active': removal_only && can_clear_field( 'ip-about' ) && !!draft[ 'ip-about' ] }"
+						>
+							<textarea
+								id="ip-field-about"
+								v-model="draft['ip-about']"
+								class="cdx-text-area__textarea"
+								rows="4"
+								:maxlength="about_max"
+								:disabled="busy"
+								:readonly="removal_only"
+								:placeholder="msg( 'integratedprofiles-field-about-placeholder' )"
+							/>
+							<button
+								v-if="removal_only && can_clear_field( 'ip-about' )"
+								type="button"
+								class="cdx-button cdx-button--icon-only cdx-button--action-destructive
+									cdx-button--weight-primary ip-editor__delete"
+								:disabled="busy || !draft[ 'ip-about' ]"
+								:aria-label="msg( 'integratedprofiles-remove-field', msg( 'integratedprofiles-field-about' ) )"
+								:title="msg( 'integratedprofiles-remove-field', msg( 'integratedprofiles-field-about' ) )"
+								@click="on_clear_field( 'ip-about' )"
+							>
+								<svg
+									class="ip-editor__delete-icon"
+									viewBox="0 0 20 20"
+									aria-hidden="true"
+									focusable="false"
+								>
+									<path
+										fill="currentColor"
+										fill-rule="evenodd"
+										d="M7 2h6v2h4v2H3V4h4V2ZM5 7h10l-1 11H6L5 7Zm3 2v7h1V9H8Zm3 0v7h1V9h-1Z"
+									/>
+								</svg>
+							</button>
+						</div>
 						<div class="ip-editor__field-meta">
 							<p class="ip-editor__help">
 								{{ msg( 'integratedprofiles-field-about-help' ) }}
@@ -230,15 +339,44 @@
 						<label for="ip-field-location">
 							{{ msg( 'integratedprofiles-field-location' ) }}
 						</label>
-						<input
-							id="ip-field-location"
-							v-model="draft['ip-location']"
-							class="cdx-text-input__input"
-							type="text"
-							:maxlength="location_max"
-							:disabled="busy"
-							:placeholder="msg( 'integratedprofiles-field-location-placeholder' )"
+						<div
+							class="ip-editor__removal-target"
+							:class="{ 'ip-editor__removal-target--active': removal_only && can_clear_field( 'ip-location' ) && !!draft[ 'ip-location' ] }"
 						>
+							<input
+								id="ip-field-location"
+								v-model="draft['ip-location']"
+								class="cdx-text-input__input"
+								type="text"
+								:maxlength="location_max"
+								:disabled="busy"
+								:readonly="removal_only"
+								:placeholder="msg( 'integratedprofiles-field-location-placeholder' )"
+							>
+							<button
+								v-if="removal_only && can_clear_field( 'ip-location' )"
+								type="button"
+								class="cdx-button cdx-button--icon-only cdx-button--action-destructive
+									cdx-button--weight-primary ip-editor__delete"
+								:disabled="busy || !draft[ 'ip-location' ]"
+								:aria-label="msg( 'integratedprofiles-remove-field', msg( 'integratedprofiles-field-location' ) )"
+								:title="msg( 'integratedprofiles-remove-field', msg( 'integratedprofiles-field-location' ) )"
+								@click="on_clear_field( 'ip-location' )"
+							>
+								<svg
+									class="ip-editor__delete-icon"
+									viewBox="0 0 20 20"
+									aria-hidden="true"
+									focusable="false"
+								>
+									<path
+										fill="currentColor"
+										fill-rule="evenodd"
+										d="M7 2h6v2h4v2H3V4h4V2ZM5 7h10l-1 11H6L5 7Zm3 2v7h1V9H8Zm3 0v7h1V9h-1Z"
+									/>
+								</svg>
+							</button>
+						</div>
 						<div class="ip-editor__field-meta">
 							<p class="ip-editor__help">
 								{{ msg( 'integratedprofiles-field-location-help' ) }}
@@ -257,15 +395,44 @@
 						<label for="ip-field-featured-article">
 							{{ msg( 'integratedprofiles-field-featured-article' ) }}
 						</label>
-						<input
-							id="ip-field-featured-article"
-							v-model="draft['ip-featured-article']"
-							class="cdx-text-input__input"
-							type="text"
-							:maxlength="link_max"
-							:disabled="busy"
-							:placeholder="msg( 'integratedprofiles-field-featured-article-placeholder' )"
+						<div
+							class="ip-editor__removal-target"
+							:class="{ 'ip-editor__removal-target--active': removal_only && can_clear_field( 'ip-featured-article' ) && !!draft[ 'ip-featured-article' ] }"
 						>
+							<input
+								id="ip-field-featured-article"
+								v-model="draft['ip-featured-article']"
+								class="cdx-text-input__input"
+								type="text"
+								:maxlength="link_max"
+								:disabled="busy"
+								:readonly="removal_only"
+								:placeholder="msg( 'integratedprofiles-field-featured-article-placeholder' )"
+							>
+							<button
+								v-if="removal_only && can_clear_field( 'ip-featured-article' )"
+								type="button"
+								class="cdx-button cdx-button--icon-only cdx-button--action-destructive
+									cdx-button--weight-primary ip-editor__delete"
+								:disabled="busy || !draft[ 'ip-featured-article' ]"
+								:aria-label="msg( 'integratedprofiles-remove-field', msg( 'integratedprofiles-field-featured-article' ) )"
+								:title="msg( 'integratedprofiles-remove-field', msg( 'integratedprofiles-field-featured-article' ) )"
+								@click="on_clear_field( 'ip-featured-article' )"
+							>
+								<svg
+									class="ip-editor__delete-icon"
+									viewBox="0 0 20 20"
+									aria-hidden="true"
+									focusable="false"
+								>
+									<path
+										fill="currentColor"
+										fill-rule="evenodd"
+										d="M7 2h6v2h4v2H3V4h4V2ZM5 7h10l-1 11H6L5 7Zm3 2v7h1V9H8Zm3 0v7h1V9h-1Z"
+									/>
+								</svg>
+							</button>
+						</div>
 						<p class="ip-editor__help">
 							{{ msg( 'integratedprofiles-field-featured-article-help' ) }}
 						</p>
@@ -278,21 +445,50 @@
 						<label for="ip-field-website">
 							{{ msg( 'integratedprofiles-field-website' ) }}
 						</label>
-						<input
-							id="ip-field-website"
-							v-model="draft['ip-website']"
-							class="cdx-text-input__input"
-							type="url"
-							:maxlength="link_max"
-							:disabled="busy"
-							:placeholder="msg( 'integratedprofiles-field-website-placeholder' )"
+						<div
+							class="ip-editor__removal-target"
+							:class="{ 'ip-editor__removal-target--active': removal_only && can_clear_field( 'ip-website' ) && !!draft[ 'ip-website' ] }"
 						>
+							<input
+								id="ip-field-website"
+								v-model="draft['ip-website']"
+								class="cdx-text-input__input"
+								type="url"
+								:maxlength="link_max"
+								:disabled="busy"
+								:readonly="removal_only"
+								:placeholder="msg( 'integratedprofiles-field-website-placeholder' )"
+							>
+							<button
+								v-if="removal_only && can_clear_field( 'ip-website' )"
+								type="button"
+								class="cdx-button cdx-button--icon-only cdx-button--action-destructive
+									cdx-button--weight-primary ip-editor__delete"
+								:disabled="busy || !draft[ 'ip-website' ]"
+								:aria-label="msg( 'integratedprofiles-remove-field', msg( 'integratedprofiles-field-website' ) )"
+								:title="msg( 'integratedprofiles-remove-field', msg( 'integratedprofiles-field-website' ) )"
+								@click="on_clear_field( 'ip-website' )"
+							>
+								<svg
+									class="ip-editor__delete-icon"
+									viewBox="0 0 20 20"
+									aria-hidden="true"
+									focusable="false"
+								>
+									<path
+										fill="currentColor"
+										fill-rule="evenodd"
+										d="M7 2h6v2h4v2H3V4h4V2ZM5 7h10l-1 11H6L5 7Zm3 2v7h1V9H8Zm3 0v7h1V9h-1Z"
+									/>
+								</svg>
+							</button>
+						</div>
 						<p class="ip-editor__help">
 							{{ msg( 'integratedprofiles-field-website-help' ) }}
 						</p>
 					</div>
 
-					<div class="ip-editor__field">
+					<div v-if="!removal_only" class="ip-editor__field">
 						<span
 							id="ip-field-visibility-label"
 							class="ip-editor__label"
@@ -333,7 +529,7 @@
 						</p>
 					</div>
 
-					<div class="ip-editor__field ip-editor__field--toggle">
+					<div v-if="!removal_only" class="ip-editor__field ip-editor__field--toggle">
 						<label class="ip-editor__toggle" for="ip-field-show-pronouns">
 							<span class="ip-editor__toggle-copy">
 								<span class="ip-editor__toggle-label">
@@ -410,17 +606,46 @@
 									/>
 									{{ msg( 'integratedprofiles-field-' + entry.id ) }}
 								</label>
-								<input
-									:id="'ip-field-' + entry.id"
-									v-model="draft[entry.key]"
-									class="cdx-text-input__input"
-									:type="social_input_type( entry )"
-									:maxlength="social_maxlength( entry )"
-									:disabled="busy"
-									:placeholder="
-										msg( 'integratedprofiles-field-' + entry.id + '-placeholder' )
-									"
+								<div
+									class="ip-editor__removal-target"
+									:class="{ 'ip-editor__removal-target--active': removal_only && can_clear_field( entry.key ) && !!draft[ entry.key ] }"
 								>
+									<input
+										:id="'ip-field-' + entry.id"
+										v-model="draft[entry.key]"
+										class="cdx-text-input__input"
+										:type="social_input_type( entry )"
+										:maxlength="social_maxlength( entry )"
+										:disabled="busy"
+										:readonly="removal_only"
+										:placeholder="
+											msg( 'integratedprofiles-field-' + entry.id + '-placeholder' )
+										"
+									>
+									<button
+										v-if="removal_only && can_clear_field( entry.key )"
+										type="button"
+										class="cdx-button cdx-button--icon-only cdx-button--action-destructive
+											cdx-button--weight-primary ip-editor__delete"
+										:disabled="busy || !draft[ entry.key ]"
+										:aria-label="msg( 'integratedprofiles-remove-field', msg( 'integratedprofiles-field-' + entry.id ) )"
+										:title="msg( 'integratedprofiles-remove-field', msg( 'integratedprofiles-field-' + entry.id ) )"
+										@click="on_clear_field( entry.key )"
+									>
+										<svg
+											class="ip-editor__delete-icon"
+											viewBox="0 0 20 20"
+											aria-hidden="true"
+											focusable="false"
+										>
+											<path
+												fill="currentColor"
+												fill-rule="evenodd"
+												d="M7 2h6v2h4v2H3V4h4V2ZM5 7h10l-1 11H6L5 7Zm3 2v7h1V9H8Zm3 0v7h1V9h-1Z"
+											/>
+										</svg>
+									</button>
+								</div>
 							</div>
 						</div>
 					</details>
@@ -449,15 +674,44 @@
 									/>
 									{{ msg( 'integratedprofiles-field-mediawiki' ) }}
 								</label>
-								<input
-									id="ip-field-mediawiki"
-									v-model="draft['ip-mediawiki']"
-									class="cdx-text-input__input"
-									type="text"
-									:maxlength="link_max"
-									:disabled="busy"
-									:placeholder="msg( 'integratedprofiles-field-mediawiki-placeholder' )"
+								<div
+									class="ip-editor__removal-target"
+									:class="{ 'ip-editor__removal-target--active': removal_only && can_clear_field( 'ip-mediawiki' ) && !!draft[ 'ip-mediawiki' ] }"
 								>
+									<input
+										id="ip-field-mediawiki"
+										v-model="draft['ip-mediawiki']"
+										class="cdx-text-input__input"
+										type="text"
+										:maxlength="link_max"
+										:disabled="busy"
+										:readonly="removal_only"
+										:placeholder="msg( 'integratedprofiles-field-mediawiki-placeholder' )"
+									>
+									<button
+										v-if="removal_only && can_clear_field( 'ip-mediawiki' )"
+										type="button"
+										class="cdx-button cdx-button--icon-only cdx-button--action-destructive
+											cdx-button--weight-primary ip-editor__delete"
+										:disabled="busy || !draft[ 'ip-mediawiki' ]"
+										:aria-label="msg( 'integratedprofiles-remove-field', msg( 'integratedprofiles-field-mediawiki' ) )"
+										:title="msg( 'integratedprofiles-remove-field', msg( 'integratedprofiles-field-mediawiki' ) )"
+										@click="on_clear_field( 'ip-mediawiki' )"
+									>
+										<svg
+											class="ip-editor__delete-icon"
+											viewBox="0 0 20 20"
+											aria-hidden="true"
+											focusable="false"
+										>
+											<path
+												fill="currentColor"
+												fill-rule="evenodd"
+												d="M7 2h6v2h4v2H3V4h4V2ZM5 7h10l-1 11H6L5 7Zm3 2v7h1V9H8Zm3 0v7h1V9h-1Z"
+											/>
+										</svg>
+									</button>
+								</div>
 							</div>
 							<div class="ip-editor__social-bundle-row">
 								<label
@@ -470,15 +724,44 @@
 									/>
 									{{ msg( 'integratedprofiles-field-miraheze' ) }}
 								</label>
-								<input
-									id="ip-field-miraheze"
-									v-model="draft['ip-miraheze']"
-									class="cdx-text-input__input"
-									type="text"
-									:maxlength="link_max"
-									:disabled="busy"
-									:placeholder="msg( 'integratedprofiles-field-miraheze-placeholder' )"
+								<div
+									class="ip-editor__removal-target"
+									:class="{ 'ip-editor__removal-target--active': removal_only && can_clear_field( 'ip-miraheze' ) && !!draft[ 'ip-miraheze' ] }"
 								>
+									<input
+										id="ip-field-miraheze"
+										v-model="draft['ip-miraheze']"
+										class="cdx-text-input__input"
+										type="text"
+										:maxlength="link_max"
+										:disabled="busy"
+										:readonly="removal_only"
+										:placeholder="msg( 'integratedprofiles-field-miraheze-placeholder' )"
+									>
+									<button
+										v-if="removal_only && can_clear_field( 'ip-miraheze' )"
+										type="button"
+										class="cdx-button cdx-button--icon-only cdx-button--action-destructive
+											cdx-button--weight-primary ip-editor__delete"
+										:disabled="busy || !draft[ 'ip-miraheze' ]"
+										:aria-label="msg( 'integratedprofiles-remove-field', msg( 'integratedprofiles-field-miraheze' ) )"
+										:title="msg( 'integratedprofiles-remove-field', msg( 'integratedprofiles-field-miraheze' ) )"
+										@click="on_clear_field( 'ip-miraheze' )"
+									>
+										<svg
+											class="ip-editor__delete-icon"
+											viewBox="0 0 20 20"
+											aria-hidden="true"
+											focusable="false"
+										>
+											<path
+												fill="currentColor"
+												fill-rule="evenodd"
+												d="M7 2h6v2h4v2H3V4h4V2ZM5 7h10l-1 11H6L5 7Zm3 2v7h1V9H8Zm3 0v7h1V9h-1Z"
+											/>
+										</svg>
+									</button>
+								</div>
 							</div>
 							<div class="ip-editor__social-bundle-row">
 								<label
@@ -491,15 +774,44 @@
 									/>
 									{{ msg( 'integratedprofiles-field-fandom' ) }}
 								</label>
-								<input
-									id="ip-field-fandom"
-									v-model="draft['ip-fandom']"
-									class="cdx-text-input__input"
-									type="text"
-									:maxlength="link_max"
-									:disabled="busy"
-									:placeholder="msg( 'integratedprofiles-field-fandom-placeholder' )"
+								<div
+									class="ip-editor__removal-target"
+									:class="{ 'ip-editor__removal-target--active': removal_only && can_clear_field( 'ip-fandom' ) && !!draft[ 'ip-fandom' ] }"
 								>
+									<input
+										id="ip-field-fandom"
+										v-model="draft['ip-fandom']"
+										class="cdx-text-input__input"
+										type="text"
+										:maxlength="link_max"
+										:disabled="busy"
+										:readonly="removal_only"
+										:placeholder="msg( 'integratedprofiles-field-fandom-placeholder' )"
+									>
+									<button
+										v-if="removal_only && can_clear_field( 'ip-fandom' )"
+										type="button"
+										class="cdx-button cdx-button--icon-only cdx-button--action-destructive
+											cdx-button--weight-primary ip-editor__delete"
+										:disabled="busy || !draft[ 'ip-fandom' ]"
+										:aria-label="msg( 'integratedprofiles-remove-field', msg( 'integratedprofiles-field-fandom' ) )"
+										:title="msg( 'integratedprofiles-remove-field', msg( 'integratedprofiles-field-fandom' ) )"
+										@click="on_clear_field( 'ip-fandom' )"
+									>
+										<svg
+											class="ip-editor__delete-icon"
+											viewBox="0 0 20 20"
+											aria-hidden="true"
+											focusable="false"
+										>
+											<path
+												fill="currentColor"
+												fill-rule="evenodd"
+												d="M7 2h6v2h4v2H3V4h4V2ZM5 7h10l-1 11H6L5 7Zm3 2v7h1V9H8Zm3 0v7h1V9h-1Z"
+											/>
+										</svg>
+									</button>
+								</div>
 							</div>
 						</div>
 					</details>
@@ -621,11 +933,12 @@
 				</button>
 				<button
 					type="button"
-					class="cdx-button cdx-button--action-progressive cdx-button--weight-primary"
+					class="cdx-button cdx-button--weight-primary"
+					:class="removal_only ? 'cdx-button--action-destructive' : 'cdx-button--action-progressive'"
 					:disabled="busy || !has_changes"
 					@click="on_save"
 				>
-					{{ msg( 'integratedprofiles-save' ) }}
+					{{ msg( removal_only ? 'integratedprofiles-remove-selected' : 'integratedprofiles-save' ) }}
 				</button>
 			</div>
 		</footer>
@@ -640,7 +953,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, reactive, ref } from 'vue';
 import type { EnabledSocialLink, IntegratedProfilesConfig, ProfileConnection, ProfileFieldsMap, ProfilePayload } from '../types/mw';
-import { apply_payload_to_dom, msg, save_profile_fields, sync_banner_dom } from '../utils/api';
+import { apply_payload_to_dom, clear_profile_fields, delete_avatar, delete_banner, msg, save_profile_fields, sync_banner_dom } from '../utils/api';
 
 const DEFAULT_BANNER_PRESETS = [
 	'accent',
@@ -663,6 +976,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits( [ 'close' ] );
+const removal_only = computed( () => !props.config.can_edit );
 
 function field_or_empty( value: string | undefined ): string {
 	return value || '';
@@ -718,6 +1032,7 @@ const footer_settled = ref( false );
 const footer_sentinel = ref<HTMLElement | null>( null );
 let footer_observer: IntersectionObserver | null = null;
 const selected_banner = ref( draft[ 'ip-banner' ] || 'accent' );
+const has_custom_avatar = ref( !!props.config.has_custom_avatar );
 const has_custom_banner = ref( !!props.config.has_custom_banner );
 const banner_url = ref( props.config.banner_url || '' );
 const custom_banner_url = ref( initial_custom_banner_url( props.config ) );
@@ -831,6 +1146,13 @@ const wiki_banner_label = computed( () => {
 } );
 
 function build_save_fields(): Partial<ProfileFieldsMap> {
+	if ( removal_only.value ) {
+		const content: Partial<ProfileFieldsMap> = {};
+		for ( const key of props.config.removable_fields || [] ) {
+			content[ key ] = draft[ key ];
+		}
+		return content;
+	}
 	const payload: Partial<ProfileFieldsMap> = {
 		'ip-about': draft[ 'ip-about' ],
 		'ip-location': draft[ 'ip-location' ],
@@ -913,10 +1235,10 @@ const custom_swatch_style = computed( () => {
 	return { backgroundImage: 'url(' + custom_banner_url.value + ')' };
 } );
 const show_manage_connections = computed(
-	() => Boolean( props.config.show_manage_connections )
+	() => !removal_only.value && Boolean( props.config.show_manage_connections )
 );
 const show_connection_privacy = computed(
-	() => Boolean( props.config.show_connection_privacy )
+	() => !removal_only.value && Boolean( props.config.show_connection_privacy )
 );
 const preferences_url = computed(
 	() => ( props.config.preferences_url || '' ).trim()
@@ -1045,6 +1367,7 @@ function on_wiki_profiles_toggle( event: Event ): void {
 }
 
 function sync_avatar_from_profile( profile: { avatar_url?: string; has_custom_avatar?: boolean; } ): void {
+	has_custom_avatar.value = !!profile.has_custom_avatar;
 	if ( profile.avatar_url ) {
 		avatar_preview_url.value = profile.avatar_url;
 	}
@@ -1107,7 +1430,7 @@ function restore_banner(): void {
 }
 
 function on_select_banner( preset_id: string ): void {
-	if ( busy.value ) { return; }
+	if ( busy.value || removal_only.value ) { return; }
 	if ( preset_id === 'custom' && !has_custom_banner.value ) { return; }
 	if ( main_preset_selected( preset_id ) && !( banner_presets_split.value && selected_wiki_banner.value ) ) { return; }
 
@@ -1124,7 +1447,7 @@ function on_select_banner( preset_id: string ): void {
 }
 
 function on_select_wiki_banner( preset_id: string ): void {
-	if ( busy.value || selected_wiki_banner.value === preset_id ) { return; }
+	if ( busy.value || removal_only.value || selected_wiki_banner.value === preset_id ) { return; }
 
 	draft[ 'ip-banner-wiki' ] = preset_id;
 	preview_banner();
@@ -1150,8 +1473,44 @@ function on_avatar_updated( event: Event ): void {
 	}
 }
 
+function can_clear_field( key: keyof ProfileFieldsMap ): boolean {
+	return !!props.config.can_remove && ( props.config.removable_fields || [] ).includes( key );
+}
+
+function on_clear_field( key: keyof ProfileFieldsMap ): void {
+	if ( busy.value || !removal_only.value || !can_clear_field( key ) ) {
+		return;
+	}
+	draft[ key ] = '';
+	error_message.value = '';
+	success_message.value = '';
+}
+
+async function on_remove_media( kind: 'avatar' | 'banner' ): Promise<void> {
+	if ( busy.value || !removal_only.value || !props.config.can_remove ) {
+		return;
+	}
+	busy.value = true;
+	error_message.value = '';
+	success_message.value = '';
+	try {
+		const profile = await ( kind === 'avatar' ? delete_avatar : delete_banner )( props.config.user_name );
+		apply_payload_to_dom( profile );
+		if ( kind === 'avatar' ) {
+			sync_avatar_from_profile( profile );
+		} else {
+			sync_banner_from_profile( profile );
+		}
+		success_message.value = msg( 'integratedprofiles-save-success' );
+	} catch ( err ) {
+		error_message.value = err instanceof Error ? err.message : msg( 'integratedprofiles-save-error' );
+	} finally {
+		busy.value = false;
+	}
+}
+
 async function on_save(): Promise<void> {
-	if ( busy.value || !has_changes.value ) {
+	if ( busy.value || !has_changes.value || ( removal_only.value && !props.config.can_remove ) ) {
 		return;
 	}
 
@@ -1160,10 +1519,15 @@ async function on_save(): Promise<void> {
 	success_message.value = '';
 
 	try {
-		const profile = await save_profile_fields(
-			build_save_fields(),
-			props.config.user_name
+		const cleared_keys = ( props.config.removable_fields || [] ).filter(
+			( key ) => draft[ key ] === '' && !!saved_fields.value[ key ]
 		);
+		if ( removal_only.value && !cleared_keys.length ) {
+			return;
+		}
+		const profile = removal_only.value ?
+			await clear_profile_fields( cleared_keys, props.config.user_name ) :
+			await save_profile_fields( build_save_fields(), props.config.user_name );
 
 		apply_payload_to_dom( profile );
 		sync_banner_from_profile( profile );
@@ -1179,6 +1543,7 @@ async function on_save(): Promise<void> {
 }
 
 function on_open_avatar_modal( event: MouseEvent ): void {
+	if ( removal_only.value || busy.value ) { return; }
 	const trigger = event.currentTarget as HTMLElement | null;
 
 	if ( mw.IntegratedProfiles && typeof mw.IntegratedProfiles.open_avatar_modal === 'function' ) {
@@ -1187,6 +1552,7 @@ function on_open_avatar_modal( event: MouseEvent ): void {
 }
 
 function on_open_banner_modal( event: MouseEvent ): void {
+	if ( removal_only.value || busy.value ) { return; }
 	const trigger = event.currentTarget as HTMLElement | null;
 
 	if ( mw.IntegratedProfiles && typeof mw.IntegratedProfiles.open_banner_modal === 'function' ) {

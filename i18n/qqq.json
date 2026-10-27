@@ -195,5 +195,16 @@
 	"apihelp-integratedprofileuploadbanner-example-1": "{{doc-api}}",
 	"apihelp-integratedprofiledeletebanner-summary": "{{doc-api}}",
 	"apihelp-integratedprofiledeletebanner-param-username": "{{doc-api}}",
-	"apihelp-integratedprofiledeletebanner-example-1": "{{doc-api}}"
+	"apihelp-integratedprofiledeletebanner-example-1": "{{doc-api}}",
+	"integratedprofiles-remove": "Button and heading for removal-only profile moderation.",
+	"integratedprofiles-remove-help": "Explains removal-only moderation and that content cannot be restored here.",
+	"integratedprofiles-remove-field": "Button to mark a profile field for removal. $1 is the localized field label.",
+	"integratedprofiles-remove-selected": "Button and fieldset legend for clearing selected profile fields.",
+	"right-integratedprofiles-remove": "{{doc-right|integratedprofiles-remove}}",
+	"action-integratedprofiles-remove": "{{doc-action|integratedprofiles-remove}}",
+	"apihelp-clearintegratedprofile-summary": "{{doc-api}}",
+	"apihelp-clearintegratedprofile-param-username": "{{doc-api}}",
+	"apihelp-clearintegratedprofile-param-fields": "{{doc-api}}",
+	"apihelp-clearintegratedprofile-example-1": "{{doc-api}}",
+	"logentry-integratedprofiles-clear": "Log entry for clearing profile content. $1 is the actor link, $2 the actor name for gender, $3 the target profile link."
 }

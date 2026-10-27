@@ -10,6 +10,19 @@ use MediaWiki\User\UserIdentity;
 class ProfilePermissions {
 
 	/**
+	 * ...
+	 *
+	 * @param UserIdentity $actor Acting user
+	 * @param int $owner_id Profile owner ID
+	 * @param bool $is_blocked Whether the actor is blocked
+	 * @param bool $has_remove_right Whether the actor has removal permission
+	 * @return bool
+	 */
+	public function can_remove( UserIdentity $actor, int $owner_id, bool $is_blocked, bool $has_remove_right ): bool {
+		return $this->can_edit( $actor, $owner_id, $is_blocked, $has_remove_right );
+	}
+
+	/**
 	 * Returns whether the actor may edit the subject's profile fields / avatar or not.
 	 */
 	public function can_edit( UserIdentity $actor, int $owner_id, bool $is_blocked, bool $has_manage_right ): bool {

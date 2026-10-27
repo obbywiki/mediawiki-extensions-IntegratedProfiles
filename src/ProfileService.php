@@ -178,6 +178,20 @@ class ProfileService {
 		return $this->permissions->can_see_subject( $subject->isHidden(), false );
 	}
 
+	/**
+	 * Whether the actor may remove profile content without replacement privileges.
+	 *
+	 * @param UserIdentity $actor Acting user
+	 * @param User $subject Profile owner
+	 * @return bool
+	 */
+	public function can_remove( UserIdentity $actor, User $subject ): bool {
+		$is_blocked = method_exists( $actor, 'getBlock' ) && (bool)$actor->getBlock();
+		$has_remove = method_exists( $actor, 'isAllowed' ) && ( $actor->isAllowed( 'integratedprofiles-remove' ) || $actor->isAllowed( 'integratedprofiles-manage' ) );
+
+		return $this->permissions->can_remove( $actor, $subject->getId(), $is_blocked, $has_remove );
+	}
+
 	public function can_edit( UserIdentity $actor, User $subject ): bool {
 		$is_blocked = method_exists( $actor, 'getBlock' ) && (bool)$actor->getBlock();
 		$has_manage = method_exists( $actor, 'isAllowed' )
@@ -546,7 +560,28 @@ class ProfileService {
 	}
 
 	/**
-	 * Persist sanitized fields for the subject. Caller must check can_edit.
+	 * Clear only named content fields, with authorization at the service boundary.
+	 *
+	 * @param UserIdentity $actor Acting user
+	 * @param User $subject Profile owner
+	 * @param list<string> $keys Content field names to clear
+	 * @return Status
+	 */
+	public function clear_fields( UserIdentity $actor, User $subject, array $keys ): Status {
+		if ( !$this->can_remove( $actor, $subject ) ) {
+			return Status::newFatal( 'integratedprofiles-error-permission' );
+		}
+
+		$fields = ProfileFields::removal_fields( $keys );
+		if ( $fields === null ) {
+			return Status::newFatal( 'integratedprofiles-error-invalid-fields', implode( ', ', array_filter( $keys, 'is_string' ) ) );
+		}
+
+		return $this->save_fields( $subject, $fields, $actor );
+	}
+
+	/**
+	 * Persist sanitized fields. Caller must check can_edit or use the authorized clear_fields path.
 	 *
 	 * @param User $subject Profile owner
 	 * @param array $input Raw field map from the client

@@ -294,8 +294,16 @@ mw.hook('wikipage.content').add(function ($content) {
 
 ## Rights
 
+* `integratedprofiles-remove`: Remove other users' avatars, custom banners, and content fields (about/tagline, location, featured article, and self-reported links). This does not permit replacement uploads, replacement text, privacy changes, or viewing private profiles. Granted to `sysop` by default. Owners and users with `integratedprofiles-manage` retain their existing removal permissions. Blocked and anonymous users cannot remove content.
+
 * `integratedprofiles-manage`: Users with this right can edit other users' profile details, including avatars and banners. Granted to `sysop` by default. Those edits are recorded in `Special:Log/integratedprofiles`. If settings are shared globally (e.g., via GlobalPreferences), then anyone with this right can edit profile details of a user for every other wiki at once.
 * `integratedprofiles-animated-avatar`: Allows users to upload animated (GIF, animated WebP files, or APNG) avatars and banners. Granted to `sysop` by default. Again, with shared avatars, this right on one wiki technically applies to all, as a user can upload an animated avatar or banner on any wiki where they have this right, and that image is then used anywhere. This has no effect if `$wgIntegratedProfilesEnableAnimatedAvatars` is set to false.
+
+For removal-only administrators, disable `integratedprofiles-manage` for their group and grant `integratedprofiles-remove`. Rights are additive: membership in another group with `integratedprofiles-manage` still allows editing. Users retain the ability to edit their own profiles.
+
+Removal-only moderators use the existing profile editor in **Remove profile content** mode, with read-only content fields and removal actions. Field removals are applied with the editor's save action; media deletions take effect immediately, as in the normal editor. The `clearintegratedprofile` API accepts a pipe-separated list of content field names, such as `fields=ip-about|ip-location`, and always clears them. It rejects privacy and banner preference keys; banner files use `integratedprofiledeletebanner`. Disabled social fields remain protected by the existing enabled-social-links configuration. Changes to others' profiles are logged in `Special:Log/integratedprofiles`. With shared storage or GlobalPreferences, removals can affect other wikis too.
+
+This is the first part of the permissions overhaul. Separate avatar/banner upload rights, separate animation rights, independent private-profile access, and separate local/global moderation scope remain follow-up work.
 
 Avatar and banner upload/delete requests share the `integratedprofiles-upload` rate limit (see `$wgRateLimits` above). `noratelimit` (granted to sysops by default) bypasses it. Rate limits require `$wgMainCacheType` to be something other than `CACHE_NONE`.
 

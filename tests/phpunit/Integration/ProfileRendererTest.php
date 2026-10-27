@@ -13,6 +13,30 @@ use MediaWikiIntegrationTestCase;
  */
 class ProfileRendererTest extends MediaWikiIntegrationTestCase {
 
+	public function test_removal_only_controls_do_not_offer_avatar_replacement(): void {
+		$renderer = new ProfileRenderer( new TemplateParser( __DIR__ . '/../../../templates' ) );
+		$html = $renderer->render_masthead(
+			[ 'user_name' => 'Example', 'avatar_url' => '/avatar.png' ],
+			false,
+			[ 'edit' => 'Moderate profile' ],
+			'/wiki/Special:Contributions/Example',
+			false, false, '', true
+		);
+		$this->assertStringContainsString( 'Moderate profile', $html );
+		$this->assertStringContainsString( 'id="integratedprofiles-editor-root"', $html );
+		$this->assertStringNotContainsString( 'id="integratedprofiles-avatar-edit"', $html );
+	}
+
+	public function test_removal_right_does_not_expose_controls_on_private_payloads(): void {
+		$renderer = new ProfileRenderer( new TemplateParser( __DIR__ . '/../../../templates' ) );
+		$html = $renderer->render_masthead(
+			[ 'user_name' => 'Example', 'avatar_url' => '/avatar.png', 'is_private' => true ],
+			false, [], '/wiki/Special:Contributions/Example', false, false, '', true
+		);
+		$this->assertStringNotContainsString( 'id="integratedprofiles-editor-root"', $html );
+		$this->assertStringNotContainsString( 'id="integratedprofiles-avatar-edit"', $html );
+	}
+
 	private ProfileRenderer $renderer;
 
 	protected function setUp(): void {
