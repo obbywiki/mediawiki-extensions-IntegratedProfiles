@@ -9,7 +9,7 @@ permissions: {}
 jobs:
   release-please:
     if: github.repository_owner == 'obbywiki'
-    uses: obbywiki/shared-workflows/.github/workflows/release-please.yml@v1
+    uses: obbywiki/shared-workflows/.github/workflows/release-please.yml@v2
     secrets:
-      app-id: ${{ secrets.OW_BOT_APP_ID }}
+      client-id: ${{ secrets.OW_BOT_CLIENT_ID }}
       private-key: ${{ secrets.OW_BOT_PRIVATE_KEY }}
