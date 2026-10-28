@@ -8,6 +8,7 @@ use MediaWiki\Extension\IntegratedProfiles\BannerService;
 use MediaWiki\Extension\IntegratedProfiles\BannerStorage;
 use MediaWiki\Extension\IntegratedProfiles\HookRunner;
 use MediaWiki\Extension\IntegratedProfiles\ImageUploadSanitizer;
+use MediaWiki\Extension\IntegratedProfiles\ImageUploadVerifier;
 use MediaWiki\Extension\IntegratedProfiles\NewAuthBridge;
 use MediaWiki\Extension\IntegratedProfiles\ProfileHandler;
 use MediaWiki\Extension\IntegratedProfiles\ProfileLanguageLinks;
@@ -94,7 +95,8 @@ return [
 			$services->get( AvatarStorage::SERVICE_NAME ),
 			$cache_type === null ? $cache_factory->getLocalClusterInstance() : $cache_factory->getInstance( $cache_type ),
 			$services->get( ProfileSubjectIds::SERVICE_NAME ),
-			new ImageUploadSanitizer( $services->getTempFSFileFactory() )
+			new ImageUploadSanitizer( $services->getTempFSFileFactory() ),
+			new ImageUploadVerifier( $services->get( 'IntegratedProfiles.HookRunner' ) )
 		);
 	},
 
@@ -120,7 +122,8 @@ return [
 			$services->get( BannerStorage::SERVICE_NAME ),
 			$cache_type === null ? $cache_factory->getLocalClusterInstance() : $cache_factory->getInstance( $cache_type ),
 			$services->get( ProfileSubjectIds::SERVICE_NAME ),
-			new ImageUploadSanitizer( $services->getTempFSFileFactory() )
+			new ImageUploadSanitizer( $services->getTempFSFileFactory() ),
+			new ImageUploadVerifier( $services->get( 'IntegratedProfiles.HookRunner' ) )
 		);
 	},
 

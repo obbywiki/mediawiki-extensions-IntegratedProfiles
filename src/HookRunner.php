@@ -4,13 +4,15 @@ namespace MediaWiki\Extension\IntegratedProfiles;
 
 use MediaWiki\Context\IContextSource;
 use MediaWiki\Extension\IntegratedProfiles\Hook\IntegratedProfilesAfterAvatarHook;
+use MediaWiki\Extension\IntegratedProfiles\Hook\IntegratedProfilesVerifyImageUploadHook;
 use MediaWiki\HookContainer\HookContainer;
+use MediaWiki\User\UserIdentity;
 
 /**
  * IntegratedProfiles hooks dispatcher.
  * TODO: add these to src/Hook/*
  */
-class HookRunner implements IntegratedProfilesAfterAvatarHook {
+class HookRunner implements IntegratedProfilesAfterAvatarHook, IntegratedProfilesVerifyImageUploadHook {
 
 	public function __construct(
 		private readonly HookContainer $hook_container,
@@ -65,6 +67,22 @@ class HookRunner implements IntegratedProfilesAfterAvatarHook {
 	 */
 	public function onIntegratedProfilesRenderTab( string $tab_id, string &$html, array $profile, IContextSource $context ): void {
 		$this->hook_container->run( 'IntegratedProfilesRenderTab', [ $tab_id, &$html, $profile, $context ] );
+	}
+
+	/**
+	 * Lets other extensions reject an avatar or banner before it is stored. Intended for moderation purposes.
+	 * Works like core's UploadVerifyFile, set $error (or return false) to reject the upload.
+	 *
+	 * @param string $kind 'avatar' or 'banner'
+	 * @param string $path Local path to the sanitized image that would be stored
+	 * @param string $mime Detected MIME type
+	 * @param int $central_id Central user ID the image is stored under
+	 * @param UserIdentity|null $user Profile owner, when known
+	 * @param string|array|\Wikimedia\Message\MessageSpecifier|null &$error Rejection message
+	 * @return bool False when a handler aborted
+	 */
+	public function onIntegratedProfilesVerifyImageUpload( string $kind, string $path, string $mime, int $central_id, ?UserIdentity $user, &$error ) {
+		return $this->hook_container->run( 'IntegratedProfilesVerifyImageUpload', [ $kind, $path, $mime, $central_id, $user, &$error ] );
 	}
 
 }

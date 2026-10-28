@@ -64,6 +64,7 @@
 	"integratedprofiles-banner-error": "Error message for banner mutations.",
 	"integratedprofiles-error-image-dimensions": "Error shown when selecting or uploading an avatar or banner whose dimensions exceed 16 megapixels or 16,384 pixels on either side.",
 	"integratedprofiles-error-image-unsafe": "API/UI error when an avatar or banner did not pass validation.",
+	"integratedprofiles-error-image-rejected": "API/UI error when another extension (e.g. image moderation) rejected an avatar or banner through the IntegratedProfilesVerifyImageUpload hook without giving its own message. While this error is intended for moderation rejections, it can technically be used for anything, so keep it generic.",
 	"integratedprofiles-banner-preset-accent": "Label for the farm-accent gradient banner preset.",
 	"integratedprofiles-banner-preset-ocean": "Label for the ocean gradient banner preset.",
 	"integratedprofiles-banner-preset-sunset": "Label for the sunset gradient banner preset.",

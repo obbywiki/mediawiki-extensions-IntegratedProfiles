@@ -6,9 +6,12 @@ namespace MediaWiki\Extension\IntegratedProfiles\Tests\Unit;
 use MediaWiki\Config\ServiceOptions;
 use MediaWiki\Extension\IntegratedProfiles\AvatarService;
 use MediaWiki\Extension\IntegratedProfiles\AvatarStorage;
+use MediaWiki\Extension\IntegratedProfiles\HookRunner;
 use MediaWiki\Extension\IntegratedProfiles\ImageUploadSanitizer;
+use MediaWiki\Extension\IntegratedProfiles\ImageUploadVerifier;
 use MediaWiki\Extension\IntegratedProfiles\ProfileSubjectIds;
 use MediaWiki\Status\Status;
+use MediaWiki\User\UserIdentityValue;
 use MediaWikiUnitTestCase;
 use Wikimedia\FileBackend\FSFile\TempFSFileFactory;
 use Wikimedia\ObjectCache\HashBagOStuff;
@@ -18,6 +21,8 @@ use Wikimedia\ObjectCache\HashBagOStuff;
  * @covers \MediaWiki\Extension\IntegratedProfiles\AvatarService
  */
 class AvatarServiceUploadTest extends MediaWikiUnitTestCase {
+
+	private const PNG_1X1 = "\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89" . "\x00\x00\x00\rIDATx\xdac\xfc\xcf\xc0P\x0f\x00\x04\x85\x01\x80\x84\xa9\x8c!\x00\x00\x00\x00IEND\xaeB`\x82";
 
 	private string $temp_dir;
 
@@ -91,7 +96,52 @@ class AvatarServiceUploadTest extends MediaWikiUnitTestCase {
 		$this->assertStatusError( 'integratedprofiles-error-image-unsafe', $status );
 	}
 
-	private function make_service( AvatarStorage $storage ): AvatarService {
+	public function test_upload_hook_sees_sanitized_file_and_can_reject(): void {
+		$png = self::PNG_1X1;
+		$path = $this->temp_dir . '/flagged.png';
+		file_put_contents( $path, $png . '<html>polyglot</html>' );
+
+		$storage = $this->createMock( AvatarStorage::class );
+		$storage->expects( $this->never() )->method( 'store' );
+		$storage->expects( $this->never() )->method( 'find_extension_with_mtime' );
+
+		$user = new UserIdentityValue( 1, 'Alice' );
+		$calls = 0;
+		$hooks = [
+			'IntegratedProfilesVerifyImageUpload' => function ( $kind, $hook_path, $mime, $central_id, $hook_user, &$error ) use ( $png, $user, $path, &$calls ) {
+				$calls++;
+				$this->assertSame( 'avatar', $kind );
+				$this->assertNotSame( $path, $hook_path );
+				$this->assertSame( $png, file_get_contents( $hook_path ) );
+				$this->assertSame( 'image/png', $mime );
+				$this->assertSame( 1000, $central_id );
+				$this->assertSame( $user, $hook_user );
+				$error = [ 'nsfwimagemoderation-upload-rejected', 'detail' ];
+			},
+		];
+
+		$status = $this->make_service( $storage, $hooks )->upload_for_user( $user, $path, filesize( $path ) );
+
+		$this->assertSame( 1, $calls );
+		$this->assertStatusError( 'nsfwimagemoderation-upload-rejected', $status );
+	}
+
+	public function test_upload_stores_when_hook_passes(): void {
+		$path = $this->temp_dir . '/clean.png';
+		file_put_contents( $path, self::PNG_1X1 );
+
+		$storage = $this->createMock( AvatarStorage::class );
+		$storage->expects( $this->once() )->method( 'store' )->willReturn( Status::newGood() );
+		$storage->method( 'find_extension_with_mtime' )->willReturn( [ 'ext' => 'png', 'mtime' => '1' ] );
+		$storage->method( 'public_url' )->willReturn( '/images/ipavatars/avatar_1000.png?r=1' );
+
+		$hooks = [ 'IntegratedProfilesVerifyImageUpload' => static fn () => true ];
+		$status = $this->make_service( $storage, $hooks )->upload( 1000, $path, filesize( $path ) );
+
+		$this->assertStatusGood( $status );
+	}
+
+	private function make_service( AvatarStorage $storage, array $hooks = [] ): AvatarService {
 		$subject_ids = $this->createMock( ProfileSubjectIds::class );
 		$subject_ids->method( 'ids_for' )->willReturn( [ 'central_id' => 1000, 'local_id' => 1 ] );
 
@@ -100,7 +150,8 @@ class AvatarServiceUploadTest extends MediaWikiUnitTestCase {
 			$storage,
 			new HashBagOStuff(),
 			$subject_ids,
-			new ImageUploadSanitizer( new TempFSFileFactory( $this->temp_dir ) )
+			new ImageUploadSanitizer( new TempFSFileFactory( $this->temp_dir ) ),
+			new ImageUploadVerifier( new HookRunner( $this->createHookContainer( $hooks ) ) )
 		);
 	}
 

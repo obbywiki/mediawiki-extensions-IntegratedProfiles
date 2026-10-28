@@ -8,7 +8,9 @@ use MediaWiki\Extension\IntegratedProfiles\AvatarService;
 use MediaWiki\Extension\IntegratedProfiles\AvatarStorage;
 use MediaWiki\Extension\IntegratedProfiles\BannerService;
 use MediaWiki\Extension\IntegratedProfiles\BannerStorage;
+use MediaWiki\Extension\IntegratedProfiles\HookRunner;
 use MediaWiki\Extension\IntegratedProfiles\ImageUploadSanitizer;
+use MediaWiki\Extension\IntegratedProfiles\ImageUploadVerifier;
 use MediaWiki\Extension\IntegratedProfiles\ProfileSubjectIds;
 use MediaWiki\Status\Status;
 use MediaWikiUnitTestCase;
@@ -42,7 +44,8 @@ class MediaAnimationConfigTest extends MediaWikiUnitTestCase {
 		$service = new $service_class(
 			new ServiceOptions( $service_class::CONSTRUCTOR_OPTIONS, $config ),
 			$storage, new HashBagOStuff(), $this->createMock( ProfileSubjectIds::class ),
-			new ImageUploadSanitizer( new TempFSFileFactory( sys_get_temp_dir() ) )
+			new ImageUploadSanitizer( new TempFSFileFactory( sys_get_temp_dir() ) ),
+			new ImageUploadVerifier( new HookRunner( $this->createHookContainer() ) )
 		);
 		$path = tempnam( sys_get_temp_dir(), 'ip-animation-' );
 		$gif = 'GIF89a' . "\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\xFF\xFF\xFF"

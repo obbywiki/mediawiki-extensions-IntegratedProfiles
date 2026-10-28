@@ -348,8 +348,9 @@ Please see better hook documentation at <https://www.mediawiki.org/wiki/Extensio
 * [IntegratedProfilesAfterAvatar](https://www.mediawiki.org/wiki/Special:MyLanguage/Extension:IntegratedProfiles/Hooks/IntegratedProfilesAfterAvatar)
 * [IntegratedProfilesGetTabs](https://www.mediawiki.org/wiki/Special:MyLanguage/Extension:IntegratedProfiles/Hooks/IntegratedProfilesGetTabs)
 * [IntegratedProfilesRenderTab](https://www.mediawiki.org/wiki/Special:MyLanguage/Extension:IntegratedProfiles/Hooks/IntegratedProfilesRenderTab)
+* [IntegratedProfilesVerifyImageUpload](https://www.mediawiki.org/wiki/Special:MyLanguage/Extension:IntegratedProfiles/Hooks/IntegratedProfilesVerifyImageUpload)
 
-There should be code and usage examples there, along with other information about how these hooks are used internally and where they fit in.
+There should be code and usage examples there, along with other information about how these hooks are used internally and where they fit in. If not, you can view light documentation with-in the repo at src/HookRunner.php and in the files under src/Hook.
 
 If there's a performant way to implement another hook with a lot of potential use cases, create an issue on this GitHub issue as a request.
 

@@ -7,6 +7,7 @@ use MediaWiki\Config\ServiceOptions;
 use MediaWiki\Extension\IntegratedProfiles\AvatarService;
 use MediaWiki\Extension\IntegratedProfiles\AvatarStorage;
 use MediaWiki\Extension\IntegratedProfiles\ImageUploadSanitizer;
+use MediaWiki\Extension\IntegratedProfiles\ImageUploadVerifier;
 use MediaWiki\Extension\IntegratedProfiles\ProfileSubjectIds;
 use MediaWiki\User\UserIdentity;
 use MediaWikiUnitTestCase;
@@ -132,7 +133,8 @@ class AvatarServiceBatchTest extends MediaWikiUnitTestCase {
 			$storage,
 			$cache,
 			$subject_ids,
-			$this->createNoOpMock( ImageUploadSanitizer::class )
+			$this->createNoOpMock( ImageUploadSanitizer::class ),
+			$this->createNoOpMock( ImageUploadVerifier::class )
 		);
 	}
 

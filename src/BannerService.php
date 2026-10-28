@@ -28,6 +28,7 @@ class BannerService {
 		private readonly BagOStuff $cache,
 		private readonly ProfileSubjectIds $subject_ids,
 		private readonly ImageUploadSanitizer $sanitizer,
+		private readonly ImageUploadVerifier $verifier,
 	) {
 		$options->assertRequiredOptions( self::CONSTRUCTOR_OPTIONS );
 		$this->validator = new BannerValidator(
@@ -128,7 +129,7 @@ class BannerService {
 	 */
 	public function upload_for_user( UserIdentity $user, string $tmp_path, int $size, bool $allow_animated = false ): Status {
 		$ids = $this->subject_ids->ids_for( $user );
-		return $this->upload( $ids['central_id'], $tmp_path, $size, $allow_animated );
+		return $this->upload( $ids['central_id'], $tmp_path, $size, $allow_animated, $user );
 	}
 
 	/**
@@ -136,8 +137,9 @@ class BannerService {
 	 * @param string $tmp_path Local filesystem path to the upload
 	 * @param int $size Byte length reported by the upload
 	 * @param bool $allow_animated Whether animated GIF / WebP / APNG is allowed
+	 * @param UserIdentity|null $user Profile owner, passed to IntegratedProfilesVerifyImageUpload
 	 */
-	public function upload( int $central_id, string $tmp_path, int $size, bool $allow_animated = false ): Status {
+	public function upload( int $central_id, string $tmp_path, int $size, bool $allow_animated = false, ?UserIdentity $user = null ): Status {
 		if ( $central_id <= 0 ) {
 			return Status::newFatal( 'integratedprofiles-error-banner-upload' );
 		}
@@ -152,7 +154,12 @@ class BannerService {
 			$tmp_path,
 			$validation['ext'],
 
-			function ( string $path ) use ( $central_id, $validation ): Status {
+			function ( string $path ) use ( $central_id, $validation, $user ): Status {
+				$verified = $this->verifier->verify( 'banner', $path, $validation['ext'], $central_id, $user );
+				if ( !$verified->isOK() ) {
+					return $verified;
+				}
+
 				$stored = $this->storage->store( $central_id, $validation['ext'], $path );
 				if ( !$stored->isOK() ) {
 					$stored->fatal( 'integratedprofiles-error-banner-upload' );

@@ -29,6 +29,7 @@ class AvatarService {
 		private readonly BagOStuff $cache,
 		private readonly ProfileSubjectIds $subject_ids,
 		private readonly ImageUploadSanitizer $sanitizer,
+		private readonly ImageUploadVerifier $verifier,
 	) {
 		$options->assertRequiredOptions( self::CONSTRUCTOR_OPTIONS );
 		$this->validator = new AvatarValidator( (int)$options->get( 'IntegratedProfilesAvatarMaxBytes' ) );
@@ -162,7 +163,8 @@ class AvatarService {
 			$ids['central_id'],
 			$tmp_path,
 			$size,
-			$allow_animated
+			$allow_animated,
+			$user
 		);
 	}
 
@@ -171,8 +173,9 @@ class AvatarService {
 	 * @param string $tmp_path Local filesystem path to the upload
 	 * @param int $size Byte length reported by the upload
 	 * @param bool $allow_animated Whether animated GIF / WebP / APNG is allowed
+	 * @param UserIdentity|null $user Profile owner, passed to IntegratedProfilesVerifyImageUpload
 	 */
-	public function upload( int $central_id, string $tmp_path, int $size, bool $allow_animated = false ): Status {
+	public function upload( int $central_id, string $tmp_path, int $size, bool $allow_animated = false, ?UserIdentity $user = null ): Status {
 		if ( $central_id <= 0 ) {
 			return Status::newFatal( 'integratedprofiles-error-avatar-upload' );
 		}
@@ -187,7 +190,12 @@ class AvatarService {
 			$tmp_path,
 			$validation['ext'],
 
-			function ( string $path ) use ( $central_id, $validation ): Status {
+			function ( string $path ) use ( $central_id, $validation, $user ): Status {
+				$verified = $this->verifier->verify( 'avatar', $path, $validation['ext'], $central_id, $user );
+				if ( !$verified->isOK() ) {
+					return $verified;
+				}
+
 				$stored = $this->storage->store( $central_id, $validation['ext'], $path );
 				if ( !$stored->isOK() ) {
 					// the backend's own errors take priority
