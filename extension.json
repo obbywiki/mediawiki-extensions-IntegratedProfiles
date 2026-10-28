@@ -437,6 +437,10 @@
 			"value": "",
 			"description": "Stable public URL root for avatars and banners. Do not include ipavatars/ipbanners, as those containers are appended automatically. Defaults to $wgUploadBaseUrl + $wgUploadPath (single-wiki default) when empty."
 		},
+		"IntegratedProfilesCacheType": {
+			"value": null,
+			"description": "Object cache for avatar and banner file metadata. When mull, $wgMainCacheType is used, otherwise IP uses an integer cache constant or a key in $wgObjectCaches. Farms sharing avatars and banners must use a shared cache destination with consistent key routing."
+		},
 		"IntegratedProfilesEnableNewAuthPanel": {
 			"value": true,
 			"description": "Show verified NewAuth connections on profiles when NewAuth is loaded."

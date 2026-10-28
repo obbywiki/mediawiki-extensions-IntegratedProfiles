@@ -81,6 +81,9 @@ return [
 	},
 
 	AvatarService::SERVICE_NAME => static function ( MediaWikiServices $services ): AvatarService {
+		$cache_type = $services->getMainConfig()->get( 'IntegratedProfilesCacheType' );
+		$cache_factory = $services->getObjectCacheFactory();
+
 		return new AvatarService(
 			new ServiceOptions(
 				AvatarService::CONSTRUCTOR_OPTIONS,
@@ -88,7 +91,7 @@ return [
 			),
 
 			$services->get( AvatarStorage::SERVICE_NAME ),
-			$services->getObjectCacheFactory()->getLocalClusterInstance(),
+			$cache_type === null ? $cache_factory->getLocalClusterInstance() : $cache_factory->getInstance( $cache_type ),
 			$services->get( ProfileSubjectIds::SERVICE_NAME )
 		);
 	},
@@ -103,6 +106,9 @@ return [
 	},
 
 	BannerService::SERVICE_NAME => static function ( MediaWikiServices $services ): BannerService {
+		$cache_type = $services->getMainConfig()->get( 'IntegratedProfilesCacheType' );
+		$cache_factory = $services->getObjectCacheFactory();
+
 		return new BannerService(
 			new ServiceOptions(
 				BannerService::CONSTRUCTOR_OPTIONS,
@@ -110,7 +116,7 @@ return [
 			),
 
 			$services->get( BannerStorage::SERVICE_NAME ),
-			$services->getObjectCacheFactory()->getLocalClusterInstance(),
+			$cache_type === null ? $cache_factory->getLocalClusterInstance() : $cache_factory->getInstance( $cache_type ),
 			$services->get( ProfileSubjectIds::SERVICE_NAME )
 		);
 	},

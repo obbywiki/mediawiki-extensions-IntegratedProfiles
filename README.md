@@ -193,6 +193,7 @@ Below are open-source integrations that implement IntegratedProfiles' hooks or A
 | `$wgIntegratedProfilesGroupPriority` | array | `['sysop','bureaucrat','interface-admin','checkuser','oversight','steward']` | Role IDs to show first in the profile header, as roles that do not fit may be collapsed. Keep the most important roles in the first three items. |
 | `$wgIntegratedProfilesBackend` | ![string](https://img.shields.io/badge/-string-blue?style=flat-square) | `''` | Named entry in `$wgFileBackends`. Empty uses `{UploadDirectory}/ipavatars` and `{UploadDirectory}/ipbanners`. Must already exist if set. See Setup. |
 | `$wgIntegratedProfilesUploadBaseUrl` | ![string](https://img.shields.io/badge/-string-blue?style=flat-square) | `''` | Stable public URL root for avatars and banners. Do not include `ipavatars`/`ipbanners`. When empty, defaults to `$wgUploadBaseUrl` + `$wgUploadPath`. |
+| `$wgIntegratedProfilesCacheType` | int / string / null | `null` | Object cache for avatar and banner file metadata. When mull, $wgMainCacheType is used, otherwise IP uses an integer cache constant or a key in $wgObjectCaches. Farms sharing avatars and banners must use a shared cache destination with consistent key routing. |
 | `$wgIntegratedProfilesEnableUserCards` | ![boolean](https://img.shields.io/badge/-boolean-orange?style=flat-square) | `false` | On-click profile cards for username links. Requires FloatingUI. |
 | `$wgIntegratedProfilesAboutMaxLength` | ![number](https://img.shields.io/badge/-number-green?style=flat-square) | `300` | Maximum length in characters for the about tagline. |
 | `$wgIntegratedProfilesLinkMaxLength` | ![number](https://img.shields.io/badge/-number-green?style=flat-square) | `255` | Maximum length in characters for freeform profile link fields. |
@@ -205,6 +206,17 @@ Below are open-source integrations that implement IntegratedProfiles' hooks or A
 | `$wgIntegratedProfilesBannerPresetDefault` | ![string](https://img.shields.io/badge/-string-blue?style=flat-square) | `''` | Optional preset ID to use as the single-wiki default. If empty, the first item in `$wgIntegratedProfilesBannerPresetImages` will be used. |
 | `$wgIntegratedProfilesLanguageInterwikis` | array | `[]` | Language interwiki prefixes to inject on user/user talk pages (e.g. ["en","ko","ja"]). Skips the wiki content language and $wgLocalInterwikis. See below. |
 | `$wgRateLimits['integratedprofiles-upload']` | array | `ip`/`newbie`/`user`: 8/60s; `user-global`: 12/60s | Throttle for avatar and banner upload/delete. Uses core `User::pingLimiter`. `user-global` counts across a farm when CentralAuth is present. Users with `noratelimit` are exempt. |
+
+### Media cache
+
+Avatars and banners use MediaWiki's main cache by default. If every wiki already uses the same shared main cache, no additional setting is needed. To select a separate cache, set this consistently across the farm:
+
+```php
+// 'shared-media' must be an existing entry in $wgObjectCaches.
+$wgIntegratedProfilesCacheType = 'shared-media';
+```
+
+Integer cache constants are also accepted. You can use `CACHE_NONE` to disable this metadata cache, or `null` to inherit it from `$wgMainCacheType`.
 
 ### Local settings
 
