@@ -27,6 +27,7 @@ class BannerService {
 		private readonly BannerStorage $storage,
 		private readonly BagOStuff $cache,
 		private readonly ProfileSubjectIds $subject_ids,
+		private readonly ImageUploadSanitizer $sanitizer,
 	) {
 		$options->assertRequiredOptions( self::CONSTRUCTOR_OPTIONS );
 		$this->validator = new BannerValidator(
@@ -147,9 +148,21 @@ class BannerService {
 			return Status::newFatal( $validation['error'] );
 		}
 
-		$status = $this->storage->store( $central_id, $validation['ext'], $tmp_path );
+		$status = $this->sanitizer->with_sanitized_file(
+			$tmp_path,
+			$validation['ext'],
+
+			function ( string $path ) use ( $central_id, $validation ): Status {
+				$stored = $this->storage->store( $central_id, $validation['ext'], $path );
+				if ( !$stored->isOK() ) {
+					$stored->fatal( 'integratedprofiles-error-banner-upload' );
+				}
+
+				return $stored;
+			}
+		);
+
 		if ( !$status->isOK() ) {
-			$status->fatal( 'integratedprofiles-error-banner-upload' );
 			return $status;
 		}
 
