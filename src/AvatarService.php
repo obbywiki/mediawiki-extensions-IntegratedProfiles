@@ -5,7 +5,6 @@ namespace MediaWiki\Extension\IntegratedProfiles;
 use MediaWiki\Config\ServiceOptions;
 use MediaWiki\Status\Status;
 use MediaWiki\User\UserIdentity;
-use Wikimedia\FileBackend\FSFile\TempFSFileFactory;
 use Wikimedia\ObjectCache\BagOStuff;
 
 /**
@@ -29,7 +28,7 @@ class AvatarService {
 		private readonly AvatarStorage $storage,
 		private readonly BagOStuff $cache,
 		private readonly ProfileSubjectIds $subject_ids,
-		private readonly ImageUploadSanitizer $sanitizer = new ImageUploadSanitizer( new TempFSFileFactory() ),
+		private readonly ImageUploadSanitizer $sanitizer,
 	) {
 		$options->assertRequiredOptions( self::CONSTRUCTOR_OPTIONS );
 		$this->validator = new AvatarValidator( (int)$options->get( 'IntegratedProfilesAvatarMaxBytes' ) );

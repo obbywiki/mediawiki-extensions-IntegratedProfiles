@@ -6,6 +6,7 @@ namespace MediaWiki\Extension\IntegratedProfiles\Tests\Unit;
 use MediaWiki\Config\ServiceOptions;
 use MediaWiki\Extension\IntegratedProfiles\AvatarService;
 use MediaWiki\Extension\IntegratedProfiles\AvatarStorage;
+use MediaWiki\Extension\IntegratedProfiles\ImageUploadSanitizer;
 use MediaWiki\Extension\IntegratedProfiles\ProfileSubjectIds;
 use MediaWiki\User\UserIdentity;
 use MediaWikiUnitTestCase;
@@ -98,7 +99,8 @@ class AvatarServiceResolveTest extends MediaWikiUnitTestCase {
 			),
 			$storage,
 			$cache ?? new HashBagOStuff(),
-			$subject_ids
+			$subject_ids,
+			$this->createNoOpMock( ImageUploadSanitizer::class )
 		);
 	}
 

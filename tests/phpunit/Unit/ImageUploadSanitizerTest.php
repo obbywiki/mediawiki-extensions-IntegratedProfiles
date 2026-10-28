@@ -225,6 +225,38 @@ class ImageUploadSanitizerTest extends MediaWikiUnitTestCase {
 		$this->assertStringContainsString( 'ANMF', $clean );
 	}
 
+	public function test_gif_rebuilds_loop_and_control_extensions_without_extra_sub_blocks(): void {
+		$padded = $this->build_gif( 2, '' );
+		$padded = str_replace( "\x03\x01\x00\x00\x00", "\x03\x01\x00\x00\x0Ahidden-10b\x00", $padded );
+		$padded = str_replace( "\x21\xF9\x04\x00\x0A\x00\x00\x00", "\x21\xF9\x04\x00\x0A\x00\x00\x04more\x00", $padded );
+
+		$clean = ImageUploadSanitizer::sanitize( $padded, 'gif' );
+		$this->assertSame( $this->build_gif( 2, '' ), $clean );
+	}
+
+	public function test_gif_drops_netscape_extension_without_loop_sub_block(): void {
+		$gif = str_replace( "\x03\x01\x00\x00\x00", "\x05\x02\x00\x10\x00\x00\x00", $this->build_gif( 1, '' ) );
+
+		$clean = ImageUploadSanitizer::sanitize( $gif, 'gif' );
+		$this->assertNotNull( $clean );
+		$this->assertStringNotContainsString( 'NETSCAPE2.0', $clean );
+	}
+
+	public function test_webp_without_image_data_is_rejected(): void {
+		$vp8x = 'VP8X' . pack( 'V', 10 ) . str_repeat( "\x00", 10 );
+		$iccp = 'ICCP' . pack( 'V', 4 ) . 'icc!';
+		$payload = 'WEBP' . $vp8x . $iccp;
+
+		$this->assertNull( ImageUploadSanitizer::sanitize( 'RIFF' . pack( 'V', strlen( $payload ) ) . $payload, 'webp' ) );
+	}
+
+	public function test_webp_frame_without_image_data_is_rejected(): void {
+		$frame = str_repeat( "\x00", 16 ) . 'C2PA' . pack( 'V', 4 ) . 'Anon';
+		$anmf = 'ANMF' . pack( 'V', strlen( $frame ) ) . $frame;
+
+		$this->assertNull( ImageUploadSanitizer::sanitize( $this->build_webp( $anmf ), 'webp' ) );
+	}
+
 	public function test_unknown_extension_is_rejected(): void {
 		$this->assertNull( ImageUploadSanitizer::sanitize( $this->png_1x1(), 'bmp' ) );
 	}

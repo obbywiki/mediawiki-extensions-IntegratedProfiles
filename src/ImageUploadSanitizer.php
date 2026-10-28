@@ -404,9 +404,7 @@ class ImageUploadSanitizer {
 				if ( $skipped === null ) {
 					return null;
 				}
-				if ( self::gif_keep_extension( $data, $offset ) ) {
-					$out .= substr( $data, $block_start, $skipped - $block_start );
-				}
+				$out .= self::gif_canonical_extension( $data, $block_start, $skipped );
 
 				$offset = $skipped;
 				continue;
@@ -444,19 +442,36 @@ class ImageUploadSanitizer {
 	}
 
 	/**
-	 * Keep graphic control extensions and the looping application extensions while stripping any other application data (comments, plain text, XMP, etc.).
+	 * Rebuild graphic control extensions and the looping application extensions with only their standard sub-block, stripping any other application data (comments, plain text, XMP, etc.) and any extra sub-blocks.
+	 *
+	 * @param string $data
+	 * @param int $offset Start of the extension (0x21)
+	 * @param int $end Offset just past the extension's block terminator
+	 * @return string Canonical extension bytes, or '' to drop it
 	 */
-	private static function gif_keep_extension( string $data, int $offset ): bool {
+	private static function gif_canonical_extension( string $data, int $offset, int $end ): string {
 		$label = ord( $data[$offset + 1] );
 		if ( $label === 0xF9 ) {
-			return true;
+			// 4-byte block: packed fields, delay, transparent index
+			return ( $offset + 7 <= $end && $data[$offset + 2] === "\x04" )
+				? "\x21\xF9\x04" . substr( $data, $offset + 3, 4 ) . "\x00"
+				: '';
 		}
 
 		if ( $label === 0xFF ) {
-			return ( $data[$offset + 2] ?? '' ) === "\x0B" && in_array( substr( $data, $offset + 3, 11 ), self::GIF_APP_KEEP, true );
+			$id = substr( $data, $offset + 3, 11 );
+			// 3-byte loop sub-block: id 1, loop count
+			$loop = $offset + 14;
+			if ( ( $data[$offset + 2] ?? '' ) !== "\x0B" || !in_array( $id, self::GIF_APP_KEEP, true ) ||
+				$loop + 4 > $end || substr( $data, $loop, 2 ) !== "\x03\x01"
+			) {
+				return '';
+			}
+
+			return "\x21\xFF\x0B" . $id . "\x03\x01" . substr( $data, $loop + 2, 2 ) . "\x00";
 		}
 
-		return false;
+		return '';
 	}
 
 	private static function skip_gif_sub_blocks( string $data, int $offset, int $len ): ?int {
@@ -493,8 +508,10 @@ class ImageUploadSanitizer {
 			return null;
 		}
 
-		$chunks = self::filter_riff_chunks( $data, 12, $end, self::WEBP_KEEP );
-		if ( $chunks === null || $chunks === '' ) {
+		$kept = [];
+		$chunks = self::filter_riff_chunks( $data, 12, $end, self::WEBP_KEEP, $kept );
+		// VP8X, ICCP etc. alone are not an image
+		if ( $chunks === null || !array_intersect( $kept, [ 'VP8 ', 'VP8L', 'ANMF' ] ) ) {
 			return null;
 		}
 
@@ -506,9 +523,10 @@ class ImageUploadSanitizer {
 	 * @param int $offset First chunk header
 	 * @param int $end End of the enclosing chunk
 	 * @param list<string> $keep
+	 * @param list<string> &$kept Receives the FourCCs that were kept
 	 * @return string|null Re-serialised allowlisted chunks, or null on a malformed chunk
 	 */
-	private static function filter_riff_chunks( string $data, int $offset, int $end, array $keep ): ?string {
+	private static function filter_riff_chunks( string $data, int $offset, int $end, array $keep, array &$kept ): ?string {
 		$chunks = '';
 
 		while ( $offset + 8 <= $end ) {
@@ -536,14 +554,16 @@ class ImageUploadSanitizer {
 					return null;
 				}
 
-				$frame = self::filter_riff_chunks( $payload, 16, $size, self::WEBP_FRAME_KEEP );
-				if ( $frame === null ) {
+				$frame_kept = [];
+				$frame = self::filter_riff_chunks( $payload, 16, $size, self::WEBP_FRAME_KEEP, $frame_kept );
+				if ( $frame === null || !array_intersect( $frame_kept, [ 'VP8 ', 'VP8L' ] ) ) {
 					return null;
 				}
 
 				$payload = substr( $payload, 0, 16 ) . $frame;
 			}
 
+			$kept[] = $fourcc;
 			$chunks .= $fourcc . pack( 'V', strlen( $payload ) ) . $payload;
 			if ( strlen( $payload ) % 2 ) {
 				$chunks .= "\x00";
