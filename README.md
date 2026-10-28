@@ -76,7 +76,7 @@ No extra configuration is needed. The default backend is enough, so simply load 
 wfLoadExtension( 'IntegratedProfiles' );
 ```
 
-Ensure that `$IP/images/avatars` and `$IP/images/banners` are both writable. You can configure a custom FileBackend if you wish, however.
+Ensure that `$IP/images/ipavatars` and `$IP/images/ipbanners` are both writable. You can configure a custom FileBackend if you wish, however.
 
 ### Wiki farm
 
