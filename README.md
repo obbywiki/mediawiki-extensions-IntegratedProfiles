@@ -244,15 +244,6 @@ $wgIntegratedProfilesEnabledSocialLinks = [ 'website', 'discord', 'roblox' ];
 
 While `website` is in the facts strip, it is still controlled by the enabled social links settings.
 
-### User cards
-
-Username links open a profile card on click. This is off by default and requires FloatingUI:
-
-```php
-wfLoadExtension( 'FloatingUI' );
-$wgIntegratedProfilesEnableUserCards = true;
-```
-
 ### Language interwikis
 
 You can use $wgIntegratedProfilesLanguageInterwikis to link to language interwikis automatically. Please ensure each language code set here is also registered in the `interwiki` table of **each** wiki (shown on `Special:Interwiki`). No longer locked to Citizen!
@@ -272,7 +263,12 @@ Add both directions, e.g. `en` = `https://wiki.local/$1` and `ko` = `https://ko.
 > [!NOTE]  
 > User cards may also be referred to as profile cards or hover cards, especially with-in the codebase. They explicitly appear only on-click, but were originally designed to appear on-hover, hence the different names.
 
-User card previews are experimental and opt-in. Use `$wgIntegratedProfilesEnableUserCards` to enable this feature on your wiki.
+User card previews are experimental and opt-in. Username links open a profile card on click. This is off by default and requires FloatingUI:
+
+```php
+wfLoadExtension( 'FloatingUI' );
+$wgIntegratedProfilesEnableUserCards = true;
+```
 
 Additionally, as user cards are on-click, you may want to remove redlinks from empty user page URLs. You can achieve these by putting the following in your `MediaWiki:Common.js` file:
 
