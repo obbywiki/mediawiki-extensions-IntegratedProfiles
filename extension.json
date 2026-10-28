@@ -219,6 +219,11 @@
 				"ext.floatingUI"
 			]
 		},
+		"ext.IntegratedProfiles.groups": {
+			"scripts": [ "resources/integratedprofiles/groups.js" ],
+			"dependencies": [ "mediawiki.jqueryMsg" ],
+			"messages": [ "integratedprofiles-groups-more", "integratedprofiles-groups-less", "integratedprofiles-groups-count" ]
+		},
 		"ext.IntegratedProfiles.aboutExpand": {
 			"scripts": [
 				"resources/integratedprofiles/about_expand.js"
@@ -439,6 +444,10 @@
 		"IntegratedProfilesEnableUserCards": {
 			"value": false,
 			"description": "When true, show on-click profile cards for username links. Requires the FloatingUI extension."
+		},
+		"IntegratedProfilesGroupPriority": {
+			"value": [ "sysop", "bureaucrat", "interface-admin", "checkuser", "oversight", "steward" ],
+			"description": "Group IDs to display first in profile role chips, in order of priority."
 		},
 		"IntegratedProfilesAboutMaxLength": {
 			"value": 300,

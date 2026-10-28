@@ -49,6 +49,7 @@ class ProfileHandler {
 		$out->addBodyClasses( [ 'integratedprofiles-profile' ] );
 		$out->addModuleStyles( [ 'ext.IntegratedProfiles.styles' ] );
 		$out->addModules( [ 'ext.IntegratedProfiles.pageSidebar' ] );
+		$out->addModules( [ 'ext.IntegratedProfiles.groups' ] );
 
 		$about_text = trim( (string)( $payload['fields'][ ProfileFields::KEY_ABOUT ] ?? '' ) );
 		if ( $about_text !== '' ) {
@@ -235,6 +236,13 @@ class ProfileHandler {
 	private function build_group_items( array $groups, IContextSource $context, User $subject_user ): array {
 		$lang = $context->getLanguage();
 		$items = [];
+		$priority = $context->getConfig()->get( 'IntegratedProfilesGroupPriority' );
+		$groups = array_values( array_filter( $groups, static fn ( $group ) => is_string( $group ) && $group !== '' && $group !== '*' ) );
+		usort( $groups, static function ( string $a, string $b ) use ( $priority ): int {
+			$a_rank = array_search( $a, $priority, true );
+			$b_rank = array_search( $b, $priority, true );
+			return ( $a_rank === false ? PHP_INT_MAX : $a_rank ) <=> ( $b_rank === false ? PHP_INT_MAX : $b_rank );
+		} );
 
 		foreach ( $groups as $group ) {
 			if ( !is_string( $group ) || $group === '' || $group === '*' ) {

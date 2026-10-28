@@ -190,6 +190,7 @@ Below are open-source integrations that implement IntegratedProfiles' hooks or A
 
 | Config | Type(s) | Default | Purpose |
 |--------|---------|---------|---------|
+| `$wgIntegratedProfilesGroupPriority` | array | `['sysop','bureaucrat','interface-admin','checkuser','oversight','steward']` | Role IDs to show first in the profile header, as roles that do not fit may be collapsed. Keep the most important roles in the first three items. |
 | `$wgIntegratedProfilesBackend` | ![string](https://img.shields.io/badge/-string-blue?style=flat-square) | `''` | Named entry in `$wgFileBackends`. Empty uses `{UploadDirectory}/ipavatars` and `{UploadDirectory}/ipbanners`. Must already exist if set. See Setup. |
 | `$wgIntegratedProfilesUploadBaseUrl` | ![string](https://img.shields.io/badge/-string-blue?style=flat-square) | `''` | Stable public URL root for avatars and banners. Do not include `ipavatars`/`ipbanners`. When empty, defaults to `$wgUploadBaseUrl` + `$wgUploadPath`. |
 | `$wgIntegratedProfilesEnableUserCards` | ![boolean](https://img.shields.io/badge/-boolean-orange?style=flat-square) | `false` | On-click profile cards for username links. Requires FloatingUI. |
