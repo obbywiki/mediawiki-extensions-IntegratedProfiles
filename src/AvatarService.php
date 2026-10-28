@@ -5,6 +5,7 @@ namespace MediaWiki\Extension\IntegratedProfiles;
 use MediaWiki\Config\ServiceOptions;
 use MediaWiki\Status\Status;
 use MediaWiki\User\UserIdentity;
+use Wikimedia\FileBackend\FSFile\TempFSFileFactory;
 use Wikimedia\ObjectCache\BagOStuff;
 
 /**
@@ -28,6 +29,7 @@ class AvatarService {
 		private readonly AvatarStorage $storage,
 		private readonly BagOStuff $cache,
 		private readonly ProfileSubjectIds $subject_ids,
+		private readonly ImageUploadSanitizer $sanitizer = new ImageUploadSanitizer( new TempFSFileFactory() ),
 	) {
 		$options->assertRequiredOptions( self::CONSTRUCTOR_OPTIONS );
 		$this->validator = new AvatarValidator( (int)$options->get( 'IntegratedProfilesAvatarMaxBytes' ) );
@@ -182,10 +184,22 @@ class AvatarService {
 			return Status::newFatal( $validation['error'] );
 		}
 
-		$status = $this->storage->store( $central_id, $validation['ext'], $tmp_path );
+		$status = $this->sanitizer->with_sanitized_file(
+			$tmp_path,
+			$validation['ext'],
+
+			function ( string $path ) use ( $central_id, $validation ): Status {
+				$stored = $this->storage->store( $central_id, $validation['ext'], $path );
+				if ( !$stored->isOK() ) {
+					// the backend's own errors take priority
+					$stored->fatal( 'integratedprofiles-error-avatar-upload' );
+				}
+
+				return $stored;
+			}
+		);
+
 		if ( !$status->isOK() ) {
-			// keep the backend's own errors ahead, as they describe the real cause better instead of a generic failure
-			$status->fatal( 'integratedprofiles-error-avatar-upload' );
 			return $status;
 		}
 
