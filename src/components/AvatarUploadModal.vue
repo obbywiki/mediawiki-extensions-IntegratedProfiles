@@ -63,7 +63,7 @@
 						class="ip-avatar-modal__file-input"
 						type="file"
 						:accept="file_accept"
-						:disabled="busy"
+						:disabled="busy || !can_upload"
 						@change="on_file_selected"
 					>
 
@@ -74,9 +74,9 @@
 								ip-avatar-modal__choose"
 							:class="{
 								'cdx-button--weight-primary': !pending_file,
-								'ip-avatar-modal__choose--disabled': busy
+								'ip-avatar-modal__choose--disabled': busy || !can_upload
 							}"
-							:aria-disabled="busy"
+							:aria-disabled="busy || !can_upload"
 						>
 							{{ choose_label }}
 						</label>
@@ -240,7 +240,10 @@ const choose_label = computed( () => {
 	);
 } );
 
+const can_upload = computed( () => props.config.can_edit && props.config.can_upload_avatar );
+
 const can_confirm = computed( () => {
+	if ( !can_upload.value ) { return false; }
 	if ( !pending_file.value || inspecting_file.value ) { return false; }
 
 	return skip_crop.value || cropper_ready.value;
@@ -314,6 +317,7 @@ function on_dialog_keydown( event: KeyboardEvent ): void {
 }
 
 async function on_file_selected( event: Event ): Promise<void> {
+	if ( !can_upload.value ) { return; }
 	const input = event.target as HTMLInputElement;
 	const file = input.files && input.files[ 0 ];
 	if ( !file ) { return; }

@@ -9,7 +9,7 @@ let banner_modal_app: App | null = null;
 
 function read_config(): IntegratedProfilesConfig | null {
 	const config = mw.config.get( 'wgIntegratedProfiles' ) as IntegratedProfilesConfig | null;
-	if ( !config || !config.can_edit ) { return null; }
+	if ( !config || ( !config.can_edit && !config.can_remove ) ) { return null; }
 
 	return config;
 }
@@ -48,7 +48,7 @@ function unmount_banner_modal(): void {
 
 function mount_avatar_modal( mount_root: HTMLElement, return_focus?: HTMLElement | null ): App | null {
 	const config = read_config();
-	if ( !config ) { return null; }
+	if ( !config || !config.can_edit || !config.can_upload_avatar ) { return null; }
 
 	unmount_banner_modal();
 
@@ -76,7 +76,7 @@ function mount_banner_modal(
 	return_focus?: HTMLElement | null,
 ): App | null {
 	const config = read_config();
-	if ( !config ) {
+	if ( !config || !config.can_edit || !config.can_upload_banner ) {
 		return null;
 	}
 

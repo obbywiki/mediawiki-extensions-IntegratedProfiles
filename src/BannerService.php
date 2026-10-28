@@ -17,7 +17,7 @@ class BannerService {
 	public const CACHE_KEY_VERSION = '2'; // also bump in AvatarService
 	public const CONSTRUCTOR_OPTIONS = [
 		'IntegratedProfilesBannerMaxBytes',
-		'IntegratedProfilesEnableAnimatedAvatars',
+		'IntegratedProfilesEnableAnimatedBanners',
 	];
 
 	private readonly BannerValidator $validator;
@@ -141,7 +141,7 @@ class BannerService {
 			return Status::newFatal( 'integratedprofiles-error-banner-upload' );
 		}
 
-		$allow_animated = $allow_animated && (bool)$this->options->get( 'IntegratedProfilesEnableAnimatedAvatars' );
+		$allow_animated = $allow_animated && (bool)$this->options->get( 'IntegratedProfilesEnableAnimatedBanners' );
 		$validation = $this->validator->validate_upload( $tmp_path, $size, $allow_animated );
 		if ( !$validation['ok'] ) {
 			return Status::newFatal( $validation['error'] );

@@ -37,7 +37,7 @@ class ApiIntegratedProfileUploadBanner extends ApiBase {
 			$this->dieWithError( [ 'integratedprofiles-error-user-not-found', $username ], 'usernotfound' );
 		}
 
-		if ( !$this->profile_service->can_edit( $actor, $subject ) ) {
+		if ( !$this->profile_service->can_upload_banner( $actor, $subject ) ) {
 			$this->dieWithError( 'integratedprofiles-error-permission', 'permissiondenied' );
 		}
 
@@ -48,7 +48,7 @@ class ApiIntegratedProfileUploadBanner extends ApiBase {
 			$this->dieWithError( 'integratedprofiles-error-banner-size', 'bannersize' );
 		}
 
-		$allow_animated = $this->profile_service->can_use_animated_avatar( $actor );
+		$allow_animated = $this->profile_service->can_use_animated_banner( $actor );
 		$status = $this->profile_service->upload_banner(
 			$subject,
 			(string)$upload->getTempName(),

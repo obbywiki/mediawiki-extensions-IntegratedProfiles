@@ -14,6 +14,7 @@ class ProfileChangeLogger {
 	public const TYPE = 'integratedprofiles';
 
 	public const ACTION_EDIT = 'edit';
+	public const ACTION_CLEAR = 'clear';
 	public const ACTION_AVATAR = 'avatar';
 	public const ACTION_DELETE_AVATAR = 'deleteavatar';
 	public const ACTION_BANNER = 'banner';

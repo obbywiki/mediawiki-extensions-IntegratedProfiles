@@ -25,6 +25,45 @@ class ProfileFields {
 	public const KEY_SHOW_PRONOUNS = 'ip-show-pronouns';
 	public const KEY_VISIBILITY = 'ip-visibility';
 
+	/** @var list<string> Content that moderators may clear without editing preferences. */
+	public const REMOVABLE_KEYS = [
+		self::KEY_ABOUT,
+		self::KEY_LOCATION,
+		self::KEY_FEATURED_ARTICLE,
+		self::KEY_WEBSITE,
+		self::KEY_TWITTER,
+		self::KEY_GITHUB,
+		self::KEY_DISCORD,
+		self::KEY_ROBLOX,
+		self::KEY_YOUTUBE,
+		self::KEY_MEDIAWIKI,
+		self::KEY_MIRAHEZE,
+		self::KEY_FANDOM,
+	];
+
+	/**
+	 * Build an atomic clear-only update. Reject preferences and unknown fields.
+	 *
+	 * @param array $keys Field names, never client-provided replacement values
+	 * @return array<string, string>|null Null when any field is not removable
+	 */
+	public static function removal_fields( array $keys ): ?array {
+		if ( !array_is_list( $keys ) ) {
+			return null;
+		}
+
+		$fields = [];
+		foreach ( $keys as $key ) {
+			if ( !in_array( $key, self::REMOVABLE_KEYS, true ) ) {
+				return null;
+			}
+
+			$fields[$key] = '';
+		}
+
+		return $fields;
+	}
+
 	// if you want to add/request a new social link, you MUST include a string const AS WELL AS an item in SOCIAL_CATALOG even if it won't be used (yet)
 	// just search the other areas in the codebase where these are used to see how to add it
 
@@ -216,6 +255,14 @@ class ProfileFields {
 		}
 
 		return $entries;
+	}
+
+	/** @return list<string> Content fields that this wiki permits clearing. */
+	public function removable_keys(): array {
+		return array_values( array_filter(
+			self::REMOVABLE_KEYS,
+			fn ( string $key ): bool => !$this->is_disabled_social_key( $key )
+		) );
 	}
 
 	/**

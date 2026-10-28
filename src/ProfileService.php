@@ -21,6 +21,7 @@ class ProfileService {
 	public const SERVICE_NAME = 'IntegratedProfiles.ProfileService';
 
 	public const RIGHT_ANIMATED_AVATAR = 'integratedprofiles-animated-avatar';
+	public const RIGHT_ANIMATED_BANNER = 'integratedprofiles-animated-banner';
 
 	public const CONSTRUCTOR_OPTIONS = [
 		'IntegratedProfilesColor',
@@ -28,6 +29,7 @@ class ProfileService {
 		'IntegratedProfilesAboutMaxLength',
 		'IntegratedProfilesLinkMaxLength',
 		'IntegratedProfilesEnableAnimatedAvatars',
+		'IntegratedProfilesEnableAnimatedBanners',
 		'IntegratedProfilesEnabledSocialLinks',
 		'IntegratedProfilesBannerPresetImages',
 		'IntegratedProfilesBannerPresetDefault',
@@ -161,7 +163,7 @@ class ProfileService {
 	/**
 	 * Returns whether the viewer may know this subject exists or not (hideuser / oversight).
 	 *
-	 * (!) Callers that fail this check must treat the subject as missing, not as a private profile. `integratedprofiles-manage` is not a substitute.
+	 * (!) Callers that fail this check must treat the subject as missing, not as a private profile. Neither `integratedprofiles-manage` nor `integratedprofiles-view-private` is a substitute.
 	 */
 	public function can_see_subject( UserIdentity $viewer, User $subject ): bool {
 		$is_owner = $viewer->isRegistered() && $viewer->getId() === $subject->getId();
@@ -178,6 +180,20 @@ class ProfileService {
 		return $this->permissions->can_see_subject( $subject->isHidden(), false );
 	}
 
+	/**
+	 * Whether the actor may remove profile content without replacement privileges.
+	 *
+	 * @param UserIdentity $actor Acting user
+	 * @param User $subject Profile owner
+	 * @return bool
+	 */
+	public function can_remove( UserIdentity $actor, User $subject ): bool {
+		$is_blocked = method_exists( $actor, 'getBlock' ) && (bool)$actor->getBlock();
+		$has_remove = method_exists( $actor, 'isAllowed' ) && ( $actor->isAllowed( 'integratedprofiles-remove' ) || $actor->isAllowed( 'integratedprofiles-manage' ) );
+
+		return $this->permissions->can_remove( $actor, $subject->getId(), $is_blocked, $has_remove );
+	}
+
 	public function can_edit( UserIdentity $actor, User $subject ): bool {
 		$is_blocked = method_exists( $actor, 'getBlock' ) && (bool)$actor->getBlock();
 		$has_manage = method_exists( $actor, 'isAllowed' )
@@ -188,58 +204,65 @@ class ProfileService {
 			$subject->getId(),
 			$is_blocked,
 			$has_manage
-		);
+		) && ( $actor->getId() === $subject->getId() || $this->can_view_details( $actor, $subject ) );
 	}
 
 	/**
-	 * Whether the actor may upload an animated avatar or banner (GIF / animated WebP / APNG).
+	 * Uploads require both profile editing access and the media-specific right.
+	 */
+	public function can_upload_avatar( UserIdentity $actor, User $subject ): bool {
+		return $this->can_edit( $actor, $subject )
+			&& method_exists( $actor, 'isAllowed' )
+			&& (bool)$actor->isAllowed( 'integratedprofiles-upload-avatar' );
+	}
+
+	public function can_upload_banner( UserIdentity $actor, User $subject ): bool {
+		return $this->can_edit( $actor, $subject )
+			&& method_exists( $actor, 'isAllowed' )
+			&& (bool)$actor->isAllowed( 'integratedprofiles-upload-banner' );
+	}
+
+	/**
+	 * Whether the actor may use animation in an avatar (GIF / animated WebP / APNG).
 	 *
-	 * Requires `$wgIntegratedProfilesEnableAnimatedAvatars` and the
-	 * `integratedprofiles-animated-avatar` right.
+	 * Requires `$wgIntegratedProfilesEnableAnimatedAvatars` and the `integratedprofiles-animated-avatar` right.
 	 */
 	public function can_use_animated_avatar( UserIdentity $actor ): bool {
 		if ( !(bool)$this->options->get( 'IntegratedProfilesEnableAnimatedAvatars' ) ) {
 			return false;
 		}
 
-		return method_exists( $actor, 'isAllowed' )
-			&& (bool)$actor->isAllowed( self::RIGHT_ANIMATED_AVATAR );
+		return method_exists( $actor, 'isAllowed' ) && (bool)$actor->isAllowed( self::RIGHT_ANIMATED_AVATAR );
 	}
 
 	/**
-	 * Whether the actor may see masthead details for the subject under their
-	 * configured visibility mode.
+	 * Whether the actor may use animation in a banner upload (GIF / animated WebP / APNG).
+	 *
+	 * Requires `$wgIntegratedProfilesEnableAnimatedBanners` and the `integratedprofiles-animated-banner` right.
+	 */
+	public function can_use_animated_banner( UserIdentity $actor ): bool {
+		if ( !(bool)$this->options->get( 'IntegratedProfilesEnableAnimatedBanners' ) ) {
+			return false;
+		}
+
+		return method_exists( $actor, 'isAllowed' ) && (bool)$actor->isAllowed( self::RIGHT_ANIMATED_BANNER );
+	}
+
+	/**
+	 * Whether the actor may see masthead details for the subject under their configured visibility mode.
 	 */
 	public function can_view_details( UserIdentity $actor, User $subject ): bool {
-		$has_manage = method_exists( $actor, 'isAllowed' )
-			&& (bool)$actor->isAllowed( 'integratedprofiles-manage' );
-		$visibility = ProfileFields::normalize_visibility(
-			(string)$this->user_options_lookup->getOption(
-				$subject,
-				ProfileFields::KEY_VISIBILITY,
-				ProfileFields::VISIBILITY_PUBLIC
-			)
-		);
+		$has_view_private = method_exists( $actor, 'isAllowed' ) && (bool)$actor->isAllowed( 'integratedprofiles-view-private' );
+		$visibility = ProfileFields::normalize_visibility( (string)$this->user_options_lookup->getOption( $subject, ProfileFields::KEY_VISIBILITY, ProfileFields::VISIBILITY_PUBLIC ) );
 
-		return $this->permissions->can_view_details(
-			$actor,
-			$subject->getId(),
-			$has_manage,
-			$visibility
-		);
+		return $this->permissions->can_view_details( $actor, $subject->getId(), $has_view_private, $visibility );
 	}
 
 	/**
 	 * Subject's masthead visibility mode (`public` / `users` / `private`).
 	 */
 	public function get_visibility( User $subject ): string {
-		return ProfileFields::normalize_visibility(
-			(string)$this->user_options_lookup->getOption(
-				$subject,
-				ProfileFields::KEY_VISIBILITY,
-				ProfileFields::VISIBILITY_PUBLIC
-			)
-		);
+		return ProfileFields::normalize_visibility( (string)$this->user_options_lookup->getOption( $subject, ProfileFields::KEY_VISIBILITY, ProfileFields::VISIBILITY_PUBLIC ) );
 	}
 
 	/**
@@ -265,10 +288,7 @@ class ProfileService {
 		) );
 		$avatar = $this->avatar_service->get_avatar_info_for_user( $subject );
 		$banner = $this->banner_service->get_banner_info_for_user( $subject );
-		$field_values[ ProfileFields::KEY_BANNER ] = $this->resolve_banner_mode(
-			(string)( $field_values[ ProfileFields::KEY_BANNER ] ?? '' ),
-			$banner['has_custom_banner']
-		);
+		$field_values[ ProfileFields::KEY_BANNER ] = $this->resolve_banner_mode( (string)( $field_values[ ProfileFields::KEY_BANNER ] ?? '' ), $banner['has_custom_banner'] );
 		$registration = $this->user_registration_lookup->getFirstRegistration( $subject );
 
 		$connections = [];
@@ -295,9 +315,7 @@ class ProfileService {
 				(string)$this->user_options_lookup->getOption( $subject, 'gender', 'unknown' )
 			),
 			'edit_count' => (int)$subject->getEditCount(),
-			'registration' => is_string( $registration ) && $registration !== ''
-				? $registration
-				: null,
+			'registration' => is_string( $registration ) && $registration !== '' ? $registration : null,
 			'groups' => $groups,
 			'fields' => $field_values,
 			'links' => $links,
@@ -546,7 +564,28 @@ class ProfileService {
 	}
 
 	/**
-	 * Persist sanitized fields for the subject. Caller must check can_edit.
+	 * Clear only named content fields, with authorization at the service boundary.
+	 *
+	 * @param UserIdentity $actor Acting user
+	 * @param User $subject Profile owner
+	 * @param list<string> $keys Content field names to clear
+	 * @return Status
+	 */
+	public function clear_fields( UserIdentity $actor, User $subject, array $keys ): Status {
+		if ( !$this->can_remove( $actor, $subject ) ) {
+			return Status::newFatal( 'integratedprofiles-error-permission' );
+		}
+
+		$fields = ProfileFields::removal_fields( $keys );
+		if ( $fields === null ) {
+			return Status::newFatal( 'integratedprofiles-error-invalid-fields', implode( ', ', array_filter( $keys, 'is_string' ) ) );
+		}
+
+		return $this->save_fields( $subject, $fields, $actor );
+	}
+
+	/**
+	 * Persist sanitized fields. Caller must check can_edit or use the authorized clear_fields path.
 	 *
 	 * @param User $subject Profile owner
 	 * @param array $input Raw field map from the client
@@ -613,7 +652,7 @@ class ProfileService {
 	}
 
 	/**
-	 * Store a custom banner and set ip-banner to custom. Caller must check can_edit.
+	 * Store a custom banner and set ip-banner to custom. Caller must check can_upload_banner.
 	 */
 	public function upload_banner( User $subject, string $tmp_path, int $size, bool $allow_animated = false, ?UserIdentity $viewer = null ): Status {
 		$status = $this->banner_service->upload_for_user( $subject, $tmp_path, $size, $allow_animated );
@@ -641,11 +680,7 @@ class ProfileService {
 			return $status;
 		}
 
-		$this->set_profile_option(
-			$subject,
-			ProfileFields::KEY_BANNER,
-			ProfileFields::BANNER_ACCENT
-		);
+		$this->set_profile_option( $subject, ProfileFields::KEY_BANNER, ProfileFields::BANNER_ACCENT );
 		$this->set_profile_option( $subject, ProfileFields::KEY_BANNER_WIKI, '' );
 		$this->user_options_manager->saveOptions( $subject );
 
@@ -660,18 +695,10 @@ class ProfileService {
 	 * Sets profile options, with a carve-out for featured articles and wiki banners, which are non-global.
 	 */
 	private function set_profile_option( UserIdentity $user, string $key, string $value ): void {
-		$local_keys = [
-			ProfileFields::KEY_FEATURED_ARTICLE => true,
-			ProfileFields::KEY_BANNER_WIKI => true,
-		];
+		$local_keys = [ ProfileFields::KEY_FEATURED_ARTICLE => true, ProfileFields::KEY_BANNER_WIKI => true ];
 		$global_mode = isset( $local_keys[$key] ) ? UserOptionsManager::GLOBAL_OVERRIDE : UserOptionsManager::GLOBAL_CREATE;
 
-		$this->user_options_manager->setOption(
-			$user,
-			$key,
-			$value,
-			$global_mode
-		);
+		$this->user_options_manager->setOption( $user, $key, $value, $global_mode );
 	}
 
 	/**
@@ -701,9 +728,7 @@ class ProfileService {
 	private function payload_ui(): array {
 		return [
 			'color' => (string)$this->options->get( 'IntegratedProfilesColor' ),
-			'avatar_border_radius' => (string)$this->options->get(
-				'IntegratedProfilesAvatarBorderRadius'
-			),
+			'avatar_border_radius' => (string)$this->options->get( 'IntegratedProfilesAvatarBorderRadius' ),
 		];
 	}
 

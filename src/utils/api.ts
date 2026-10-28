@@ -91,10 +91,20 @@ export function msg( key: string, ...params: string[] ): string {
 	return mw.message( key, ...params ).text();
 }
 
-export async function save_profile_fields(
-	fields: Partial<ProfileFieldsMap>,
-	username?: string,
-): Promise<ProfilePayload> {
+export async function clear_profile_fields( fields: ( keyof ProfileFieldsMap )[], username: string ): Promise<ProfilePayload> {
+	try {
+		const data = await post_with_token( { action: 'clearintegratedprofile', fields: fields.join( '|' ), username, format: 'json' } ) as { clearintegratedprofile?: { profile?: ProfilePayload } };
+		const profile = data.clearintegratedprofile?.profile;
+
+		if ( !profile ) { throw new Error( msg( 'integratedprofiles-save-error' ) ); }
+
+		return profile;
+	} catch ( err ) {
+		throw new Error( api_error_message( err ) || msg( 'integratedprofiles-save-error' ) );
+	}
+}
+
+export async function save_profile_fields( fields: Partial<ProfileFieldsMap>, username?: string ): Promise<ProfilePayload> {
 	try {
 		const payload: Record<string, string> = {
 			action: 'setintegratedprofile',
@@ -119,10 +129,7 @@ export async function save_profile_fields(
 	}
 }
 
-export async function upload_avatar(
-	file: File,
-	username?: string,
-): Promise<ProfilePayload> {
+export async function upload_avatar( file: File, username?: string ): Promise<ProfilePayload> {
 	try {
 		const payload: Record<string, string | File> = {
 			action: 'integratedprofileuploadavatar',
@@ -133,19 +140,12 @@ export async function upload_avatar(
 			payload.username = username;
 		}
 
-		// mw.Api only builds a FormData body when multipart is requested; otherwise it
-		// runs the File through jQuery.param and the browser throws "Illegal invocation".
-		const data = await post_with_token( payload, {
-			contentType: 'multipart/form-data',
-		} ) as {
-			integratedprofileuploadavatar?: { profile?: ProfilePayload };
-		};
+		// mw.Api only builds a FormData body when multipart is requested, otherwise it runs the File through jQuery.param and the browser throws "Illegal invocation"
+		const data = await post_with_token( payload, { contentType: 'multipart/form-data' } ) as { integratedprofileuploadavatar?: { profile?: ProfilePayload } };
 
-		const profile = data.integratedprofileuploadavatar &&
-			data.integratedprofileuploadavatar.profile;
-		if ( !profile ) {
-			throw new Error( msg( 'integratedprofiles-avatar-error' ) );
-		}
+		const profile = data.integratedprofileuploadavatar && data.integratedprofileuploadavatar.profile;
+		if ( !profile ) { throw new Error( msg( 'integratedprofiles-avatar-error' ) ); }
+
 		return profile;
 	} catch ( err ) {
 		throw new Error( api_error_message( err ) || msg( 'integratedprofiles-avatar-error' ) );
@@ -177,21 +177,11 @@ export async function delete_avatar( username?: string ): Promise<ProfilePayload
 
 export async function upload_banner( file: File, username?: string ): Promise<ProfilePayload> {
 	try {
-		const payload: Record<string, string | File> = {
-			action: 'integratedprofileuploadbanner',
-			file,
-			format: 'json',
-		};
+		const payload: Record<string, string | File> = { action: 'integratedprofileuploadbanner', file, format: 'json' };
 
-		if ( username ) {
-			payload.username = username;
-		}
+		if ( username ) { payload.username = username; }
 
-		const data = await post_with_token( payload, {
-			contentType: 'multipart/form-data',
-		} ) as {
-			integratedprofileuploadbanner?: { profile?: ProfilePayload };
-		};
+		const data = await post_with_token( payload, { contentType: 'multipart/form-data' } ) as { integratedprofileuploadbanner?: { profile?: ProfilePayload } };
 
 		const profile = data.integratedprofileuploadbanner && data.integratedprofileuploadbanner.profile;
 		if ( !profile ) { throw new Error( msg( 'integratedprofiles-banner-error' ) ); }
@@ -204,18 +194,11 @@ export async function upload_banner( file: File, username?: string ): Promise<Pr
 
 export async function delete_banner( username?: string ): Promise<ProfilePayload> {
 	try {
-		const payload: Record<string, string> = {
-			action: 'integratedprofiledeletebanner',
-			format: 'json',
-		};
+		const payload: Record<string, string> = { action: 'integratedprofiledeletebanner', format: 'json' };
 
-		if ( username ) {
-			payload.username = username;
-		}
+		if ( username ) { payload.username = username; }
 
-		const data = await post_with_token( payload ) as {
-			integratedprofiledeletebanner?: { profile?: ProfilePayload };
-		};
+		const data = await post_with_token( payload ) as { integratedprofiledeletebanner?: { profile?: ProfilePayload } };
 
 		const profile = data.integratedprofiledeletebanner && data.integratedprofiledeletebanner.profile;
 		if ( !profile ) { throw new Error( msg( 'integratedprofiles-banner-error' ) ); }

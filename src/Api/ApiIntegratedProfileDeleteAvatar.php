@@ -39,7 +39,7 @@ class ApiIntegratedProfileDeleteAvatar extends ApiBase {
 			$this->dieWithError( [ 'integratedprofiles-error-user-not-found', $username ], 'usernotfound' );
 		}
 
-		if ( !$this->profile_service->can_edit( $actor, $subject ) ) {
+		if ( !$this->profile_service->can_remove( $actor, $subject ) ) {
 			$this->dieWithError( 'integratedprofiles-error-permission', 'permissiondenied' );
 		}
 
