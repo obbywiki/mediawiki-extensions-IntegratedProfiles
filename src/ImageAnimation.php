@@ -20,6 +20,10 @@ final class ImageAnimation {
 	 * @return bool true if the file is animated, false otherwise
 	 */
 	public static function is_animated( string $tmp_path, string $ext ): bool {
+		if ( !in_array( $ext, [ 'gif', 'webp', 'png' ], true ) ) {
+			return false;
+		}
+
 		if ( !is_readable( $tmp_path ) ) {
 			return $ext === 'gif';
 		}

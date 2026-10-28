@@ -150,10 +150,14 @@ class AvatarStorage {
 	 * When $mtime is provided, skips getFileStat on the performance hot path.
 	 */
 	public function public_url( int $owner_id, string $ext, ?string $mtime = null ): string {
-		$backend = $this->get_backend();
-		$path = $this->storage_path( $owner_id, $ext );
-
 		$override = trim( (string)$this->options->get( 'IntegratedProfilesUploadBaseUrl' ) );
+		$backend = null;
+		$path = null;
+		if ( $override === '' || $mtime === null ) {
+			$backend = $this->get_backend();
+			$path = $this->storage_path( $owner_id, $ext );
+		}
+
 		if ( $override !== '' ) {
 			$url = rtrim( $override, '/' ) . '/' . self::CONTAINER . '/' . $this->file_name( $owner_id, $ext );
 		} else {
