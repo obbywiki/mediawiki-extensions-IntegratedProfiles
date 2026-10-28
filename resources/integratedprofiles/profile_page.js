@@ -120,12 +120,13 @@ function merge_edit_button_into_page_tools() {
 	const more_menu = page_actions.querySelector( '.citizen-page-actions-more' );
 	page_actions.insertBefore( edit_button, more_menu );
 
-	edit_button.classList.remove( 'cdx-button--action-progressive', 'cdx-button--weight-primary' );
+	edit_button.classList.remove( 'cdx-button--icon-only', 'cdx-button--action-progressive', 'cdx-button--weight-primary' );
 	edit_button.classList.add( 'citizen-cdx-button--size-large', 'cdx-button--weight-quiet' );
 
 	if ( !edit_button.querySelector( '.citizen-ui-icon' ) ) {
 		const icon = document.createElement( 'span' );
 		icon.className = 'citizen-ui-icon mw-ui-icon-wikimedia-userAvatar';
+		icon.setAttribute( 'aria-hidden', 'true' );
 		edit_button.insertBefore( icon, edit_button.firstChild );
 	}
 }
