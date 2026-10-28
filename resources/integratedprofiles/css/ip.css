@@ -159,7 +159,7 @@
 	--ip-avatar-size: 6.5rem;
 	--ip-avatar-ring: 0.2rem;
 	--ip-hero-height: 9.75rem;
-	--ip-radius: var( --border-radius-base, 0.5rem );
+	--ip-radius: var( --border-radius-base );
 	border: 1px solid var( --border-color-subtle, var( --border-color-base, #a2a9b1 ) );
 	border-radius: var( --ip-radius );
 	background: var( --background-color-base, #fff );
