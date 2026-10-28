@@ -439,7 +439,7 @@
 		},
 		"IntegratedProfilesCacheType": {
 			"value": null,
-			"description": "Object cache for avatar and banner file metadata. When mull, $wgMainCacheType is used, otherwise IP uses an integer cache constant or a key in $wgObjectCaches. Farms sharing avatars and banners must use a shared cache destination with consistent key routing."
+			"description": "Object cache for avatar and banner file metadata. When null, $wgMainCacheType is used, otherwise IP uses an integer cache constant or a key in $wgObjectCaches. Farms sharing avatars and banners must use a shared cache destination with consistent key routing."
 		},
 		"IntegratedProfilesEnableNewAuthPanel": {
 			"value": true,
