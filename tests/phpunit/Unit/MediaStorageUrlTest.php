@@ -13,6 +13,7 @@ use Wikimedia\FileBackend\FileBackend;
  * @group IntegratedProfiles
  * @covers \MediaWiki\Extension\IntegratedProfiles\AvatarStorage
  * @covers \MediaWiki\Extension\IntegratedProfiles\BannerStorage
+ * @covers \MediaWiki\Extension\IntegratedProfiles\ThumbnailStorage
  */
 class MediaStorageUrlTest extends MediaWikiUnitTestCase {
 
@@ -45,6 +46,27 @@ class MediaStorageUrlTest extends MediaWikiUnitTestCase {
 		$storage->method( 'storage_path' )->willReturn( 'mwstore://test/file.png' );
 
 		$this->assertSame( 'https://media.example/' . $file . '?r=42', $storage->public_url( 7, 'png' ) );
+	}
+
+	/** @dataProvider provide_thumb_classes */
+	public function test_thumb_override_url_skips_backend( string $class, int $size, string $container ): void {
+		$storage = $this->getMockBuilder( $class )
+			->setConstructorArgs( [ $this->options( $class ) ] )
+			->onlyMethods( [ 'get_backend' ] )
+			->getMock();
+		$storage->expects( $this->never() )->method( 'get_backend' );
+
+		$this->assertSame(
+			'https://media.example/' . $container . '/7/0123456789/' . $size . '.webp',
+			$storage->thumbs()->public_url( 7, '0123456789', $size )
+		);
+	}
+
+	public static function provide_thumb_classes(): array {
+		return [
+			'avatar' => [ AvatarStorage::class, 256, 'ipavatars-thumbs' ],
+			'banner' => [ BannerStorage::class, 1280, 'ipbanners-thumbs' ],
+		];
 	}
 
 	public static function provide_storage_classes(): array {

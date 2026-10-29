@@ -55,7 +55,7 @@ wfLoadExtension( 'IntegratedProfiles' );
 
 ## Setup
 
-By default, avatars and banners are stored under `{UploadDirectory}/ipavatars` and `{UploadDirectory}/ipbanners` (usually `$IP/images/...`), as `avatar_{id}.{ext}` and `banner_{id}.{ext}`. Profile fields (prefixed with `ip-`) are stored in `user_properties` (preferences). IntegratedProfiles does not touch wikitext, contributions, or anything else.
+By default, avatars and banners are stored under `{UploadDirectory}/ipavatars` and `{UploadDirectory}/ipbanners` (usually `$IP/images/...`), as `avatar_{id}.{ext}` and `banner_{id}.{ext}`. Generated thumbnails go in the sibling `ipavatars-thumbs` and `ipbanners-thumbs` containers, as `{id}/{version}/{size}.webp`. The version changes whenever the original is replaced, so thumbnail URLs can be cached as immutable. Profile fields (prefixed with `ip-`) are stored in `user_properties` (preferences). IntegratedProfiles does not touch wikitext, contributions, or anything else.
 
 The `{id}` in those filenames comes from CentralIdLookup, which is either the local user id or the central (`gu_id`) id when CentralAuth is installed.
 
@@ -77,7 +77,7 @@ No extra configuration is needed. The default backend is enough, so simply load 
 wfLoadExtension( 'IntegratedProfiles' );
 ```
 
-Ensure that `$IP/images/ipavatars` and `$IP/images/ipbanners` are both writable. You can configure a custom FileBackend if you wish, however.
+Ensure that `$IP/images/ipavatars`, `$IP/images/ipbanners`, `$IP/images/ipavatars-thumbs` and `$IP/images/ipbanners-thumbs` are writable (or that `$IP/images` is, so they can be created). You can configure a custom FileBackend if you wish, however.
 
 ### Wiki farm
 
@@ -91,7 +91,7 @@ Requirements:
 
 #### Separate upload directories
 
-Register one FileBackend that defines both containers with a constant `domainId`. Paths must resolve to the same storage from every wiki (NFS, a shared volume, or equivalent). Then set `$wgIntegratedProfilesBackend` to that name:
+Register one FileBackend that defines all four containers with a constant `domainId`. Paths must resolve to the same storage from every wiki (NFS, a shared volume, or equivalent). Then set `$wgIntegratedProfilesBackend` to that name:
 
 ```php
 wfLoadExtension( 'CentralAuth' );
@@ -107,6 +107,8 @@ $wgFileBackends[] = [
 	'containerPaths' => [
 		'ipavatars' => $IP . '/images/ipavatars',
 		'ipbanners' => $IP . '/images/ipbanners',
+		'ipavatars-thumbs' => $IP . '/images/ipavatars-thumbs',
+		'ipbanners-thumbs' => $IP . '/images/ipbanners-thumbs',
 	],
 	'fileMode' => 0644,
 ];
@@ -114,7 +116,9 @@ $wgIntegratedProfilesBackend = 'ip-shared';
 $wgIntegratedProfilesUploadBaseUrl = 'https://static.example.com/images';
 ```
 
-`$wgIntegratedProfilesUploadBaseUrl` is the public URL every wiki should use for avatars and banners. Do not include ipavatars/ipbanners, as those containers are appended automatically. Set this when wikis have different hosts or a wiki-local `$wgUploadPath` (often including `$wgDBname`). Leave it empty on a single wiki.
+`$wgIntegratedProfilesUploadBaseUrl` is the public URL every wiki should use for avatars and banners. Do not include ipavatars/ipbanners (or their `-thumbs` containers), as those are appended automatically. Set this when wikis have different hosts or a wiki-local `$wgUploadPath` (often including `$wgDBname`). Leave it empty on a single wiki.
+
+Backends configured before thumbnails existed only list `ipavatars` and `ipbanners`. Add the two `-thumbs` containers, otherwise no thumbnails can be stored on that backend. Avoid placing them under core's `thumb/` directory, since `thumb_handler.php` rewrites will intercept requests there.
 
 #### Shared `$wgUploadDirectory`
 
@@ -192,7 +196,7 @@ Below are open-source integrations that implement IntegratedProfiles' hooks or A
 | Config | Type(s) | Default | Purpose |
 |--------|---------|---------|---------|
 | `$wgIntegratedProfilesGroupPriority` | array | `['sysop','bureaucrat','interface-admin','checkuser','oversight','steward']` | Role IDs to show first in the profile header, as roles that do not fit may be collapsed. Keep the most important roles in the first three items. |
-| `$wgIntegratedProfilesBackend` | ![string](https://img.shields.io/badge/-string-blue?style=flat-square) | `''` | Named entry in `$wgFileBackends`. Empty uses `{UploadDirectory}/ipavatars` and `{UploadDirectory}/ipbanners`. Must already exist if set. See Setup. |
+| `$wgIntegratedProfilesBackend` | ![string](https://img.shields.io/badge/-string-blue?style=flat-square) | `''` | Named entry in `$wgFileBackends`. Empty uses `{UploadDirectory}/ipavatars`, `{UploadDirectory}/ipbanners`, and their `-thumbs` siblings. Must already exist if set, and should define all four containers. See Setup. |
 | `$wgIntegratedProfilesUploadBaseUrl` | ![string](https://img.shields.io/badge/-string-blue?style=flat-square) | `''` | Stable public URL root for avatars and banners. Do not include `ipavatars`/`ipbanners`. When empty, defaults to `$wgUploadBaseUrl` + `$wgUploadPath`. |
 | `$wgIntegratedProfilesCacheType` | int / string / null | `null` | Object cache for avatar and banner file metadata. When null, $wgMainCacheType is used, otherwise IP uses an integer cache constant or a key in $wgObjectCaches. Farms sharing avatars and banners must use a shared cache destination with consistent key routing. |
 | `$wgIntegratedProfilesEnableUserCards` | ![boolean](https://img.shields.io/badge/-boolean-orange?style=flat-square) | `false` | On-click profile cards for username links. Requires FloatingUI. |

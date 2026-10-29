@@ -23,6 +23,7 @@ class BannerStorage {
 
 	public const SERVICE_NAME = 'IntegratedProfiles.BannerStorage';
 	public const CONTAINER = 'ipbanners';
+	public const THUMB_CONTAINER = 'ipbanners-thumbs';
 	public const BACKEND_DOMAIN_ID = 'integratedprofiles'; // stable FileBackend domain (for farms sharing UploadDirectory)
 	/** @var list<string> */
 	public const EXTENSIONS = [ 'jpg', 'png', 'gif', 'webp' ];
@@ -35,6 +36,7 @@ class BannerStorage {
 	];
 
 	private ?FileBackend $backend = null;
+	private ?ThumbnailStorage $thumbs = null;
 
 	public function __construct(
 		private readonly ServiceOptions $options,
@@ -67,7 +69,7 @@ class BannerStorage {
 	}
 
 	/**
-	 * @return array{ext: string, mtime: string}|null
+	 * @return array{ext: string, mtime: string, version: string}|null version is '' when the stat has no usable size or mtime
 	 */
 	public function find_extension_with_mtime( int $owner_id ): ?array {
 		$backend = $this->get_backend();
@@ -80,8 +82,9 @@ class BannerStorage {
 			}
 
 			$mtime = isset( $stat['mtime'] ) ? (string)$stat['mtime'] : '';
+			$size = isset( $stat['size'] ) ? (int)$stat['size'] : 0;
 
-			return [ 'ext' => $ext, 'mtime' => $mtime ];
+			return [ 'ext' => $ext, 'mtime' => $mtime, 'version' => ThumbnailStorage::version_for( $ext, $size, $mtime ) ];
 		}
 		return null;
 	}
@@ -110,6 +113,10 @@ class BannerStorage {
 		}
 
 		$status->merge( $this->delete_other_extensions( $owner_id, $ext ) );
+
+		// thumbnails of the replaced original live under an old version and are never referenced again, so a failed cleanup must not fail the upload
+		$this->thumbs()->delete_owner( $owner_id );
+
 		return $status;
 	}
 
@@ -117,7 +124,10 @@ class BannerStorage {
 	 * Handles banner deletions. Removes every banner_* file for the specified owner ID.
 	 */
 	public function delete_all( int $owner_id ): Status {
-		return $this->delete_other_extensions( $owner_id, null );
+		$status = $this->delete_other_extensions( $owner_id, null );
+		$status->merge( $this->thumbs()->delete_owner( $owner_id ) );
+
+		return $status;
 	}
 
 	/**
@@ -179,6 +189,21 @@ class BannerStorage {
 		return $url;
 	}
 
+	/**
+	 * Thumbnail storage sharing this backend. The backend is only built once the thumbnails need it.
+	 */
+	public function thumbs(): ThumbnailStorage {
+		$this->thumbs ??= new ThumbnailStorage(
+			fn (): FileBackend => $this->get_backend(),
+			self::THUMB_CONTAINER,
+			ThumbnailSizes::BANNER,
+			trim( (string)$this->options->get( 'IntegratedProfilesUploadBaseUrl' ) ),
+			$this->default_http_base( self::THUMB_CONTAINER )
+		);
+
+		return $this->thumbs;
+	}
+
 	public function get_backend(): FileBackend {
 		if ( $this->backend !== null ) {
 			return $this->backend;
@@ -197,6 +222,7 @@ class BannerStorage {
 				'lockManager' => new NullLockManager( [] ),
 				'containerPaths' => [
 					self::CONTAINER => $upload_dir . '/' . self::CONTAINER,
+					self::THUMB_CONTAINER => $upload_dir . '/' . self::THUMB_CONTAINER,
 				],
 				'fileMode' => 0644,
 				'statusWrapper' => [ Status::class, 'wrap' ],
@@ -206,15 +232,15 @@ class BannerStorage {
 		return $this->backend;
 	}
 
-	private function default_http_base(): string {
+	private function default_http_base( string $container = self::CONTAINER ): string {
 		$base_url = (string)$this->options->get( 'UploadBaseUrl' );
 		$upload_path = (string)$this->options->get( 'UploadPath' );
 
 		if ( $base_url !== '' ) {
-			return rtrim( $base_url, '/' ) . '/' . trim( $upload_path, '/' ) . '/' . self::CONTAINER;
+			return rtrim( $base_url, '/' ) . '/' . trim( $upload_path, '/' ) . '/' . $container;
 		}
 
-		return rtrim( $upload_path, '/' ) . '/' . self::CONTAINER;
+		return rtrim( $upload_path, '/' ) . '/' . $container;
 	}
 
 }

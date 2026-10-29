@@ -22,7 +22,7 @@ class AvatarServiceBatchTest extends MediaWikiUnitTestCase {
 
 	public function test_batch_uses_get_multi_cache_hits(): void {
 		$cache = $this->new_cache();
-		$cache->set( $this->cache_key( $cache, '1' ), '1:png:100' );
+		$cache->set( $this->cache_key( $cache, '1' ), '1:png:100:' );
 		$cache->set( $this->cache_key( $cache, '2' ), '' );
 
 		$storage = $this->createMock( AvatarStorage::class );
@@ -52,7 +52,7 @@ class AvatarServiceBatchTest extends MediaWikiUnitTestCase {
 
 	public function test_batch_dedupes_and_skips_anons(): void {
 		$cache = $this->new_cache();
-		$cache->set( $this->cache_key( $cache, '5' ), '5:webp:9' );
+		$cache->set( $this->cache_key( $cache, '5' ), '5:webp:9:' );
 
 		$storage = $this->createMock( AvatarStorage::class );
 		$storage->expects( $this->never() )->method( 'find_extension_with_mtime' );
@@ -84,9 +84,39 @@ class AvatarServiceBatchTest extends MediaWikiUnitTestCase {
 
 		$this->assertTrue( $info['User4']['has_custom_avatar'] );
 		$this->assertSame(
-			'8:jpg:42',
+			'8:jpg:42:',
 			$cache->get( $this->cache_key( $cache, '8' ) )
 		);
+	}
+
+	public function test_batch_storage_miss_caches_thumbnail_version(): void {
+		$cache = $this->new_cache();
+		$storage = $this->createMock( AvatarStorage::class );
+		$storage->method( 'find_extension_with_mtime' )->willReturn( [
+			'ext' => 'webp',
+			'mtime' => '20261029120000',
+			'version' => '0123456789',
+		] );
+		$storage->method( 'public_url' )->willReturn( '/images/ipavatars/avatar_8.webp?r=20261029120000' );
+
+		$this->make_service( $storage, $cache )->get_avatar_info_for_users( [ $this->identity( 8, 'User4' ) ] );
+
+		$this->assertSame(
+			'8:webp:20261029120000:0123456789',
+			$cache->get( $this->cache_key( $cache, '8' ) )
+		);
+	}
+
+	public function test_batch_ignores_cache_with_invalid_version(): void {
+		$cache = $this->new_cache();
+		$cache->set( $this->cache_key( $cache, '3' ), '3:png:100:../evil' );
+
+		$storage = $this->createMock( AvatarStorage::class );
+		$storage->expects( $this->once() )->method( 'find_extension_with_mtime' )->with( 3 )->willReturn( null );
+
+		$info = $this->make_service( $storage, $cache )->get_avatar_info_for_users( [ $this->identity( 3, 'User3' ) ] );
+
+		$this->assertFalse( $info['User3']['has_custom_avatar'] );
 	}
 
 	public function test_get_avatar_urls_for_users_maps_urls(): void {

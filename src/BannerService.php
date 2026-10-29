@@ -14,7 +14,7 @@ class BannerService {
 
 	public const SERVICE_NAME = 'IntegratedProfiles.BannerService';
 	public const CACHE_TTL = 86400;
-	public const CACHE_KEY_VERSION = '2'; // also bump in AvatarService
+	public const CACHE_KEY_VERSION = '3'; // also bump in AvatarService
 	public const CONSTRUCTOR_OPTIONS = [
 		'IntegratedProfilesBannerMaxBytes',
 		'IntegratedProfilesEnableAnimatedBanners',
@@ -173,8 +173,8 @@ class BannerService {
 			return $status;
 		}
 
-		$mtime = $this->storage->find_extension_with_mtime( $central_id )['mtime'] ?? '';
-		$this->write_cache( $central_id, $validation['ext'], $mtime );
+		$found = $this->storage->find_extension_with_mtime( $central_id );
+		$this->write_cache( $central_id, $validation['ext'], $found['mtime'] ?? '', $found['version'] ?? '' );
 
 		return Status::newGood( $this->get_banner_info( $central_id ) );
 	}
@@ -206,7 +206,7 @@ class BannerService {
 	}
 
 	/**
-	 * @param array{owner_id: int, ext: string, mtime: string}|null $resolved
+	 * @param array{owner_id: int, ext: string, mtime: string, version: string}|null $resolved
 	 * @return array{banner_url: string, has_custom_banner: bool}
 	 */
 	private function info_from_resolved( ?array $resolved ): array {
@@ -225,7 +225,7 @@ class BannerService {
 	}
 
 	/**
-	 * @return array{owner_id: int, ext: string, mtime: string}|null
+	 * @return array{owner_id: int, ext: string, mtime: string, version: string}|null
 	 */
 	private function resolve_file( int $central_id ): ?array {
 		$cached = $this->read_cache( $central_id );
@@ -240,14 +240,15 @@ class BannerService {
 	}
 
 	/**
-	 * @return array{owner_id: int, ext: string, mtime: string}|null
+	 * @return array{owner_id: int, ext: string, mtime: string, version: string}|null
 	 */
 	private function resolve_file_from_storage( int $central_id ): ?array {
 		$found = $this->storage->find_extension_with_mtime( $central_id );
 		if ( $found !== null ) {
-			$this->write_cache( $central_id, $found['ext'], $found['mtime'] );
+			$version = $found['version'] ?? '';
+			$this->write_cache( $central_id, $found['ext'], $found['mtime'], $version );
 
-			return [ 'owner_id' => $central_id, 'ext' => $found['ext'], 'mtime' => $found['mtime'] ];
+			return [ 'owner_id' => $central_id, 'ext' => $found['ext'], 'mtime' => $found['mtime'], 'version' => $version ];
 		}
 
 		$this->write_cache_negative( $central_id );
@@ -255,7 +256,7 @@ class BannerService {
 	}
 
 	/**
-	 * @return array{owner_id: int, ext: string, mtime: string}|false|null
+	 * @return array{owner_id: int, ext: string, mtime: string, version: string}|false|null
 	 */
 	private function read_cache( int $central_id ): array|false|null {
 		$raw = $this->cache->get( $this->cache_key( $central_id ) );
@@ -267,7 +268,7 @@ class BannerService {
 	}
 
 	/**
-	 * @return array{owner_id: int, ext: string, mtime: string}|false|null
+	 * @return array{owner_id: int, ext: string, mtime: string, version: string}|false|null
 	 *   array on hit, false for negative cache, null for miss/invalid
 	 */
 	private function parse_cache_value( mixed $raw, int $central_id ): array|false|null {
@@ -281,22 +282,24 @@ class BannerService {
 			return null;
 		}
 
-		$parts = explode( ':', $raw, 3 );
-		if ( count( $parts ) !== 3 ) {
+		$parts = explode( ':', $raw, 4 );
+		if ( count( $parts ) !== 4 ) {
 			return null;
 		}
 
-		[ $owner_raw, $ext, $mtime ] = $parts;
+		[ $owner_raw, $ext, $mtime, $version ] = $parts;
 		$owner_id = (int)$owner_raw;
-		if ( $owner_id !== $central_id || !in_array( $ext, BannerStorage::EXTENSIONS, true ) ) {
+		if ( $owner_id !== $central_id || !in_array( $ext, BannerStorage::EXTENSIONS, true ) ||
+			( $version !== '' && !ThumbnailStorage::is_valid_version( $version ) )
+		) {
 			return null;
 		}
 
-		return [ 'owner_id' => $owner_id, 'ext' => $ext, 'mtime' => $mtime ];
+		return [ 'owner_id' => $owner_id, 'ext' => $ext, 'mtime' => $mtime, 'version' => $version ];
 	}
 
-	private function write_cache( int $central_id, string $ext, string $mtime ): void {
-		$this->cache->set( $this->cache_key( $central_id ), $central_id . ':' . $ext . ':' . $mtime, self::CACHE_TTL );
+	private function write_cache( int $central_id, string $ext, string $mtime, string $version ): void {
+		$this->cache->set( $this->cache_key( $central_id ), $central_id . ':' . $ext . ':' . $mtime . ':' . $version, self::CACHE_TTL );
 	}
 
 	private function write_cache_negative( int $central_id ): void {

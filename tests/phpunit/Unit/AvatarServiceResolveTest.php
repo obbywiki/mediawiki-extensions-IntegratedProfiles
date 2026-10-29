@@ -69,7 +69,7 @@ class AvatarServiceResolveTest extends MediaWikiUnitTestCase {
 				AvatarService::CACHE_KEY_VERSION,
 				'1000'
 			),
-			'42:png:1'
+			'42:png:1:'
 		);
 
 		$storage = $this->createMock( AvatarStorage::class );
