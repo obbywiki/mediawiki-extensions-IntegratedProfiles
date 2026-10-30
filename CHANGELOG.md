@@ -1,5 +1,70 @@
 # Changelog
 
+## [0.8.0](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/compare/v0.7.0...v0.8.0) (2026-10-30)
+
+
+### ⚠ BREAKING CHANGES
+
+* rights & permissions revamp/overhaul (see docs for migration) ([#35](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/issues/35))
+
+### Features
+
+* allow for installs on 1.44 ([766d9c4](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/766d9c47b685da4d56b7381c017659be3fe9f12f))
+* avatar/banner upload thumbnailing ([#40](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/issues/40)) ([8c0a047](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/8c0a04778af2de40f0ec921552233ce859634e02))
+* **avatars:** make default avatar square ([759bf2e](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/759bf2e9b8558adb31b93035d39b2295bed1a5c7))
+* **avatars:** optimize default.svg ([34e64e1](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/34e64e1780358dfb56e7ac3f882e2edcb2e7519f))
+* configurable cache type ([#36](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/issues/36)) ([27ce26b](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/27ce26b8bba644733ff03a260bb5502441e84cdd))
+* configurable upload base URL ([a3f1fdf](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/a3f1fdfff500d11ce7f4971b9547e0e95a97f537))
+* improve edit button styling for non-citizen skins ([c244113](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/c2441137bad577b254c7b1900526cf748da34ac9))
+* improve group chips ui + configurable group display order/priority ([3af900a](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/3af900a7311dd12fc173c7febca7642bf35d77d4))
+* log edits and uploads to profiles when changes by other users ([89ea962](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/89ea9624ef1d304bb3aeb5faf8891907a62d1379))
+* purge local cache when a user's profile visibility changes ([7ade369](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/7ade36978c2737a1d5b5713ab6870e131646d7a5))
+* rights & permissions revamp/overhaul (see docs for migration) ([#35](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/issues/35)) ([042abc5](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/042abc5cb4a7ba68ad69852a03374e840ae2a5ef))
+* strengthen image animation checks ([a3e1362](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/a3e1362e70d67a38d6c155517b1067608c1d9e85))
+* strip metadata from uploaded avatars and banners on the server ([#39](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/issues/39)) ([80136f2](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/80136f275a1f964d81665c35db8e89fe61a40a07))
+* verify image upload hook for moderation integrations ([d2ab31d](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/d2ab31d4ef77f0f8338034ab96c5c0442151dd70))
+
+
+### Bug Fixes
+
+* check for read rights before revealing featured articles ([3037703](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/3037703fa7eaf55642defe560aa0f476a799a4bf))
+* class mismatches with HTMLCacheUpdater ([84d99cd](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/84d99cd8018ae0390ea789b382e893cdb92170a3))
+* don't fallback masthead border radius (--ip-radius) ([940ade6](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/940ade6d9e6186f6a267c537c6407f8c7b142a99))
+* **editor:** make avatar preview respect --ip-avatar-radius ([2c377fb](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/2c377fbbac4694f4e379abe62d1e48c64a1adb62))
+* hide suppressed users in all surfaces ([68b1ef5](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/68b1ef54d0b0ec89fc977a358b2c56a22563a69f))
+* implement rate limit defaults for uploads ([fa31175](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/fa31175c8407137c300f7386bf5ce5a97499dd00))
+* prevent local UserMerge DeleteAccount events from deleting global files on wiki farms ([83dd19e](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/83dd19e43adcc92c9aedda61fa07cefaf8543f84))
+* respect realname in wgHiddenPrefs ([7122563](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/71225638a263962f3909d94776bd080d91fae814))
+* skip hidden user checks when viewer is the subject ([c28f2ba](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/c28f2ba8170c024f17dcd5a103be708510e6ab85))
+
+
+### Performance Improvements
+
+* check if user has connections hidden before fetching ([12c354c](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/12c354c4bcf3bfe4f80b9064655eb3577d112bd0))
+* skip storage backend initialization for cached avatar/banner URLs when wgIntegratedProfilesUploadBaseUrl is configured + skip unnecessary full-file reads on JPEG uploads ([3aa3bbc](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/3aa3bbc56a5fbb370ffb62d8cd5bd3153340778f))
+
+
+### Miscellaneous Chores
+
+* **dependabot:** add 1-day cooldown to npm ([cde7091](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/cde7091e89b4012bd3fb9252e7513c9721b973af))
+* **dependabot:** auto-assign to wlft ([8e72e53](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/8e72e53ecf0e86fa49d84f773b6fc8ecc0162df3))
+* **dependabot:** set npm interval to daily ([b2d9cd4](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/b2d9cd41381ac4af0a04c4061e5d010ddc6870a4))
+* **deps-dev:** bump eslint-plugin-vue ([#38](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/issues/38)) ([6820052](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/682005236164ff6b8a67295408b86f17d7833f34))
+* **deps-dev:** bump the minor-updates group across 1 directory with 7 updates ([#34](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/issues/34)) ([cbd215e](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/cbd215eefd768248d2eac80e54604fa4cbdf6511))
+* **deps-dev:** bump the patch-updates group across 1 directory with 8 updates ([#29](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/issues/29)) ([de7f349](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/de7f349ad24cf570feb5c177333c328f75a9ee00))
+* **deps-dev:** bump the patch-updates group with 2 updates ([#37](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/issues/37)) ([65f3996](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/65f3996dc3dce602a496bd8ff111119aad6f4fc8))
+* **deps:** bump actions/checkout from 6 to 7 ([#31](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/issues/31)) ([4eafe87](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/4eafe870a77602b373590aead739d3cd283c41aa))
+* **deps:** bump actions/setup-node from 6 to 7 ([#33](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/issues/33)) ([4441963](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/444196339ce618fe17acb06207060d941796d95e))
+* **deps:** bump pnpm/action-setup from 4 to 6 ([#32](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/issues/32)) ([ce95494](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/ce95494494c68c8a6ab918e18386ed8e32ceddcd))
+* exclude dev-only resources from archives ([2f58924](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/2f58924d07e07d39c12608cd3efdb0553602736e))
+* ignore .bak ([c8ccbff](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/c8ccbff73265a0d08aeddb05c94c72bc92817594))
+* ignore core's pins and update override rules to pnpm 11+ ([11e32fd](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/11e32fd3a3b396e7ebe785d73bc8b626fb3ada38))
+* include vendor/** and composer.lock in worktrees ([2b9d9c4](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/2b9d9c434b60e1a7f25f52e2709dde117ac55476))
+* remove stale package-lock.json ([412f06e](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/412f06e151b1c84be6f787bc10f35a7f073b9cf5))
+* setup better local testing with mwenv ([0f5eeeb](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/0f5eeeb64fc7d74c1842016d4be97ec7d541727e))
+* update FUNDING ([24db8fd](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/24db8fd60a4e1c70103cd8028478410d53c83897))
+* vendor scripts/* ([666e56f](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/666e56f97221a9a3bf18c42b8d873c45b70649e1))
+
 ## [0.7.0](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/compare/v0.6.0...v0.7.0) (2026-10-08)
 
 
