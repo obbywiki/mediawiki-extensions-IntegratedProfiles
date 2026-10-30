@@ -263,6 +263,8 @@ php maintenance/run.php IntegratedProfiles:GenerateThumbnails
 
 Please see maintenance/GenerateThumbnails.php for more usage details.
 
+<!-- TODO: make a # Maintenance section -->
+
 ### Local settings
 
 Some settings can only be applied globally, as modifying them on one wiki would affect every wiki regardless. The following settings are recommended to be set per-wiki:
