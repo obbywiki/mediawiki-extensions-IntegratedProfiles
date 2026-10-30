@@ -150,6 +150,22 @@ class ThumbnailGeneratorTest extends MediaWikiUnitTestCase {
 		$this->assertTrue( $thumbs->exists( 7, 'abcdefabcd', 64 ), 'pages cached on other wikis still point at it' );
 	}
 
+	public function test_generate_for_drops_the_set_when_the_original_is_deleted_while_rendering(): void {
+		$thumbs = $this->thumbs();
+		$storage = $this->createMock( AvatarStorage::class );
+		$storage->method( 'thumbs' )->willReturn( $thumbs );
+		$storage->method( 'find_extension_with_mtime' )->willReturnOnConsecutiveCalls( [ 'ext' => 'png', 'mtime' => '20200101000000', 'version' => self::VERSION ], null );
+		$storage->method( 'get_backend' )->willReturn( $this->backend );
+		$storage->method( 'storage_path' )->willReturn( $this->backend->getContainerStoragePath( 'ipavatars' ) . '/avatar_7.png' );
+		$ready = false;
+
+		$this->assertFalse( $this->generator( [ $this->fake( 'only' ) ] )->generate_for( $storage, 7, static function () use ( &$ready ): void {
+			$ready = true;
+		} ) );
+		$this->assertFalse( $ready );
+		$this->assertDirectoryDoesNotExist( $this->root . '/ipavatars-thumbs/7' );
+	}
+
 	public function test_generate_for_calls_on_ready_only_after_a_full_set(): void {
 		$calls = 0;
 		$on_ready = static function () use ( &$calls ): void {

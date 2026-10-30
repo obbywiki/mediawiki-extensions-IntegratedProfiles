@@ -135,6 +135,17 @@ class ThumbnailGenerator {
 				return false;
 			}
 
+			// the original may have been deleted or replaced during rendering. delete_all() removes originals before thumbnails, so either this sees the deletion or its cleanup sees the set just stored
+			$now = $storage->find_extension_with_mtime( $owner_id );
+			if ( $now === null ) {
+				$thumbs->delete_owner( $owner_id );
+				return false;
+			}
+			if ( ( $now['version'] ?? '' ) !== $version ) {
+				// superseded, will be removed with the other old versions later
+				return false;
+			}
+
 			$thumbs->delete_superseded( $owner_id, $version, $found['mtime'] );
 			return true;
 		} catch ( Throwable $e ) {

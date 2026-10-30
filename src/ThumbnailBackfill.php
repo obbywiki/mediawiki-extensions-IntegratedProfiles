@@ -6,7 +6,7 @@ use Closure;
 use MediaWiki\User\UserIdentity;
 
 /**
- * Backfills thumbnails from stored originals that don't already have any current set, and removes versions superseded for longer than the retention period. Runs synchronously, see maintenance/GenerateThumbnails.php.
+ * Backfills thumbnails from stored originals that don't already have any current set, removes versions superseded for longer than the retention period, and removes thumbnails left without an original. Runs synchronously, see maintenance/GenerateThumbnails.php.
  *
  * Can potentially purge a lot of cached user pages (in batches). Only purges in the wiki that it runs in (TODO).
  */
@@ -18,6 +18,7 @@ class ThumbnailBackfill {
 	public const UNSUPPORTED = 'unsupported';
 	public const FAILED = 'failed';
 	public const MISSING = 'missing';
+	public const ORPHANED = 'orphaned';
 
 	public const DEFAULT_PURGE_BATCH = 50;
 
@@ -47,14 +48,20 @@ class ThumbnailBackfill {
 	 * @return array<string, int> status => count
 	 */
 	public function run( AvatarStorage|BannerStorage $storage, AvatarService|BannerService $service, ?array $owner_ids, array $options = [], ?Closure $report = null ): array {
-		$counts = array_fill_keys( [ self::GENERATED, self::CURRENT, self::PENDING, self::UNSUPPORTED, self::FAILED, self::MISSING ], 0 );
+		$counts = array_fill_keys( [ self::GENERATED, self::CURRENT, self::PENDING, self::UNSUPPORTED, self::FAILED, self::MISSING, self::ORPHANED ], 0 );
 		$start = (int)( $options['start'] ?? 0 );
 		$force = (bool)( $options['force'] ?? false );
 		$dry_run = (bool)( $options['dry_run'] ?? false );
 		$sleep_ms = max( 0, (int)( $options['sleep_ms'] ?? 0 ) );
 
 		try {
-			foreach ( $owner_ids ?? $storage->owner_ids() as $owner_id ) {
+			// a full run also visits thumbnail directories left without an original
+			if ( $owner_ids === null ) {
+				$owner_ids = array_values( array_unique( array_merge( $storage->owner_ids(), $storage->thumbs()->owner_ids() ) ) );
+				sort( $owner_ids );
+			}
+
+			foreach ( $owner_ids as $owner_id ) {
 				if ( $owner_id <= 0 || $owner_id < $start ) {
 					continue;
 				}
@@ -82,7 +89,16 @@ class ThumbnailBackfill {
 	public function backfill_owner( AvatarStorage|BannerStorage $storage, AvatarService|BannerService $service, int $owner_id, bool $force = false, bool $dry_run = false ): string {
 		$found = $storage->find_extension_with_mtime( $owner_id );
 		if ( $found === null ) {
-			return self::MISSING;
+			if ( !$storage->thumbs()->has_owner( $owner_id ) ) {
+				return self::MISSING;
+			}
+
+			// e.g. a set stored while its original was being deleted
+			if ( !$dry_run ) {
+				return $storage->thumbs()->delete_owner( $owner_id )->isOK() ? self::ORPHANED : self::FAILED;
+			}
+
+			return self::ORPHANED;
 		}
 
 		$version = $found['version'] ?? '';

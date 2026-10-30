@@ -21,7 +21,7 @@ require_once "$IP/maintenance/Maintenance.php";
 // @codeCoverageIgnoreEnd
 
 /**
- * Generates thumbnails for stored avatars and banners that don't have a current set (e.g. uploads from before thumbnailing existed, or after a purge of the -thumbs containers).
+ * Generates thumbnails for stored avatars and banners that don't have a current set (e.g. uploads from before thumbnailing existed, or after a purge of the -thumbs containers), and removes thumbnails whose original is gone.
  *
  * Usage: php maintenance/run.php IntegratedProfiles:GenerateThumbnails [--type=avatar|banner|all] [--owner=ID] [--start=ID] [--force] [--dry-run] [--no-purge] [--purge-batch=N] [--sleep=MS]
  *
@@ -109,13 +109,14 @@ class GenerateThumbnails extends Maintenance {
 			);
 
 			$this->output( sprintf(
-				"  %d %s, %d already current, %d unsupported, %d failed%s\n",
+				"  %d %s, %d already current, %d unsupported, %d failed%s%s\n",
 				$dry_run ? $counts[ThumbnailBackfill::PENDING] : $counts[ThumbnailBackfill::GENERATED],
 				$dry_run ? 'to generate' : 'generated',
 				$counts[ThumbnailBackfill::CURRENT],
 				$counts[ThumbnailBackfill::UNSUPPORTED],
 				$counts[ThumbnailBackfill::FAILED],
-				$counts[ThumbnailBackfill::MISSING] > 0 ? ', ' . $counts[ThumbnailBackfill::MISSING] . ' without an original' : ''
+				$counts[ThumbnailBackfill::MISSING] > 0 ? ', ' . $counts[ThumbnailBackfill::MISSING] . ' without an original' : '',
+				$counts[ThumbnailBackfill::ORPHANED] > 0 ? ', ' . $counts[ThumbnailBackfill::ORPHANED] . ( $dry_run ? ' orphaned sets to remove' : ' orphaned sets removed' ) : ''
 			) );
 			$failed += $counts[ThumbnailBackfill::FAILED];
 		}

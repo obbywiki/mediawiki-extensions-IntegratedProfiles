@@ -190,6 +190,28 @@ class ThumbnailBackfillTest extends MediaWikiUnitTestCase {
 		$this->assertTrue( $this->storage->thumbs()->exists( 5, 'abcdefabcd', 512 ), 'replaced too recently' );
 	}
 
+	public function test_full_runs_remove_thumbnails_left_without_an_original(): void {
+		$this->original( 3 );
+		$forgotten = [];
+		$purges = [];
+		$backfill = $this->backfill( $this->generator( [ $this->fake() ] ), $purges );
+		$backfill->run( $this->storage, $this->service( $forgotten ), null );
+		$this->storage->thumbs()->store( 8, 'abcdefabcd', 512, $this->thumb_dir( 3 ) . '/512.webp' );
+
+		$seen = [];
+		$report = static function ( int $owner, string $status ) use ( &$seen ): void {
+			$seen[$owner] = $status;
+		};
+		$backfill->run( $this->storage, $this->service( $forgotten ), null, [ 'dry_run' => true ], $report );
+		$this->assertSame( [ 3 => 'current', 8 => 'orphaned' ], $seen );
+		$this->assertTrue( $this->storage->thumbs()->has_owner( 8 ), 'a dry run deletes nothing' );
+
+		$counts = $backfill->run( $this->storage, $this->service( $forgotten ), null );
+		$this->assertSame( 1, $counts[ThumbnailBackfill::ORPHANED] );
+		$this->assertFalse( $this->storage->thumbs()->has_owner( 8 ) );
+		$this->assertTrue( $this->storage->thumbs()->has_owner( 3 ) );
+	}
+
 	public function test_available_lists_runnable_libraries_in_order(): void {
 		$generator = $this->generator( [ $this->fake( 'a' ), $this->fake( 'b', available: false ), $this->fake( 'c' ) ] );
 

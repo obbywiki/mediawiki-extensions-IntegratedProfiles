@@ -166,6 +166,39 @@ class ThumbnailStorage {
 	}
 
 	/**
+	 * Owners with a thumbnail directory, whether their original still exists or not.
+	 *
+	 * @return list<int> ascending
+	 */
+	public function owner_ids(): array {
+		if ( !$this->is_configured() ) {
+			return [];
+		}
+
+		$ids = [];
+		foreach ( $this->backend()->getTopDirectoryList( [ 'dir' => $this->container_path() ] ) ?? [] as $dir ) {
+			if ( preg_match( '/^[1-9][0-9]*$/', (string)$dir ) ) {
+				$ids[] = (int)$dir;
+			}
+		}
+		sort( $ids );
+
+		return $ids;
+	}
+
+	public function has_owner( int $owner_id ): bool {
+		if ( $owner_id <= 0 || !$this->is_configured() ) {
+			return false;
+		}
+
+		foreach ( $this->backend()->getFileList( [ 'dir' => $this->owner_dir( $owner_id ) ] ) ?? [] as $ignored ) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
 	 * Removes every thumbnail (all versions) for the provided owner, e.g. when the original is deleted.
 	 */
 	public function delete_owner( int $owner_id ): Status {
