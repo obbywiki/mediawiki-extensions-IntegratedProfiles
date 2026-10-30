@@ -212,6 +212,29 @@ class ThumbnailBackfillTest extends MediaWikiUnitTestCase {
 		$this->assertTrue( $this->storage->thumbs()->has_owner( 3 ) );
 	}
 
+	public function test_a_failed_lookup_never_deletes_thumbnails(): void {
+		$this->original( 3 );
+		$forgotten = [];
+		$purges = [];
+		$backfill = $this->backfill( $this->generator( [ $this->fake() ] ), $purges );
+		$backfill->run( $this->storage, $this->service( $forgotten ), null );
+
+		$flaky = $this->getMockBuilder( AvatarStorage::class )
+			->setConstructorArgs( [ new ServiceOptions( AvatarStorage::CONSTRUCTOR_OPTIONS, [
+				'IntegratedProfilesBackend' => '',
+				'IntegratedProfilesUploadBaseUrl' => '',
+				'UploadDirectory' => $this->root,
+				'UploadPath' => '/images',
+				'UploadBaseUrl' => '',
+			] ) ] )
+			->onlyMethods( [ 'lookup_original' ] )
+			->getMock();
+		$flaky->method( 'lookup_original' )->willReturn( null );
+
+		$this->assertSame( ThumbnailBackfill::FAILED, $backfill->backfill_owner( $flaky, $this->service( $forgotten ), 3 ) );
+		$this->assertTrue( $this->storage->thumbs()->has_owner( 3 ) );
+	}
+
 	public function test_available_lists_runnable_libraries_in_order(): void {
 		$generator = $this->generator( [ $this->fake( 'a' ), $this->fake( 'b', available: false ), $this->fake( 'c' ) ] );
 

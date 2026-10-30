@@ -6,6 +6,7 @@ use Closure;
 use MediaWiki\Config\ServiceOptions;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Status\Status;
+use RuntimeException;
 use Wikimedia\FileBackend\FileBackend;
 use Wikimedia\FileBackend\FSFileBackend;
 use Wikimedia\LockManager\NullLockManager;
@@ -80,10 +81,26 @@ class AvatarStorage {
 	 * @return array{ext: string, mtime: string, version: string}|null version is '' when the stat has no usable size or mtime
 	 */
 	public function find_extension_with_mtime( int $owner_id ): ?array {
+		$found = $this->lookup_original( $owner_id );
+
+		return is_array( $found ) ? $found : null;
+	}
+
+	/**
+	 * Like find_extension_with_mtime, but tells a missing original apart from a failed lookup, for callers that delete thumbnails once the original is gone.
+	 *
+	 * @return array{ext: string, mtime: string, version: string}|false|null false when there is no original, null when the backend could not tell
+	 */
+	public function lookup_original( int $owner_id ): array|false|null {
 		$backend = $this->get_backend();
+		$failed = false;
 		foreach ( self::EXTENSIONS as $ext ) {
 			$path = $this->storage_path( $owner_id, $ext );
 			$stat = $backend->getFileStat( [ 'src' => $path ] );
+			if ( $stat === null ) {
+				$failed = true;
+				continue;
+			}
 			if ( !is_array( $stat ) ) {
 				continue;
 			}
@@ -92,7 +109,8 @@ class AvatarStorage {
 
 			return [ 'ext' => $ext, 'mtime' => $mtime, 'version' => ThumbnailStorage::version_for( $ext, $size, $mtime ) ];
 		}
-		return null;
+
+		return $failed ? null : false;
 	}
 
 	/**
@@ -103,10 +121,14 @@ class AvatarStorage {
 	public function owner_ids(): array {
 		$backend = $this->get_backend();
 		$files = $backend->getFileList( [ 'dir' => $backend->getContainerStoragePath( self::CONTAINER ), 'topOnly' => true ] );
+		// a missing directory lists as empty (null means the listing itself failed)
+		if ( $files === null ) {
+			throw new RuntimeException( 'Could not list the ' . self::CONTAINER . ' container' );
+		}
 
 		$ids = [];
 		$pattern = '/^avatar_([1-9][0-9]*)\.(?:' . implode( '|', self::EXTENSIONS ) . ')$/';
-		foreach ( $files ?? [] as $rel ) {
+		foreach ( $files as $rel ) {
 			if ( preg_match( $pattern, (string)$rel, $m ) ) {
 				$ids[(int)$m[1]] = true;
 			}

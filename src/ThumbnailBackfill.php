@@ -87,8 +87,12 @@ class ThumbnailBackfill {
 	 * @return string One of the status constants
 	 */
 	public function backfill_owner( AvatarStorage|BannerStorage $storage, AvatarService|BannerService $service, int $owner_id, bool $force = false, bool $dry_run = false ): string {
-		$found = $storage->find_extension_with_mtime( $owner_id );
+		$found = $storage->lookup_original( $owner_id );
 		if ( $found === null ) {
+			// the backend could not tell whether the original exists, so nothing may be deleted
+			return self::FAILED;
+		}
+		if ( $found === false ) {
 			if ( !$storage->thumbs()->has_owner( $owner_id ) ) {
 				return self::MISSING;
 			}

@@ -136,9 +136,14 @@ class ThumbnailGenerator {
 			}
 
 			// the original may have been deleted or replaced during rendering. delete_all() removes originals before thumbnails, so either this sees the deletion or its cleanup sees the set just stored
-			$now = $storage->find_extension_with_mtime( $owner_id );
-			if ( $now === null ) {
+			$now = $storage->lookup_original( $owner_id );
+			if ( $now === false ) {
 				$thumbs->delete_owner( $owner_id );
+				return false;
+			}
+			if ( $now === null ) {
+				// keep the set (nothing points at it yet), the backfill removes it if the original turns out to be gone
+				$this->logger->warning( 'Could not re-check the original for owner {owner} after generating thumbnails', [ 'owner' => $owner_id ] );
 				return false;
 			}
 			if ( ( $now['version'] ?? '' ) !== $version ) {

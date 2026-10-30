@@ -11,6 +11,7 @@ use MediaWiki\Extension\IntegratedProfiles\ProfileSubjectIds;
 use MediaWiki\Extension\IntegratedProfiles\ThumbnailBackfill;
 use MediaWiki\Extension\IntegratedProfiles\ThumbnailGenerator;
 use MediaWiki\Maintenance\Maintenance;
+use RuntimeException;
 
 // @codeCoverageIgnoreStart
 $IP = getenv( 'MW_INSTALL_PATH' );
@@ -90,23 +91,30 @@ class GenerateThumbnails extends Maintenance {
 			}
 
 			$this->output( "\n" . ucfirst( $kind ) . "s:\n" );
-			$counts = $backfill->run(
-				$storage,
-				$services->get( $service_name ),
-				$owner !== null ? [ $owner ] : null,
-				[
-					'start' => $start,
-					'force' => $this->hasOption( 'force' ),
-					'dry_run' => $dry_run,
-					'sleep_ms' => $this->positive_option( 'sleep' ) ?? 0,
-				],
-				function ( int $owner_id, string $status ): void {
-					// current sets produce no output because they are common after reruns
-					if ( $status !== ThumbnailBackfill::CURRENT ) {
-						$this->output( "  $owner_id: $status\n" );
+			try {
+				$counts = $backfill->run(
+					$storage,
+					$services->get( $service_name ),
+					$owner !== null ? [ $owner ] : null,
+					[
+						'start' => $start,
+						'force' => $this->hasOption( 'force' ),
+						'dry_run' => $dry_run,
+						'sleep_ms' => $this->positive_option( 'sleep' ) ?? 0,
+					],
+					function ( int $owner_id, string $status ): void {
+						// current sets produce no output because they are common after reruns
+						if ( $status !== ThumbnailBackfill::CURRENT ) {
+							$this->output( "  $owner_id: $status\n" );
+						}
 					}
-				}
-			);
+				);
+			} catch ( RuntimeException $e ) {
+				// e.g. an unreachable backend, which must not look like a run with nothing to do
+				$this->error( '  ' . $e->getMessage() );
+				$failed++;
+				continue;
+			}
 
 			$this->output( sprintf(
 				"  %d %s, %d already current, %d unsupported, %d failed%s%s\n",
@@ -122,7 +130,7 @@ class GenerateThumbnails extends Maintenance {
 		}
 
 		if ( $failed > 0 ) {
-			$this->fatalError( "\nSome thumbnails could not be generated. Details are in the IntegratedProfiles log channel." );
+			$this->fatalError( "\nSome thumbnails could not be generated or checked. Details are in the IntegratedProfiles log channel." );
 		}
 	}
 

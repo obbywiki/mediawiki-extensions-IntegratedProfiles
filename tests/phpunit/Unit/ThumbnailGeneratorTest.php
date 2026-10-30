@@ -154,7 +154,8 @@ class ThumbnailGeneratorTest extends MediaWikiUnitTestCase {
 		$thumbs = $this->thumbs();
 		$storage = $this->createMock( AvatarStorage::class );
 		$storage->method( 'thumbs' )->willReturn( $thumbs );
-		$storage->method( 'find_extension_with_mtime' )->willReturnOnConsecutiveCalls( [ 'ext' => 'png', 'mtime' => '20200101000000', 'version' => self::VERSION ], null );
+		$storage->method( 'find_extension_with_mtime' )->willReturn( [ 'ext' => 'png', 'mtime' => '20200101000000', 'version' => self::VERSION ] );
+		$storage->method( 'lookup_original' )->willReturn( false );
 		$storage->method( 'get_backend' )->willReturn( $this->backend );
 		$storage->method( 'storage_path' )->willReturn( $this->backend->getContainerStoragePath( 'ipavatars' ) . '/avatar_7.png' );
 		$ready = false;
@@ -320,6 +321,7 @@ class ThumbnailGeneratorTest extends MediaWikiUnitTestCase {
 		$storage = $this->createMock( AvatarStorage::class );
 		$storage->method( 'thumbs' )->willReturn( $thumbs );
 		$storage->method( 'find_extension_with_mtime' )->willReturn( [ 'ext' => 'png', 'mtime' => $mtime, 'version' => self::VERSION ] );
+		$storage->method( 'lookup_original' )->willReturn( [ 'ext' => 'png', 'mtime' => $mtime, 'version' => self::VERSION ] );
 		$storage->method( 'get_backend' )->willReturn( $this->backend );
 		$storage->method( 'storage_path' )->willReturn( $this->backend->getContainerStoragePath( 'ipavatars' ) . '/avatar_7.png' );
 

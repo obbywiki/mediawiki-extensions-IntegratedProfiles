@@ -4,6 +4,7 @@ namespace MediaWiki\Extension\IntegratedProfiles;
 
 use Closure;
 use MediaWiki\Status\Status;
+use RuntimeException;
 use Wikimedia\FileBackend\FileBackend;
 use Wikimedia\Timestamp\ConvertibleTimestamp;
 
@@ -175,8 +176,14 @@ class ThumbnailStorage {
 			return [];
 		}
 
+		$dirs = $this->backend()->getTopDirectoryList( [ 'dir' => $this->container_path() ] );
+		// a missing directory lists as empty, null means the listing itself failed
+		if ( $dirs === null ) {
+			throw new RuntimeException( 'Could not list the ' . $this->container . ' container' );
+		}
+
 		$ids = [];
-		foreach ( $this->backend()->getTopDirectoryList( [ 'dir' => $this->container_path() ] ) ?? [] as $dir ) {
+		foreach ( $dirs as $dir ) {
 			if ( preg_match( '/^[1-9][0-9]*$/', (string)$dir ) ) {
 				$ids[] = (int)$dir;
 			}
