@@ -494,7 +494,7 @@
 		"IntegratedProfilesThumbnailers": {
 			"value": [ "vips", "imagick", "gd" ],
 			"merge_strategy": "provide_default",
-			"description": "Image libraries used to generate avatar/banner WebP thumbnails. Set it to an empty list in order to disable thumbnailing and serve the originals directlty instead. GD may break animated avatars/thumbnails, using vips is recommended."
+			"description": "Image libraries used to generate avatar/banner WebP thumbnails. Set it to an empty list in order to disable thumbnailing and serve the originals directly instead. GD may break animated avatars/thumbnails, using vips is recommended."
 		},
 		"IntegratedProfilesVipsCommand": {
 			"value": "/usr/bin/vipsthumbnail",

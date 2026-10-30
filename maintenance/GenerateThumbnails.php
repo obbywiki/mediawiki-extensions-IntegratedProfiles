@@ -25,7 +25,7 @@ require_once "$IP/maintenance/Maintenance.php";
  *
  * Usage: php maintenance/run.php IntegratedProfiles:GenerateThumbnails [--type=avatar|banner|all] [--owner=ID] [--start=ID] [--force] [--dry-run] [--no-purge] [--purge-batch=N] [--sleep=MS]
  *
- * This script is safe to run repeatedly (it is effecient). On a farm that's sharing one upload directory, running it on a single wiki is enough.
+ * This script is safe to run repeatedly (it is efficient). On a farm that's sharing one upload directory, running it on a single wiki is enough.
  */
 class GenerateThumbnails extends Maintenance {
 
