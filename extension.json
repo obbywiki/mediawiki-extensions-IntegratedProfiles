@@ -19,7 +19,8 @@
 		}
 	},
 	"AutoloadNamespaces": {
-		"MediaWiki\\Extension\\IntegratedProfiles\\": "src/"
+		"MediaWiki\\Extension\\IntegratedProfiles\\": "src/",
+		"MediaWiki\\Extension\\IntegratedProfiles\\Maintenance\\": "maintenance/"
 	},
 	"ServiceWiringFiles": [
 		"src/ServiceWiring.php"

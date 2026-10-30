@@ -22,6 +22,8 @@ class ThumbnailGenerator {
 
 	public const SERVICE_NAME = 'IntegratedProfiles.ThumbnailGenerator';
 
+	private bool $unsupported = false;
+
 	/**
 	 * @param list<Thumbnailer> $thumbnailers In order of preference
 	 * @param TempFSFileFactory $temp_factory
@@ -108,6 +110,8 @@ class ThumbnailGenerator {
 	}
 
 	private function generate_current( AvatarStorage|BannerStorage $storage, int $owner_id ): bool {
+		$this->unsupported = false;
+
 		try {
 			$thumbs = $storage->thumbs();
 			if ( !$thumbs->is_configured() ) {
@@ -150,6 +154,8 @@ class ThumbnailGenerator {
 	 */
 	public function generate( ThumbnailStorage $thumbs, string $src_path, string $ext, int $owner_id, string $version ): bool {
 		$animated = ImageAnimation::is_animated( $src_path, $ext );
+		$attempted = false;
+		$this->unsupported = false;
 
 		foreach ( $this->thumbnailers as $thumbnailer ) {
 			try {
@@ -157,6 +163,7 @@ class ThumbnailGenerator {
 					continue;
 				}
 
+				$attempted = true;
 				$result = $this->try_thumbnailer( $thumbnailer, $thumbs, $src_path, $ext, $animated, $owner_id, $version );
 			} catch ( Throwable $e ) {
 				$this->logger->warning( 'Thumbnailer {name} threw: {message}', [
@@ -172,6 +179,7 @@ class ThumbnailGenerator {
 			}
 		}
 
+		$this->unsupported = !$attempted;
 		$this->logger->info( 'No thumbnailer could handle {ext} (animated: {animated}) for owner {owner}', [
 			'ext' => $ext,
 			'animated' => $animated ? 'yes' : 'no',
@@ -179,6 +187,30 @@ class ThumbnailGenerator {
 		] );
 
 		return false;
+	}
+
+	public function last_was_unsupported(): bool {
+		return $this->unsupported;
+	}
+
+	/**
+	 * Names of the configured libraries that are able to run here, ordered by preference.
+	 *
+	 * @return list<string>
+	 */
+	public function available(): array {
+		$names = [];
+		foreach ( $this->thumbnailers as $thumbnailer ) {
+			try {
+				if ( $thumbnailer->is_available() ) {
+					$names[] = $thumbnailer->name();
+				}
+			} catch ( Throwable ) {
+				// an unavailable library
+			}
+		}
+
+		return $names;
 	}
 
 	/**

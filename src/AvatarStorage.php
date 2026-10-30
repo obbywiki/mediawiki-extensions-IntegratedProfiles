@@ -88,6 +88,29 @@ class AvatarStorage {
 	}
 
 	/**
+	 * Returns every owner with a stored avatar from the container listing (no database involved, so it also covers central IDs from other wikis sharing the upload directory).
+	 *
+	 * @return list<int> ascending
+	 */
+	public function owner_ids(): array {
+		$backend = $this->get_backend();
+		$files = $backend->getFileList( [ 'dir' => $backend->getContainerStoragePath( self::CONTAINER ), 'topOnly' => true ] );
+
+		$ids = [];
+		$pattern = '/^avatar_([1-9][0-9]*)\.(?:' . implode( '|', self::EXTENSIONS ) . ')$/';
+		foreach ( $files ?? [] as $rel ) {
+			if ( preg_match( $pattern, (string)$rel, $m ) ) {
+				$ids[(int)$m[1]] = true;
+			}
+		}
+
+		$ids = array_keys( $ids );
+		sort( $ids );
+
+		return $ids;
+	}
+
+	/**
 	 * Stores bytes from a local temp path. Writes the new file first, then removes other formats to prevent a failed write from wiping the prior avatar.
 	 */
 	public function store( int $owner_id, string $ext, string $src_path ): Status {
@@ -209,10 +232,9 @@ class AvatarStorage {
 		}
 
 		$named = (string)$this->options->get( 'IntegratedProfilesBackend' );
-		$services = MediaWikiServices::getInstance();
 
 		if ( $named !== '' ) {
-			$this->backend = $services->getFileBackendGroup()->get( $named );
+			$this->backend = MediaWikiServices::getInstance()->getFileBackendGroup()->get( $named );
 		} else {
 			$upload_dir = rtrim( (string)$this->options->get( 'UploadDirectory' ), '/\\' );
 			$this->backend = new FSFileBackend( [

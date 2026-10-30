@@ -218,7 +218,7 @@ class AvatarService {
 		$this->purge_pages( $user );
 		$this->thumbnails?->schedule( $this->storage, $central_id, function () use ( $central_id, $user ): void {
 			// next read re-resolves and sees the new thumbnails, and so do pages cached since the upload
-			$this->cache->delete( $this->cache_key( $central_id ) );
+			$this->forget_cached( $central_id );
 			$this->purge_pages( $user );
 		} );
 
@@ -236,6 +236,12 @@ class AvatarService {
 		}
 
 		return $status;
+	}
+
+	public function forget_cached( int $central_id ): void {
+		if ( $central_id > 0 ) {
+			$this->cache->delete( $this->cache_key( $central_id ) );
+		}
 	}
 
 	private function purge_pages( ?UserIdentity $user ): void {

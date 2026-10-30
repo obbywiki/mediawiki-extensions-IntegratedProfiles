@@ -253,6 +253,16 @@ By default (recommended):
 $wgIntegratedProfilesThumbnailers = [ 'vips', 'imagick', 'gd' ];
 ```
 
+#### Generating thumbnails for existing uploads
+
+In the event that you lose the thumbnails or purge them (or if you are updating from a version before 0.8.0), you can backfill the generated thumbnails by running the dedicated maintenance script:
+
+```bash
+php maintenance/run.php IntegratedProfiles:GenerateThumbnails
+```
+
+Please see maintenance/GenerateThumbnails.php for more usage details.
+
 ### Local settings
 
 Some settings can only be applied globally, as modifying them on one wiki would affect every wiki regardless. The following settings are recommended to be set per-wiki:

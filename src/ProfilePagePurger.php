@@ -47,20 +47,28 @@ class ProfilePagePurger {
 	 * Sends a local CDN/file-cache purge for the subject's user and talk pages (also reaches Cloudflare and others through MultiPurge's cdn-url-purges relayer).
 	 */
 	public function purge_subject_pages( UserIdentity $user ): void {
-		$name = $user->getName();
-		if ( $name === '' ) {
-			return;
-		}
+		$this->purge_subject_pages_batch( [ $user ] );
+	}
 
+	/**
+	 * Same as purge_subject_pages, but for many subjects in a single CDN purge (one MultiPurge job instead of one job for every user).
+	 *
+	 * @param iterable<UserIdentity> $users
+	 */
+	public function purge_subject_pages_batch( iterable $users ): void {
 		$titles = [];
-		$user_title = $this->title_factory->makeTitleSafe( NS_USER, $name );
-		if ( $user_title ) {
-			$titles[] = $user_title;
-		}
+		foreach ( $users as $user ) {
+			$name = $user->getName();
+			if ( $name === '' ) {
+				continue;
+			}
 
-		$talk_title = $this->title_factory->makeTitleSafe( NS_USER_TALK, $name );
-		if ( $talk_title ) {
-			$titles[] = $talk_title;
+			foreach ( [ NS_USER, NS_USER_TALK ] as $namespace ) {
+				$title = $this->title_factory->makeTitleSafe( $namespace, $name );
+				if ( $title ) {
+					$titles[] = $title;
+				}
+			}
 		}
 
 		if ( $titles === [] ) {

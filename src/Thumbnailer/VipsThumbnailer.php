@@ -7,7 +7,7 @@ use MediaWiki\Shell\Shell;
 
 /**
  * libvips via the vipsthumbnail CLI (the same approach as Extension:Thumbro). Fastest and lowest memory, since it shrinks on load and streams, and it keeps animated GIF/WebP intact.
- * 
+ *
  * Thank you alistair3149! Parts of this implementation were inspired by Extension:Thumbro.
  */
 class VipsThumbnailer implements Thumbnailer {
