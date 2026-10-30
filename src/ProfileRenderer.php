@@ -11,6 +11,9 @@ use MediaWiki\Html\TemplateParser;
  */
 class ProfileRenderer {
 
+	/** Masthead avatar edge in CSS pixels, matching the <img> width/height (CSS shows it at 6.5rem or smaller) */
+	public const MASTHEAD_AVATAR_PX = 128;
+
 	/**
 	 * @param TemplateParser $template_parser Mustache renderer rooted at templates/
 	 */
@@ -146,8 +149,14 @@ class ProfileRenderer {
 
 		$masthead_style = '--ip-accent:' . $color . ';--ip-avatar-radius:' . $radius;
 		if ( $banner_mode === ProfileFields::BANNER_CUSTOM && $banner_url !== '' ) {
-			$masthead_style .= ';--ip-banner-image:url(' . $banner_url . ')';
+			$banner_thumbs = is_array( $payload['banner_thumbs'] ?? null ) ? $payload['banner_thumbs'] : [];
+			$banner_thumb = ThumbnailSizes::pick( $banner_thumbs, ThumbnailSizes::BANNER, max( ThumbnailSizes::BANNER ) );
+			$masthead_style .= ';--ip-banner-image:url(' . ( $banner_thumb ?? $banner_url ) . ')';
 		}
+
+		$avatar_original = (string)( $payload['avatar_url'] ?? '' );
+		$avatar_thumbs = is_array( $payload['avatar_thumbs'] ?? null ) ? $payload['avatar_thumbs'] : [];
+		$avatar_thumb = ThumbnailSizes::pick( $avatar_thumbs, ThumbnailSizes::AVATAR, self::MASTHEAD_AVATAR_PX );
 
 		$aka = '';
 		if ( !$is_private ) {
@@ -248,7 +257,8 @@ class ProfileRenderer {
 			'masthead_style' => $masthead_style,
 
 			'banner_mode' => $banner_mode,
-			'avatar_url' => (string)( $payload['avatar_url'] ?? '' ),
+			'avatar_url' => $avatar_thumb ?? $avatar_original,
+			'avatar_srcset' => $avatar_thumb !== null ? self::optional_section( ThumbnailSizes::density_srcset( $avatar_thumbs, ThumbnailSizes::AVATAR, self::MASTHEAD_AVATAR_PX ) ) : false,
 			'avatar_alt' => (string)( $messages['avatar_alt'] ?? '' ),
 			'avatar_decoration' => self::optional_section( $avatar_decoration ),
 			'avatar_edit' => $avatar_edit,

@@ -46,6 +46,17 @@ class ProfileSubjectIds {
 		return $central_id;
 	}
 
+	/**
+	 * The local account for a storage owner, or null instead when it has none on this wiki (e.g. a CentralAuth user who never visited).
+	 */
+	public function local_user_for( int $central_id ): ?UserIdentity {
+		if ( $central_id <= 0 ) {
+			return null;
+		}
+
+		return $this->central_id_lookup->localUserFromCentralId( $central_id, CentralIdLookup::AUDIENCE_RAW );
+	}
+
 	public function local_id_for( UserIdentity $user ): int {
 		return $user->getId();
 	}

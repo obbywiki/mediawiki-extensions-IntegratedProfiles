@@ -62,9 +62,14 @@ class ApiQueryIntegratedProfileAvatar extends ApiQueryBase {
 			}
 
 			$info = $info_by_name[$name];
+			$thumbs = $info['avatar_thumbs'] ?? [];
+			ApiResult::setArrayType( $thumbs, 'kvp', 'size' );
+			ApiResult::setIndexedTagName( $thumbs, 'thumb' );
+
 			$list[] = [
 				'user' => $name,
 				'avatar_url' => $info['avatar_url'],
+				'avatar_thumbs' => $thumbs,
 				'has_custom_avatar' => $info['has_custom_avatar']
 			];
 		}

@@ -1,4 +1,7 @@
 import type { IntegratedProfilesConfig, ProfileFieldsMap, ProfilePayload, WikiProfile } from '../types/mw';
+import { apply_avatar_image, BANNER_THUMB_SIZES, pick_thumb, type ThumbMap } from './thumbs';
+
+// this file used to contain a lot more code. if the function you want is not here, check the other typescript files under src/utils/
 
 type ApiErrorBody = {
 	error?: { info?: string; code?: string };
@@ -269,7 +272,7 @@ export function apply_payload_to_dom( profile: ProfilePayload ): void {
 
 	const avatar_img = document.querySelector( '.ip-avatar__image' ) as HTMLImageElement | null;
 	if ( avatar_img && profile.avatar_url ) {
-		avatar_img.src = profile.avatar_url;
+		apply_avatar_image( avatar_img, profile.avatar_url, profile.avatar_thumbs );
 	}
 
 	sync_banner_dom( profile );
@@ -588,6 +591,7 @@ function sync_pronouns_dom( profile: ProfilePayload ): void {
 type BannerPaintProfile = {
 	fields?: { 'ip-banner'?: string };
 	banner_url?: string;
+	banner_thumbs?: ThumbMap;
 };
 
 /**
@@ -608,7 +612,8 @@ export function sync_banner_dom(
 	if ( banner_url !== '' ) {
 		band.className = 'ip-masthead__band ip-masthead__band--custom';
 		if ( masthead ) {
-			masthead.style.setProperty( '--ip-banner-image', 'url(' + banner_url + ')' );
+			const thumb = pick_thumb( profile.banner_thumbs, BANNER_THUMB_SIZES, Math.max( ...BANNER_THUMB_SIZES ) );
+			masthead.style.setProperty( '--ip-banner-image', 'url(' + ( thumb || banner_url ) + ')' );
 		}
 		return;
 	}

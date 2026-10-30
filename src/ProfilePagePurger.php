@@ -7,7 +7,7 @@ use MediaWiki\Title\TitleFactory;
 use MediaWiki\User\UserIdentity;
 
 /**
- * Purges local User:X / User_talk:X HTML so anonymous CDN copies drop after a visibility change.
+ * Purges local User:X / User_talk:X HTML so anonymous CDN copies drop after a visibility change, and the URLs of deleted profile media.
  */
 class ProfilePagePurger {
 
@@ -44,23 +44,31 @@ class ProfilePagePurger {
 	}
 
 	/**
-	 * Sends a local CDN/file-cache purge for the subject's user and talk pages.
+	 * Sends a local CDN/file-cache purge for the subject's user and talk pages (also reaches Cloudflare and others through MultiPurge's cdn-url-purges relayer).
 	 */
-	private function purge_subject_pages( UserIdentity $user ): void {
-		$name = $user->getName();
-		if ( $name === '' ) {
-			return;
-		}
+	public function purge_subject_pages( UserIdentity $user ): void {
+		$this->purge_subject_pages_batch( [ $user ] );
+	}
 
+	/**
+	 * Same as purge_subject_pages, but for many subjects in a single CDN purge (one MultiPurge job instead of one job for every user).
+	 *
+	 * @param iterable<UserIdentity> $users
+	 */
+	public function purge_subject_pages_batch( iterable $users ): void {
 		$titles = [];
-		$user_title = $this->title_factory->makeTitleSafe( NS_USER, $name );
-		if ( $user_title ) {
-			$titles[] = $user_title;
-		}
+		foreach ( $users as $user ) {
+			$name = $user->getName();
+			if ( $name === '' ) {
+				continue;
+			}
 
-		$talk_title = $this->title_factory->makeTitleSafe( NS_USER_TALK, $name );
-		if ( $talk_title ) {
-			$titles[] = $talk_title;
+			foreach ( [ NS_USER, NS_USER_TALK ] as $namespace ) {
+				$title = $this->title_factory->makeTitleSafe( $namespace, $name );
+				if ( $title ) {
+					$titles[] = $title;
+				}
+			}
 		}
 
 		if ( $titles === [] ) {
@@ -68,6 +76,20 @@ class ProfilePagePurger {
 		}
 
 		$this->html_cache_updater->purgeTitleUrls( $titles );
+	}
+
+	/**
+	 * Purges media URLs (deleted originals and thumbnails) from the CDN, through the same path as page purges.
+	 *
+	 * @param list<string> $urls
+	 */
+	public function purge_urls( array $urls ): void {
+		$urls = array_values( array_unique( array_filter( $urls, static fn ( $url ): bool => is_string( $url ) && $url !== '' ) ) );
+		if ( $urls === [] ) {
+			return;
+		}
+
+		$this->html_cache_updater->purgeUrls( $urls );
 	}
 
 }

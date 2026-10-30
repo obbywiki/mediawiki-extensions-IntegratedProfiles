@@ -20,6 +20,30 @@ const VISIBLE_CLASS = 'ext-floatingui-floating--visible';
  */
 const CACHE_TTL_MS = 30000;
 
+/**
+ * Fixed thumbnail sizes (see ThumbnailSizes.php).
+ *
+ * @type {number[]}
+ */
+const AVATAR_THUMB_SIZES = [ 32, 64, 128, 256, 512 ];
+
+/**
+ * @type {number[]}
+ */
+const BANNER_THUMB_SIZES = [ 640, 1280, 1920 ];
+
+/**
+ * Card avatar edge and banner width in CSS pixels (5.5rem / 26rem in user_cards.css).
+ *
+ * @type {number}
+ */
+const CARD_AVATAR_PX = 88;
+
+/**
+ * @type {number}
+ */
+const CARD_BANNER_PX = 416;
+
 /** @type {HTMLElement|null} */
 let card_root = null;
 
@@ -55,9 +79,11 @@ let api = null;
  * @property {number} edit_count
  * @property {string|null} registration
  * @property {string} avatar_url
+ * @property {Object<string, string>|Array} [avatar_thumbs] size => URL, empty when there are none
  * @property {boolean} has_custom_avatar
  * @property {string} banner
  * @property {string} banner_url
+ * @property {Object<string, string>|Array} [banner_thumbs] width => URL, empty when there are none
  * @property {{ title: string, display_title: string, url: string }|null} [featured_article]
  * @property {boolean} is_private
  */
@@ -290,6 +316,32 @@ function default_avatar_url() {
 }
 
 /**
+ * @param {Object<string, string>|Array|undefined} thumbs size => URL
+ * @param {number[]} sizes
+ * @param {number} css_px
+ * @return {string}
+ */
+function pick_thumb( thumbs, sizes, css_px ) {
+	if ( !thumbs || Array.isArray( thumbs ) ) {
+		return '';
+	}
+
+	const wanted = Math.ceil( css_px * Math.min( window.devicePixelRatio || 1, 2 ) );
+	const size = sizes.find( ( candidate ) => candidate >= wanted ) || sizes[ sizes.length - 1 ];
+	const url = thumbs[ String( size ) ];
+
+	return typeof url === 'string' ? url : '';
+}
+
+/**
+ * @param {...string} urls
+ * @return {string[]}
+ */
+function url_chain( ...urls ) {
+	return urls.filter( ( url, index ) => !!url && urls.indexOf( url ) === index );
+}
+
+/**
  * @param {string} user_name
  * @return {string}
  */
@@ -407,28 +459,43 @@ function apply_banner( banner, payload ) {
 
 	let mode = payload.banner || 'accent';
 	if ( payload.banner_url ) {
-		const img = new Image();
-		img.onerror = function () {
-			if ( token !== banner_token ) { return; }
+		const urls = url_chain( pick_thumb( payload.banner_thumbs, BANNER_THUMB_SIZES, CARD_BANNER_PX ), payload.banner_url );
 
-			banner.classList.add( 'ip-user-card__banner--accent' );
-			reveal( true );
-		};
-		img.src = payload.banner_url;
-		if ( image_is_cached( img ) ) {
-			banner.classList.add( 'ip-user-card__banner--custom' );
-			banner.style.setProperty( '--ip-user-card-banner-image', css_url( payload.banner_url ) );
-			reveal( true );
-			return;
+		/**
+		 * @param {number} index
+		 */
+		function try_banner( index ) {
+			const url = urls[ index ];
+			const img = new Image();
+			img.onerror = function () {
+				if ( token !== banner_token ) { return; }
+
+				if ( index + 1 < urls.length ) {
+					try_banner( index + 1 );
+					return;
+				}
+
+				banner.classList.add( 'ip-user-card__banner--accent' );
+				reveal( true );
+			};
+			img.src = url;
+			if ( image_is_cached( img ) ) {
+				banner.classList.add( 'ip-user-card__banner--custom' );
+				banner.style.setProperty( '--ip-user-card-banner-image', css_url( url ) );
+				reveal( true );
+				return;
+			}
+
+			img.onload = function () {
+				if ( token !== banner_token ) { return; }
+
+				banner.classList.add( 'ip-user-card__banner--custom' );
+				banner.style.setProperty( '--ip-user-card-banner-image', css_url( url ) );
+				reveal( false );
+			};
 		}
 
-		img.onload = function () {
-			if ( token !== banner_token ) { return; }
-
-			banner.classList.add( 'ip-user-card__banner--custom' );
-			banner.style.setProperty( '--ip-user-card-banner-image', css_url( payload.banner_url ) );
-			reveal( false );
-		};
+		try_banner( 0 );
 		return;
 	}
 
@@ -450,10 +517,11 @@ function apply_card_chrome() {
 
 /**
  * @param {HTMLImageElement} avatar
- * @param {string} url
+ * @param {string[]} urls Candidates in order (thumbnail, original); the default avatar is the last resort
  */
-function set_avatar_src( avatar, url ) {
+function set_avatar_src( avatar, urls ) {
 	const token = ++avatar_token;
+	const chain = url_chain( ...urls, default_avatar_url() );
 	avatar.classList.add( 'ip-user-card__avatar--instant' );
 	avatar.classList.remove( 'ip-user-card__avatar--ready' );
 
@@ -466,12 +534,17 @@ function set_avatar_src( avatar, url ) {
 		reveal_ready( avatar, 'ip-user-card__avatar--ready', 'ip-user-card__avatar--instant', instant, () => token !== avatar_token );
 	}
 
-	avatar.onload = null;
-	avatar.onerror = function () {
-		if ( token !== avatar_token ) { return; }
+	/**
+	 * @param {number} index
+	 */
+	function try_avatar( index ) {
+		avatar.onload = null;
+		avatar.onerror = index + 1 < chain.length ? function () {
+			if ( token !== avatar_token ) { return; }
 
-		avatar.onerror = null;
-		avatar.src = default_avatar_url();
+			try_avatar( index + 1 );
+		} : null;
+		avatar.src = chain[ index ];
 		if ( image_is_cached( avatar ) ) {
 			reveal( true );
 
@@ -481,17 +554,9 @@ function set_avatar_src( avatar, url ) {
 		avatar.onload = function () {
 			reveal( false );
 		};
-	};
-	avatar.src = url;
-	if ( image_is_cached( avatar ) ) {
-		reveal( true );
-
-		return;
 	}
 
-	avatar.onload = function () {
-		reveal( false );
-	};
+	try_avatar( 0 );
 }
 
 /**
@@ -810,7 +875,7 @@ function fill_card( payload ) {
 
 	if ( avatar instanceof HTMLImageElement ) {
 		avatar.alt = mw.message( 'integratedprofiles-avatar-alt' ).text();
-		set_avatar_src( avatar, payload.avatar_url || default_avatar_url() );
+		set_avatar_src( avatar, [ pick_thumb( payload.avatar_thumbs, AVATAR_THUMB_SIZES, CARD_AVATAR_PX ), payload.avatar_url ] );
 	}
 
 	update_position();

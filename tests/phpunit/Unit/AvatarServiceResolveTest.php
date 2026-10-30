@@ -22,9 +22,9 @@ class AvatarServiceResolveTest extends MediaWikiUnitTestCase {
 	public function test_does_not_use_local_id_file_when_central_missing(): void {
 		$storage = $this->createMock( AvatarStorage::class );
 		$storage->expects( $this->once() )
-			->method( 'find_extension_with_mtime' )
+			->method( 'lookup_original' )
 			->with( 1000 )
-			->willReturn( null );
+			->willReturn( false );
 		$storage->expects( $this->never() )->method( 'public_url' );
 
 		$info = $this->make_service( $storage, [ 'central_id' => 1000, 'local_id' => 42 ] )
@@ -39,13 +39,13 @@ class AvatarServiceResolveTest extends MediaWikiUnitTestCase {
 
 	public function test_uses_central_id_file_when_local_id_differs(): void {
 		$storage = $this->createMock( AvatarStorage::class );
-		$storage->method( 'find_extension_with_mtime' )->willReturnCallback(
-			static function ( int $owner_id ): ?array {
+		$storage->method( 'lookup_original' )->willReturnCallback(
+			static function ( int $owner_id ): array|false {
 				if ( $owner_id === 42 ) {
 					return [ 'ext' => 'png', 'mtime' => '9' ];
 				}
 
-				return null;
+				return false;
 			}
 		);
 		$storage->method( 'public_url' )->willReturnCallback(
@@ -69,14 +69,14 @@ class AvatarServiceResolveTest extends MediaWikiUnitTestCase {
 				AvatarService::CACHE_KEY_VERSION,
 				'1000'
 			),
-			'42:png:1'
+			'42:png:1:'
 		);
 
 		$storage = $this->createMock( AvatarStorage::class );
 		$storage->expects( $this->once() )
-			->method( 'find_extension_with_mtime' )
+			->method( 'lookup_original' )
 			->with( 1000 )
-			->willReturn( null );
+			->willReturn( false );
 		$storage->expects( $this->never() )->method( 'public_url' );
 
 		$info = $this->make_service( $storage, [ 'central_id' => 1000, 'local_id' => 42 ], $cache )

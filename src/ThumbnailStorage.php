@@ -1,0 +1,317 @@
+<?php
+
+namespace MediaWiki\Extension\IntegratedProfiles;
+
+use Closure;
+use MediaWiki\Status\Status;
+use RuntimeException;
+use Wikimedia\FileBackend\FileBackend;
+use Wikimedia\Timestamp\ConvertibleTimestamp;
+
+/**
+ * FileBackend I/O for generated thumbnails, kept in a sibling container of the originals (ipavatars-thumbs / ipbanners-thumbs).
+ *
+ * Layout: {container}/{owner_id}/{version}/{size}.webp
+ *
+ * The version is derived from the original's stat, so a replaced original gets its own directory and thumbnail URLs can be cached as immutable.
+ *
+ * @see AvatarStorage
+ * @see BannerStorage
+ */
+class ThumbnailStorage {
+
+	public const EXT = 'webp';
+	public const CACHE_CONTROL = 'public, max-age=31536000, immutable';
+	private const VERSION_LENGTH = 10;
+	// object cache TTL (1d) plus MediaWiki's default $wgCdnMaxAge (rounded up)
+	public const DEFAULT_RETENTION = 2 * 86400;
+
+	private ?FileBackend $backend = null;
+	private ?bool $configured = null;
+
+	/**
+	 * @param Closure(): FileBackend $backend_provider Returns a backend that has $container registered. Only called when needed, so URLs with an override skip backend initialization.
+	 * @param string $container Thumbnail container name
+	 * @param list<int> $sizes Allowed sizes (see ThumbnailSizes)
+	 * @param string $override_base IntegratedProfilesUploadBaseUrl, or '' when unset
+	 * @param string $default_http_base Fallback URL base for the container when the backend has no HTTP URL
+	 * @param bool $square Sizes bound both edges (avatars). When false, they only bound the width (banners).
+	 * @param (Closure(list<string>): void)|null $purge_urls Purges deleted thumbnail URLs from the CDN, null skips purging
+	 * @param int $retention Seconds a version must have been current before older versions are deleted
+	 */
+	public function __construct(
+		private readonly Closure $backend_provider,
+		private readonly string $container,
+		private readonly array $sizes,
+		private readonly string $override_base,
+		private readonly string $default_http_base,
+		private readonly bool $square = true,
+		private readonly ?Closure $purge_urls = null,
+		private readonly int $retention = self::DEFAULT_RETENTION,
+	) {
+	}
+
+	/**
+	 * Bounding box for a size bucket. Thumbnails fit inside it, keep the source aspect, and are never upscaled.
+	 *
+	 * @return array{0: int, 1: int} [max_width, max_height]
+	 */
+	public function box( int $size ): array {
+		return [ $size, $this->square ? $size : ImageLimits::MAX_EDGE ];
+	}
+
+	/**
+	 * Derives a thumbnail version from the original's extension, byte size, and mtime. Returns '' when the stat is unusable.
+	 */
+	public static function version_for( string $ext, int $size, string $mtime ): string {
+		if ( $size <= 0 || $mtime === '' ) {
+			return '';
+		}
+
+		return substr( sha1( $ext . ':' . $size . ':' . $mtime ), 0, self::VERSION_LENGTH );
+	}
+
+	public static function is_valid_version( string $version ): bool {
+		return strlen( $version ) === self::VERSION_LENGTH && ctype_xdigit( $version );
+	}
+
+	/**
+	 * @return list<int>
+	 */
+	public function sizes(): array {
+		return $this->sizes;
+	}
+
+	public function allows_size( int $size ): bool {
+		return in_array( $size, $this->sizes, true );
+	}
+
+	public function relative_path( int $owner_id, string $version, int $size ): string {
+		return $owner_id . '/' . $version . '/' . $size . '.' . self::EXT;
+	}
+
+	public function storage_path( int $owner_id, string $version, int $size ): string {
+		$path = $this->container_path() . '/' . $this->relative_path( $owner_id, $version, $size );
+
+		return FileBackend::normalizeStoragePath( $path ) ?? $path;
+	}
+
+	public function exists( int $owner_id, string $version, int $size ): bool {
+		if ( !$this->is_valid_request( $owner_id, $version, $size ) ) {
+			return false;
+		}
+
+		return (bool)$this->backend()->fileExists( [
+			'src' => $this->storage_path( $owner_id, $version, $size ),
+		] );
+	}
+
+	/**
+	 * Whether the full set exists for a version. The generator stores sizes in ascending order, so the largest one existing means the set is complete. One stat, no matter how many sizes there are.
+	 */
+	public function set_exists( int $owner_id, string $version ): bool {
+		if ( $this->sizes === [] ) {
+			return false;
+		}
+
+		return $this->exists( $owner_id, $version, max( $this->sizes ) );
+	}
+
+	/**
+	 * Public URLs for every size of a version (without checking that they exist).
+	 *
+	 * @return array<int, string> size => URL (asc)
+	 */
+	public function public_urls( int $owner_id, string $version ): array {
+		if ( $owner_id <= 0 || !self::is_valid_version( $version ) ) {
+			return [];
+		}
+
+		$urls = [];
+		foreach ( $this->sizes as $size ) {
+			$urls[$size] = $this->public_url( $owner_id, $version, $size );
+		}
+
+		return $urls;
+	}
+
+	/**
+	 * Stores a generated thumbnail from a local temp path.
+	 */
+	public function store( int $owner_id, string $version, int $size, string $src_path ): Status {
+		if ( !$this->is_valid_request( $owner_id, $version, $size ) ) {
+			return Status::newFatal( 'backend-fail-invalidpath', $this->relative_path( $owner_id, $version, $size ) );
+		}
+
+		$backend = $this->backend();
+		$prepare = $backend->prepare( [ 'dir' => $this->version_dir( $owner_id, $version ) ] );
+		if ( !$prepare->isOK() ) {
+			return Status::wrap( $prepare );
+		}
+
+		return Status::wrap( $backend->quickStore( [
+			'src' => $src_path,
+			'dst' => $this->storage_path( $owner_id, $version, $size ),
+			'overwrite' => true,
+			'headers' => [ 'Cache-Control' => self::CACHE_CONTROL ],
+		] ) );
+	}
+
+	/**
+	 * Whether the backend can resolve the thumbnail container. Backends that were configured before thumbnails existed may only list the original containers.
+	 */
+	public function is_configured(): bool {
+		$this->configured ??= $this->backend()->directoryExists( [ 'dir' => $this->container_path() ] ) !== null;
+
+		return $this->configured;
+	}
+
+	/**
+	 * Owners with a thumbnail directory, whether their original still exists or not.
+	 *
+	 * @return list<int> ascending
+	 */
+	public function owner_ids(): array {
+		if ( !$this->is_configured() ) {
+			return [];
+		}
+
+		$dirs = $this->backend()->getTopDirectoryList( [ 'dir' => $this->container_path() ] );
+		// a missing directory lists as empty, null means the listing itself failed
+		if ( $dirs === null ) {
+			throw new RuntimeException( 'Could not list the ' . $this->container . ' container' );
+		}
+
+		$ids = [];
+		foreach ( $dirs as $dir ) {
+			if ( preg_match( '/^[1-9][0-9]*$/', (string)$dir ) ) {
+				$ids[] = (int)$dir;
+			}
+		}
+		sort( $ids );
+
+		return $ids;
+	}
+
+	public function has_owner( int $owner_id ): bool {
+		if ( $owner_id <= 0 || !$this->is_configured() ) {
+			return false;
+		}
+
+		foreach ( $this->backend()->getFileList( [ 'dir' => $this->owner_dir( $owner_id ) ] ) ?? [] as $ignored ) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Removes every thumbnail (all versions) for the provided owner, e.g. when the original is deleted.
+	 */
+	public function delete_owner( int $owner_id ): Status {
+		return $this->delete_versions( $owner_id, null );
+	}
+
+	/**
+	 * Removes versions other than $keep_version, but only once $keep_version has been current for longer than the retention period. Until then, pages rendered before it became current can still point at an older version.
+	 *
+	 * Previously "delete_other_versions".
+	 *
+	 * @param int $owner_id
+	 * @param string $keep_version
+	 * @param string $current_since mtime of the original that $keep_version belongs to
+	 * @param int|null $now Unix time, defaults to the current time
+	 */
+	public function delete_superseded( int $owner_id, string $keep_version, string $current_since, ?int $now = null ): Status {
+		$since = $current_since !== '' ? ConvertibleTimestamp::convert( TS_UNIX, $current_since ) : false;
+		if ( !self::is_valid_version( $keep_version ) || $since === false || ( $now ?? (int)ConvertibleTimestamp::now( TS_UNIX ) ) - (int)$since <= $this->retention ) {
+			return Status::newGood();
+		}
+
+		return $this->delete_versions( $owner_id, $keep_version );
+	}
+
+	private function delete_versions( int $owner_id, ?string $keep_version ): Status {
+		// nothing can have been stored in a container that the backend cannot resolve
+		if ( $owner_id <= 0 || !$this->is_configured() ) {
+			return Status::newGood();
+		}
+
+		$backend = $this->backend();
+		$dir = $this->owner_dir( $owner_id );
+		$files = $backend->getFileList( [ 'dir' => $dir ] );
+		if ( $files === null ) {
+			return Status::newFatal( 'backend-fail-internal', $backend->getName() );
+		}
+
+		$status = Status::newGood();
+		$deleted = [];
+		foreach ( $files as $rel ) {
+			if ( $keep_version !== null && str_starts_with( $rel, $keep_version . '/' ) ) {
+				continue;
+			}
+
+			$result = Status::wrap( $backend->quickDelete( [ 'src' => $dir . '/' . $rel ] ) );
+			$status->merge( $result );
+			if ( $result->isOK() ) {
+				$deleted[] = $this->url_for( $owner_id . '/' . $rel );
+			}
+		}
+
+		// drops the now-empty owner/version directories on filesystem backends
+		$backend->clean( [ 'dir' => $dir, 'recursive' => true ] );
+
+		if ( $deleted !== [] && $this->purge_urls !== null ) {
+			( $this->purge_urls )( $deleted );
+		}
+
+		return $status;
+	}
+
+	/**
+	 * Public HTTP URL for a thumbnail. No cache-bust query, the version directory already changes when the original does.
+	 */
+	public function public_url( int $owner_id, string $version, int $size ): string {
+		return $this->url_for( $this->relative_path( $owner_id, $version, $size ) );
+	}
+
+	/**
+	 * @param string $rel Path relative to the container
+	 */
+	private function url_for( string $rel ): string {
+		if ( $this->override_base !== '' ) {
+			return rtrim( $this->override_base, '/' ) . '/' . $this->container . '/' . $rel;
+		}
+
+		$path = $this->container_path() . '/' . $rel;
+		$url = $this->backend()->getFileHttpUrl( [ 'src' => FileBackend::normalizeStoragePath( $path ) ?? $path ] );
+		if ( is_string( $url ) && $url !== '' ) {
+			return $url;
+		}
+
+		return $this->default_http_base . '/' . $rel;
+	}
+
+	private function backend(): FileBackend {
+		$this->backend ??= ( $this->backend_provider )();
+
+		return $this->backend;
+	}
+
+	private function container_path(): string {
+		return $this->backend()->getContainerStoragePath( $this->container );
+	}
+
+	private function owner_dir( int $owner_id ): string {
+		return $this->container_path() . '/' . $owner_id;
+	}
+
+	private function version_dir( int $owner_id, string $version ): string {
+		return $this->owner_dir( $owner_id ) . '/' . $version;
+	}
+
+	private function is_valid_request( int $owner_id, string $version, int $size ): bool {
+		return $owner_id > 0 && self::is_valid_version( $version ) && $this->allows_size( $size );
+	}
+
+}

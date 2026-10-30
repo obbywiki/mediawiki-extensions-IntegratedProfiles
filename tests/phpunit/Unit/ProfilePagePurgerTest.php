@@ -66,6 +66,44 @@ class ProfilePagePurgerTest extends MediaWikiUnitTestCase {
 		$purger->maybe_purge_on_visibility_change( $this->identity( '' ), [ ProfileFields::KEY_VISIBILITY => ProfileFields::VISIBILITY_PRIVATE ], [] );
 	}
 
+	public function test_batch_sends_one_purge_for_every_subject(): void {
+		$titles = [];
+		$title_factory = $this->createMock( TitleFactory::class );
+		$title_factory->method( 'makeTitleSafe' )->willReturnCallback( function ( int $ns, string $name ) use ( &$titles ): Title {
+			$title = $this->createMock( Title::class );
+			$titles[] = [ $ns, $name ];
+			return $title;
+		} );
+
+		$html_cache = $this->createMock( HTMLCacheUpdater::class );
+		$html_cache->expects( $this->once() )->method( 'purgeTitleUrls' )->with( $this->countOf( 4 ) );
+
+		( new ProfilePagePurger( $html_cache, $title_factory ) )->purge_subject_pages_batch( [ $this->identity( 'A' ), $this->identity( '' ), $this->identity( 'B' ) ] );
+
+		$this->assertSame( [ [ NS_USER, 'A' ], [ NS_USER_TALK, 'A' ], [ NS_USER, 'B' ], [ NS_USER_TALK, 'B' ] ], $titles );
+	}
+
+	public function test_empty_batch_sends_nothing(): void {
+		$html_cache = $this->createMock( HTMLCacheUpdater::class );
+		$html_cache->expects( $this->never() )->method( 'purgeTitleUrls' );
+
+		$this->purger( $html_cache )->purge_subject_pages_batch( [] );
+	}
+
+	public function test_purge_urls_sends_unique_non_empty_urls_once(): void {
+		$html_cache = $this->createMock( HTMLCacheUpdater::class );
+		$html_cache->expects( $this->once() )->method( 'purgeUrls' )->with( [ '/images/ipavatars/avatar_7.png?r=1', '/images/ipavatars-thumbs/7/0123456789/64.webp' ] );
+
+		$this->purger( $html_cache )->purge_urls( [ '/images/ipavatars/avatar_7.png?r=1', '', '/images/ipavatars-thumbs/7/0123456789/64.webp', '/images/ipavatars/avatar_7.png?r=1' ] );
+	}
+
+	public function test_purge_urls_without_urls_sends_nothing(): void {
+		$html_cache = $this->createMock( HTMLCacheUpdater::class );
+		$html_cache->expects( $this->never() )->method( 'purgeUrls' );
+
+		$this->purger( $html_cache )->purge_urls( [ '' ] );
+	}
+
 	private function purger( HTMLCacheUpdater $html_cache, ?Title $user_title = null, ?Title $talk_title = null ): ProfilePagePurger {
 		$title_factory = $this->createMock( TitleFactory::class );
 		$title_factory->method( 'makeTitleSafe' )->willReturnCallback(

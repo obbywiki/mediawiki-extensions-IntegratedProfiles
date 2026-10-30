@@ -19,7 +19,8 @@
 		}
 	},
 	"AutoloadNamespaces": {
-		"MediaWiki\\Extension\\IntegratedProfiles\\": "src/"
+		"MediaWiki\\Extension\\IntegratedProfiles\\": "src/",
+		"MediaWiki\\Extension\\IntegratedProfiles\\Maintenance\\": "maintenance/"
 	},
 	"ServiceWiringFiles": [
 		"src/ServiceWiring.php"
@@ -489,6 +490,19 @@
 		"IntegratedProfilesBannerMaxBytes": {
 			"value": 4194304,
 			"description": "Maximum banner upload size in bytes (default 4 MiB)."
+		},
+		"IntegratedProfilesThumbnailers": {
+			"value": [ "vips", "imagick", "gd" ],
+			"merge_strategy": "provide_default",
+			"description": "Image libraries used to generate avatar/banner WebP thumbnails. Set it to an empty list in order to disable thumbnailing and serve the originals directly instead. GD may break animated avatars/thumbnails, using vips is recommended."
+		},
+		"IntegratedProfilesVipsCommand": {
+			"value": "/usr/bin/vipsthumbnail",
+			"description": "Path to the vipsthumbnail binary used by the vips thumbnailer."
+		},
+		"IntegratedProfilesPurgeMediaUrls": {
+			"value": true,
+			"description": "Purge the URLs of deleted avatars, banners and thumbnails from the CDN (through $wgCdnServers and the cdn-url-purges relayer). Disable when the CDN does not cover $wgIntegratedProfilesUploadBaseUrl."
 		},
 		"IntegratedProfilesBannerPresetImages": {
 			"value": [],

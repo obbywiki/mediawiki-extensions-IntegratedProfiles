@@ -39,6 +39,7 @@ IntegratedProfiles implements modern and extensible user profiles with the added
 ### Suggestions
 
 * [Extension:FloatingUI](https://www.mediawiki.org/wiki/Extension:FloatingUI)
+* An image library for WebP thumbnails, any of: [libvips](https://www.libvips.org) (`vipsthumbnail`, recommended), the PHP `imagick` extension, or PHP `gd` with WebP support.
 * Any Codex-compatible skin[^1], or one of the following skins for the best results:
   * [Citizen](https://www.mediawiki.org/wiki/Skin:Citizen) (built-in improvements)
   * Vector 2022
@@ -55,7 +56,7 @@ wfLoadExtension( 'IntegratedProfiles' );
 
 ## Setup
 
-By default, avatars and banners are stored under `{UploadDirectory}/ipavatars` and `{UploadDirectory}/ipbanners` (usually `$IP/images/...`), as `avatar_{id}.{ext}` and `banner_{id}.{ext}`. Profile fields (prefixed with `ip-`) are stored in `user_properties` (preferences). IntegratedProfiles does not touch wikitext, contributions, or anything else.
+By default, avatars and banners are stored under `{UploadDirectory}/ipavatars` and `{UploadDirectory}/ipbanners` (usually `$IP/images/...`), as `avatar_{id}.{ext}` and `banner_{id}.{ext}`. Generated thumbnails go in the sibling `ipavatars-thumbs` and `ipbanners-thumbs` containers, as `{id}/{version}/{size}.webp`. The version changes whenever the original is replaced, so thumbnail URLs can be cached as immutable. Profile fields (prefixed with `ip-`) are stored in `user_properties` (preferences). IntegratedProfiles does not touch wikitext, contributions, or anything else.
 
 The `{id}` in those filenames comes from CentralIdLookup, which is either the local user id or the central (`gu_id`) id when CentralAuth is installed.
 
@@ -77,7 +78,7 @@ No extra configuration is needed. The default backend is enough, so simply load 
 wfLoadExtension( 'IntegratedProfiles' );
 ```
 
-Ensure that `$IP/images/ipavatars` and `$IP/images/ipbanners` are both writable. You can configure a custom FileBackend if you wish, however.
+Ensure that `$IP/images/ipavatars`, `$IP/images/ipbanners`, `$IP/images/ipavatars-thumbs` and `$IP/images/ipbanners-thumbs` are writable (or that `$IP/images` is, so they can be created). You can configure a custom FileBackend if you wish, however.
 
 ### Wiki farm
 
@@ -91,7 +92,7 @@ Requirements:
 
 #### Separate upload directories
 
-Register one FileBackend that defines both containers with a constant `domainId`. Paths must resolve to the same storage from every wiki (NFS, a shared volume, or equivalent). Then set `$wgIntegratedProfilesBackend` to that name:
+Register one FileBackend that defines all four containers with a constant `domainId`. Paths must resolve to the same storage from every wiki (NFS, a shared volume, or equivalent). Then set `$wgIntegratedProfilesBackend` to that name:
 
 ```php
 wfLoadExtension( 'CentralAuth' );
@@ -107,6 +108,8 @@ $wgFileBackends[] = [
 	'containerPaths' => [
 		'ipavatars' => $IP . '/images/ipavatars',
 		'ipbanners' => $IP . '/images/ipbanners',
+		'ipavatars-thumbs' => $IP . '/images/ipavatars-thumbs',
+		'ipbanners-thumbs' => $IP . '/images/ipbanners-thumbs',
 	],
 	'fileMode' => 0644,
 ];
@@ -114,7 +117,9 @@ $wgIntegratedProfilesBackend = 'ip-shared';
 $wgIntegratedProfilesUploadBaseUrl = 'https://static.example.com/images';
 ```
 
-`$wgIntegratedProfilesUploadBaseUrl` is the public URL every wiki should use for avatars and banners. Do not include ipavatars/ipbanners, as those containers are appended automatically. Set this when wikis have different hosts or a wiki-local `$wgUploadPath` (often including `$wgDBname`). Leave it empty on a single wiki.
+`$wgIntegratedProfilesUploadBaseUrl` is the public URL every wiki should use for avatars and banners. Do not include ipavatars/ipbanners (or their `-thumbs` containers), as those are appended automatically. Set this when wikis have different hosts or a wiki-local `$wgUploadPath` (often including `$wgDBname`). Leave it empty on a single wiki.
+
+Backends configured before thumbnails existed only list `ipavatars` and `ipbanners`. Add the two `-thumbs` containers, otherwise no thumbnails can be stored on that backend. Avoid placing them under core's `thumb/` directory, since `thumb_handler.php` rewrites will intercept requests there.
 
 #### Shared `$wgUploadDirectory`
 
@@ -192,7 +197,7 @@ Below are open-source integrations that implement IntegratedProfiles' hooks or A
 | Config | Type(s) | Default | Purpose |
 |--------|---------|---------|---------|
 | `$wgIntegratedProfilesGroupPriority` | array | `['sysop','bureaucrat','interface-admin','checkuser','oversight','steward']` | Role IDs to show first in the profile header, as roles that do not fit may be collapsed. Keep the most important roles in the first three items. |
-| `$wgIntegratedProfilesBackend` | ![string](https://img.shields.io/badge/-string-blue?style=flat-square) | `''` | Named entry in `$wgFileBackends`. Empty uses `{UploadDirectory}/ipavatars` and `{UploadDirectory}/ipbanners`. Must already exist if set. See Setup. |
+| `$wgIntegratedProfilesBackend` | ![string](https://img.shields.io/badge/-string-blue?style=flat-square) | `''` | Named entry in `$wgFileBackends`. Empty uses `{UploadDirectory}/ipavatars`, `{UploadDirectory}/ipbanners`, and their `-thumbs` siblings. Must already exist if set, and should define all four containers. See Setup. |
 | `$wgIntegratedProfilesUploadBaseUrl` | ![string](https://img.shields.io/badge/-string-blue?style=flat-square) | `''` | Stable public URL root for avatars and banners. Do not include `ipavatars`/`ipbanners`. When empty, defaults to `$wgUploadBaseUrl` + `$wgUploadPath`. |
 | `$wgIntegratedProfilesCacheType` | int / string / null | `null` | Object cache for avatar and banner file metadata. When null, $wgMainCacheType is used, otherwise IP uses an integer cache constant or a key in $wgObjectCaches. Farms sharing avatars and banners must use a shared cache destination with consistent key routing. |
 | `$wgIntegratedProfilesEnableUserCards` | ![boolean](https://img.shields.io/badge/-boolean-orange?style=flat-square) | `false` | On-click profile cards for username links. Requires FloatingUI. |
@@ -203,6 +208,9 @@ Below are open-source integrations that implement IntegratedProfiles' hooks or A
 | `$wgIntegratedProfilesEnableAnimatedAvatars` | ![boolean](https://img.shields.io/badge/-boolean-orange?style=flat-square) | `true` | When false, reject animated avatar uploads regardless of user rights. Existing animated files will still be displayed. |
 | `$wgIntegratedProfilesEnableAnimatedBanners` | ![boolean](https://img.shields.io/badge/-boolean-orange?style=flat-square) | `true` | When false, reject animated banner uploads regardless of user rights. Existing animated files will still be displayed. |
 | `$wgIntegratedProfilesBannerMaxBytes` | ![number](https://img.shields.io/badge/-number-green?style=flat-square) | `4194304` | Maximum banner upload size in bytes (default 4 MiB). |
+| `$wgIntegratedProfilesThumbnailers` | array | `["vips", "imagick", "gd"]` | Image libraries used for WebP thumbnails, tried in order. Unavailable ones are skipped. Overrides (rather than merges with) the default. `[]` disables thumbnails. See below. |
+| `$wgIntegratedProfilesVipsCommand` | ![string](https://img.shields.io/badge/-string-blue?style=flat-square) | `'/usr/bin/vipsthumbnail'` | Path to `vipsthumbnail`, used by `vips`. |
+| `$wgIntegratedProfilesPurgeMediaUrls` | ![boolean](https://img.shields.io/badge/-boolean-orange?style=flat-square) | `true` | Purge the URLs of deleted avatars, banners, and thumbnails from the CDN. Disable this when your CDN does not cover `$wgIntegratedProfilesUploadBaseUrl`. See below. |
 | `$wgIntegratedProfilesBannerPresetImages` | array | `[]` | Map of preset ID => image URL (max 8). Replaces gradients on a single wiki, or creates a local extra row with GlobalPreferences per-wiki. |
 | `$wgIntegratedProfilesBannerPresetDefault` | ![string](https://img.shields.io/badge/-string-blue?style=flat-square) | `''` | Optional preset ID to use as the single-wiki default. If empty, the first item in `$wgIntegratedProfilesBannerPresetImages` will be used. |
 | `$wgIntegratedProfilesLanguageInterwikis` | array | `[]` | Language interwiki prefixes to inject on user/user talk pages (e.g. ["en","ko","ja"]). Skips the wiki content language and $wgLocalInterwikis. See below. |
@@ -218,6 +226,47 @@ $wgIntegratedProfilesCacheType = 'shared-media';
 ```
 
 Integer cache constants are also accepted. You can use `CACHE_NONE` to disable this metadata cache, or `null` to inherit it from `$wgMainCacheType`.
+
+### Thumbnails
+
+After an avatar or banner upload, IntegratedProfiles renders a fixed set of WebP thumbnails once the response has been sent (avatars: 32, 64, 128, 256 and 512px squares | banners: 640, 1280 and 1920px wide). It also keeps the original available on-disk.
+
+IntegratedProfiles works down the provided list of libraries in the order of `$wgIntegratedProfilesThumbnailers`:
+
+| Library | Requires | Animation |
+| --- | --- | --- |
+| `vips` | `vipsthumbnail` at `$wgIntegratedProfilesVipsCommand`, and shell access (`$wgShellDisabled` unset) | GIF, WebP |
+| `imagick` | PHP `imagick` extension with WebP support | GIF, WebP (up to 25 million frame pixels) |
+| `gd` | PHP `gd` extension with WebP support | None |
+
+A missing or failing library is skipped, and an upload is never interrupted because of a thumbnailing failure. If no library can handle a file (for example, an animated upload with only `gd`, or an APNG), its original keeps being served. Failures are logged to the `IntegratedProfiles` log channel.
+
+```php
+// e.g. only use GD
+$wgIntegratedProfilesThumbnailers = [ 'gd' ];
+// or disable thumbnails entirely
+$wgIntegratedProfilesThumbnailers = [];
+```
+
+By default (recommended):
+
+```php
+$wgIntegratedProfilesThumbnailers = [ 'vips', 'imagick', 'gd' ];
+```
+
+Thumbnail URLs change whenever the original does, so they are cached as immutable for up to a year. Replacing an upload keeps the previous thumbnails for a while (`$wgCdnMaxAge` plus one day, at least two days), since pages cached on other wikis can still point towards them. They are removed on a later upload or by the maintenance script below. Deleting an avatar or banner removes all of its files at once, and purges their URLs from the CDN (`$wgCdnServers`, or Cloudflare and others via MultiPurge or similar) so they stop being served.
+
+#### Generating thumbnails for existing uploads
+
+In the event that you lose the thumbnails or purge them (or if you are updating from a version before 0.8.0), you can backfill the generated thumbnails by running the dedicated maintenance script. It also removes thumbnails of replaced uploads once they are past the retention period, so running it periodically (e.g. weekly) keeps the thumbnail containers small:
+
+```bash
+php maintenance/run.php IntegratedProfiles:GenerateThumbnails
+```
+
+Please see maintenance/GenerateThumbnails.php for more usage details.
+
+<!-- TODO: make a # Maintenance section -->
 
 ### Local settings
 
@@ -380,7 +429,9 @@ action=query&list=integratedprofileavatar&ipauser=User1|User2|User3
 ```
 <!-- mitosis? -->
 
-Returns a list of `{ user, avatar_url, has_custom_avatar }`. Unknown names are warned and omitted.
+Returns a list of `{ user, avatar_url, avatar_thumbs, has_custom_avatar }`. Unknown names are warned and omitted.
+
+`avatar_url` is always the full-resolution original. `avatar_thumbs` maps each fixed size to a WebP URL (`{ "32": "…", "64": "…", … }`) once thumbnails exist, and is empty otherwise (default avatar, older uploads, or right after an upload while they're still being generated). Pick the smallest size at least as large as you display, and fall back to `avatar_url`. Preview and profile payloads carry the same `avatar_thumbs` field, plus `banner_thumbs` (640/1280/1920 wide) when the painted banner is an upload.
 
 ### Getting preview payloads
 

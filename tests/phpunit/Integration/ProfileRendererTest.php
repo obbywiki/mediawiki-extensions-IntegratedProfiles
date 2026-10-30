@@ -59,6 +59,42 @@ class ProfileRendererTest extends MediaWikiIntegrationTestCase {
 		);
 	}
 
+	public function test_masthead_uses_thumbnails_with_srcset(): void {
+		$html = $this->renderer->render_masthead(
+			[
+				'user_name' => 'Example',
+				'avatar_url' => '/images/ipavatars/avatar_7.jpg?r=1',
+				'avatar_thumbs' => [ 32 => '/t/32.webp', 64 => '/t/64.webp', 128 => '/t/128.webp', 256 => '/t/256.webp', 512 => '/t/512.webp' ],
+				'banner_url' => '/images/ipbanners/banner_7.jpg?r=1',
+				'banner_thumbs' => [ 640 => '/b/640.webp', 1280 => '/b/1280.webp', 1920 => '/b/1920.webp' ],
+				'fields' => [ 'ip-banner' => 'custom' ],
+			],
+			false, [], '/wiki/Special:Contributions/Example'
+		);
+
+		$this->assertStringContainsString( 'src="/t/128.webp" srcset="/t/128.webp 1x, /t/256.webp 2x" alt=', $html );
+		$this->assertStringContainsString( '--ip-banner-image:url(/b/1920.webp)', $html );
+		$this->assertStringNotContainsString( 'banner_7.jpg', $html );
+		$this->assertStringNotContainsString( 'avatar_7.jpg', $html );
+	}
+
+	public function test_masthead_without_thumbnails_serves_originals_only(): void {
+		$html = $this->renderer->render_masthead(
+			[
+				'user_name' => 'Example',
+				'avatar_url' => '/images/ipavatars/avatar_7.jpg?r=1',
+				'avatar_thumbs' => [],
+				'banner_url' => '/images/ipbanners/banner_7.jpg?r=1',
+				'fields' => [ 'ip-banner' => 'custom' ],
+			],
+			false, [], '/wiki/Special:Contributions/Example'
+		);
+
+		$this->assertStringContainsString( 'src="/images/ipavatars/avatar_7.jpg?r=1" alt=', $html );
+		$this->assertStringNotContainsString( 'srcset', $html );
+		$this->assertStringContainsString( '--ip-banner-image:url(/images/ipbanners/banner_7.jpg?r=1)', $html );
+	}
+
 	public function test_renders_cutout_structure_and_escapes(): void {
 		$html = $this->renderer->render_masthead(
 			[
