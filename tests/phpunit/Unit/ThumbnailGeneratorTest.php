@@ -242,7 +242,7 @@ class ThumbnailGeneratorTest extends MediaWikiUnitTestCase {
 		$vips = new VipsThumbnailer( '/usr/bin/vipsthumbnail' );
 
 		$this->assertSame(
-			[ '/usr/bin/vipsthumbnail', '/in.gif[n=-1]', '--size', '256x256>', '-o', '/out.webp[Q=80,strip]' ],
+			[ '/usr/bin/vipsthumbnail', '/in.gif[n=-1]', '--size', '256x256>', '--export-profile', 'srgb', '-o', '/out.webp[Q=80,strip]' ],
 			$vips->command_for( '/in.gif', true, '/out.webp', 256, 256 )
 		);
 		$this->assertSame( '/in.png', $vips->command_for( '/in.png', false, '/out.webp', 640, 16384 )[1] );

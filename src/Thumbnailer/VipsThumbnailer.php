@@ -67,9 +67,9 @@ class VipsThumbnailer implements Thumbnailer {
 	}
 
 	/**
-	 * vipsthumbnail <src>[n=-1] --size WxH> -o <dst>[Q=..,strip]
+	 * vipsthumbnail <src>[n=-1] --size WxH> --export-profile srgb -o <dst>[Q=..,strip]
 	 *
-	 * vipsthumbnail applies EXIF orientation itself.
+	 * vipsthumbnail applies EXIF orientation itself. Sources with an embedded profile (e.g. Display P3 photos) are converted to sRGB, since strip drops the profile.
 	 *
 	 * @internal exposed for tests
 	 * @return list<string>
@@ -80,6 +80,8 @@ class VipsThumbnailer implements Thumbnailer {
 			$src_path . ( $animated ? '[n=-1]' : '' ),
 			'--size',
 			$max_width . 'x' . $max_height . '>',
+			'--export-profile',
+			'srgb',
 			'-o',
 			$dst_path . '[Q=' . self::QUALITY . ',strip]',
 		];
