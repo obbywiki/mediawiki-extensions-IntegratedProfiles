@@ -306,6 +306,12 @@ class ProfileService {
 			$field_values[ ProfileFields::KEY_FEATURED_ARTICLE ] = is_array( $featured ) ? (string)$featured['title'] : '';
 		}
 
+		$banner_url = $this->resolve_banner_paint_url(
+			(string)( $field_values[ ProfileFields::KEY_BANNER ] ?? '' ),
+			(string)( $field_values[ ProfileFields::KEY_BANNER_WIKI ] ?? '' ),
+			$banner
+		);
+
 		return [
 			'user_id' => $subject->getId(),
 			'central_id' => $this->subject_ids->central_id_for( $subject ),
@@ -322,12 +328,10 @@ class ProfileService {
 			'wiki_profiles' => $this->fields->build_wiki_profiles( $field_values ),
 			'featured_article' => $featured,
 			'avatar_url' => $avatar['avatar_url'],
+			'avatar_thumbs' => $avatar['avatar_thumbs'] ?? [],
 			'has_custom_avatar' => $avatar['has_custom_avatar'],
-			'banner_url' => $this->resolve_banner_paint_url(
-				(string)( $field_values[ ProfileFields::KEY_BANNER ] ?? '' ),
-				(string)( $field_values[ ProfileFields::KEY_BANNER_WIKI ] ?? '' ),
-				$banner
-			),
+			'banner_url' => $banner_url,
+			'banner_thumbs' => $this->painted_banner_thumbs( $banner_url, $banner ),
 			'custom_banner_url' => $banner['has_custom_banner'] ? $banner['banner_url'] : '',
 			'has_custom_banner' => $banner['has_custom_banner'],
 			'connections' => $connections,
@@ -342,8 +346,8 @@ class ProfileService {
 	 *
 	 * @param User $subject Profile owner
 	 * @param UserIdentity $viewer Requesting user
-	 * @param array{avatar_url: string, has_custom_avatar: bool}|null $avatar_info Prefetched avatar row
-	 * @param array{banner_url: string, has_custom_banner: bool}|null $banner_info Prefetched banner row
+	 * @param array{avatar_url: string, has_custom_avatar: bool, avatar_thumbs: array<int, string>}|null $avatar_info Prefetched avatar row
+	 * @param array{banner_url: string, has_custom_banner: bool, banner_thumbs: array<int, string>}|null $banner_info Prefetched banner row
 	 * @param string|false|null $registration Prefetched first-registration timestamp; false looks it up
 	 * @return array{
 	 *   user: string,
@@ -355,9 +359,11 @@ class ProfileService {
 	 *   edit_count: int,
 	 *   registration: ?string,
 	 *   avatar_url: string,
+	 *   avatar_thumbs: array<int, string>,
 	 *   has_custom_avatar: bool,
 	 *   banner: string,
 	 *   banner_url: string,
+	 *   banner_thumbs: array<int, string>,
 	 *   featured_article: ?array{title: string, display_title: string, url: string},
 	 *   is_private: bool
 	 * }
@@ -376,9 +382,11 @@ class ProfileService {
 			'edit_count' => 0,
 			'registration' => null,
 			'avatar_url' => $avatar['avatar_url'],
+			'avatar_thumbs' => $avatar['avatar_thumbs'] ?? [],
 			'has_custom_avatar' => $avatar['has_custom_avatar'],
 			'banner' => ProfileFields::BANNER_ACCENT,
 			'banner_url' => '',
+			'banner_thumbs' => [],
 			'featured_article' => null,
 			'is_private' => !$can_view
 		];
@@ -418,6 +426,7 @@ class ProfileService {
 			is_string( $stored_wiki_banner ) ? $stored_wiki_banner : '',
 			$banner
 		);
+		$preview['banner_thumbs'] = $this->painted_banner_thumbs( $preview['banner_url'], $banner );
 		$preview['featured_article'] = $this->resolve_featured_article( is_string( $stored_featured ) ? $stored_featured : '', $viewer );
 
 		$website_raw = $this->user_options_lookup->getOption( $subject, ProfileFields::KEY_WEBSITE );
@@ -449,9 +458,11 @@ class ProfileService {
 	 *   edit_count: int,
 	 *   registration: ?string,
 	 *   avatar_url: string,
+	 *   avatar_thumbs: array<int, string>,
 	 *   has_custom_avatar: bool,
 	 *   banner: string,
 	 *   banner_url: string,
+	 *   banner_thumbs: array<int, string>,
 	 *   featured_article: ?array{title: string, display_title: string, url: string},
 	 *   is_private: bool
 	 * }>
@@ -717,6 +728,7 @@ class ProfileService {
 				ProfileFields::KEY_VISIBILITY => $this->get_visibility( $subject ),
 			],
 			'avatar_url' => $avatar['avatar_url'],
+			'avatar_thumbs' => $avatar['avatar_thumbs'] ?? [],
 			'has_custom_avatar' => $avatar['has_custom_avatar'],
 			'ui' => $this->payload_ui(),
 		] );
@@ -755,7 +767,7 @@ class ProfileService {
 	/**
 	 * @param string $global_mode Stored global banner mode
 	 * @param string $wiki_id Stored wiki-preset ID
-	 * @param array{banner_url: string, has_custom_banner: bool} $banner
+	 * @param array{banner_url: string, has_custom_banner: bool, banner_thumbs: array<int, string>} $banner
 	 */
 	private function resolve_banner_paint_url( string $global_mode, string $wiki_id, array $banner ): string {
 		$resolved = $this->banner_presets->resolve(
@@ -766,6 +778,23 @@ class ProfileService {
 		);
 
 		return $resolved['url'];
+	}
+
+	/**
+	 * Thumbnails only apply when the painted banner is the uploaded one and not a wiki preset.
+	 *
+	 * TODO: support thumbnails for presets? (probably manual)
+	 *
+	 * @param string $paint_url Resolved banner URL
+	 * @param array{banner_url: string, has_custom_banner: bool, banner_thumbs?: array<int, string>} $banner
+	 * @return array<int, string>
+	 */
+	private function painted_banner_thumbs( string $paint_url, array $banner ): array {
+		if ( !$banner['has_custom_banner'] || $paint_url === '' || $paint_url !== $banner['banner_url'] ) {
+			return [];
+		}
+
+		return $banner['banner_thumbs'] ?? [];
 	}
 
 	/**

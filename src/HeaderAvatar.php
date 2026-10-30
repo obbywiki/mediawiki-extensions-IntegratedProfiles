@@ -13,6 +13,9 @@ class HeaderAvatar {
 
 	public const MODULE_STYLES = 'ext.IntegratedProfiles.headerAvatar';
 
+	/** Header icon edge in CSS pixels (1.5rem in header_avatar.css). Backgrounds can't use srcset, so the 2x thumbnail is always used. */
+	public const DISPLAY_PX = 24;
+
 	/**
 	 * @param string $skin_name Current skin name (only `citizen` is supported)
 	 * @param bool $is_registered Whether the viewer is a registered user
@@ -30,7 +33,7 @@ class HeaderAvatar {
 			return null;
 		}
 
-		$url = (string)$info['avatar_url'];
+		$url = ThumbnailSizes::pick( $info['avatar_thumbs'] ?? [], ThumbnailSizes::AVATAR, self::DISPLAY_PX * 2 ) ?? (string)$info['avatar_url'];
 		return $url !== '' ? $url : null;
 	}
 

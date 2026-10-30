@@ -9,6 +9,7 @@ use MediaWiki\Extension\IntegratedProfiles\AvatarStorage;
 use MediaWiki\Extension\IntegratedProfiles\ImageUploadSanitizer;
 use MediaWiki\Extension\IntegratedProfiles\ImageUploadVerifier;
 use MediaWiki\Extension\IntegratedProfiles\ProfileSubjectIds;
+use MediaWiki\Extension\IntegratedProfiles\ThumbnailStorage;
 use MediaWiki\User\UserIdentity;
 use MediaWikiUnitTestCase;
 use Wikimedia\ObjectCache\BagOStuff;
@@ -20,9 +21,11 @@ use Wikimedia\ObjectCache\HashBagOStuff;
  */
 class AvatarServiceBatchTest extends MediaWikiUnitTestCase {
 
+	private const VERSION = '0123456789';
+
 	public function test_batch_uses_get_multi_cache_hits(): void {
 		$cache = $this->new_cache();
-		$cache->set( $this->cache_key( $cache, '1' ), '1:png:100:' );
+		$cache->set( $this->cache_key( $cache, '1' ), '1:png:100::0' );
 		$cache->set( $this->cache_key( $cache, '2' ), '' );
 
 		$storage = $this->createMock( AvatarStorage::class );
@@ -42,17 +45,75 @@ class AvatarServiceBatchTest extends MediaWikiUnitTestCase {
 			'User1' => [
 				'avatar_url' => '/images/ipavatars/avatar_1.png?r=100',
 				'has_custom_avatar' => true,
+				'avatar_thumbs' => [],
 			],
 			'User2' => [
 				'avatar_url' => '/extensions/IntegratedProfiles/resources/avatars/default.svg',
 				'has_custom_avatar' => false,
+				'avatar_thumbs' => [],
 			],
 		], $info );
 	}
 
+	public function test_storage_miss_with_thumbnails_caches_ready_flag_and_returns_urls(): void {
+		$cache = $this->new_cache();
+		$thumbs = $this->createMock( ThumbnailStorage::class );
+		$thumbs->expects( $this->once() )->method( 'set_exists' )->with( 8, self::VERSION )->willReturn( true );
+		$thumbs->method( 'public_urls' )->with( 8, self::VERSION )->willReturn( [ 32 => '/t/32.webp', 512 => '/t/512.webp' ] );
+
+		$storage = $this->createMock( AvatarStorage::class );
+		$storage->method( 'thumbs' )->willReturn( $thumbs );
+		$storage->method( 'find_extension_with_mtime' )->willReturn( [ 'ext' => 'webp', 'mtime' => '7', 'version' => self::VERSION ] );
+		$storage->method( 'public_url' )->willReturn( '/images/ipavatars/avatar_8.webp?r=7' );
+
+		$info = $this->make_service( $storage, $cache )->get_avatar_info( 8 );
+
+		$this->assertSame( [ 32 => '/t/32.webp', 512 => '/t/512.webp' ], $info['avatar_thumbs'] );
+		$this->assertSame( '/images/ipavatars/avatar_8.webp?r=7', $info['avatar_url'] );
+		$this->assertSame( '8:webp:7:' . self::VERSION . ':1', $cache->get( $this->cache_key( $cache, '8' ) ) );
+	}
+
+	public function test_cache_hit_with_ready_flag_skips_every_stat(): void {
+		$cache = $this->new_cache();
+		$cache->set( $this->cache_key( $cache, '8' ), '8:webp:7:' . self::VERSION . ':1' );
+
+		$thumbs = $this->createMock( ThumbnailStorage::class );
+		$thumbs->expects( $this->never() )->method( 'set_exists' );
+		$thumbs->expects( $this->never() )->method( 'exists' );
+		$thumbs->method( 'public_urls' )->willReturn( [ 128 => '/t/128.webp' ] );
+
+		$storage = $this->createMock( AvatarStorage::class );
+		$storage->expects( $this->never() )->method( 'find_extension_with_mtime' );
+		$storage->method( 'thumbs' )->willReturn( $thumbs );
+		$storage->method( 'public_url' )->willReturn( '/a.webp' );
+
+		$this->assertSame( [ 128 => '/t/128.webp' ], $this->make_service( $storage, $cache )->get_avatar_info( 8 )['avatar_thumbs'] );
+	}
+
+	public function test_ready_flag_without_version_has_no_thumbnails(): void {
+		$cache = $this->new_cache();
+		$cache->set( $this->cache_key( $cache, '8' ), '8:webp:7::1' );
+
+		$storage = $this->createMock( AvatarStorage::class );
+		$storage->expects( $this->never() )->method( 'thumbs' );
+		$storage->method( 'public_url' )->willReturn( '/a.webp' );
+
+		$this->assertSame( [], $this->make_service( $storage, $cache )->get_avatar_info( 8 )['avatar_thumbs'] );
+	}
+
+	public function test_pre_thumbnail_cache_format_is_treated_as_a_miss(): void {
+		$cache = $this->new_cache();
+		$cache->set( $this->cache_key( $cache, '8' ), '8:webp:7:' . self::VERSION );
+
+		$storage = $this->createMock( AvatarStorage::class );
+		$storage->expects( $this->once() )->method( 'find_extension_with_mtime' )->willReturn( null );
+
+		$this->assertFalse( $this->make_service( $storage, $cache )->get_avatar_info( 8 )['has_custom_avatar'] );
+	}
+
 	public function test_batch_dedupes_and_skips_anons(): void {
 		$cache = $this->new_cache();
-		$cache->set( $this->cache_key( $cache, '5' ), '5:webp:9:' );
+		$cache->set( $this->cache_key( $cache, '5' ), '5:webp:9::0' );
 
 		$storage = $this->createMock( AvatarStorage::class );
 		$storage->expects( $this->never() )->method( 'find_extension_with_mtime' );
@@ -84,7 +145,7 @@ class AvatarServiceBatchTest extends MediaWikiUnitTestCase {
 
 		$this->assertTrue( $info['User4']['has_custom_avatar'] );
 		$this->assertSame(
-			'8:jpg:42:',
+			'8:jpg:42::0',
 			$cache->get( $this->cache_key( $cache, '8' ) )
 		);
 	}
@@ -102,14 +163,14 @@ class AvatarServiceBatchTest extends MediaWikiUnitTestCase {
 		$this->make_service( $storage, $cache )->get_avatar_info_for_users( [ $this->identity( 8, 'User4' ) ] );
 
 		$this->assertSame(
-			'8:webp:20261029120000:0123456789',
+			'8:webp:20261029120000:0123456789:0',
 			$cache->get( $this->cache_key( $cache, '8' ) )
 		);
 	}
 
 	public function test_batch_ignores_cache_with_invalid_version(): void {
 		$cache = $this->new_cache();
-		$cache->set( $this->cache_key( $cache, '3' ), '3:png:100:../evil' );
+		$cache->set( $this->cache_key( $cache, '3' ), '3:png:100:../evil:1' );
 
 		$storage = $this->createMock( AvatarStorage::class );
 		$storage->expects( $this->once() )->method( 'find_extension_with_mtime' )->with( 3 )->willReturn( null );

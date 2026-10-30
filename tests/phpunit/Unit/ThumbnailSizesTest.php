@@ -60,6 +60,25 @@ class ThumbnailSizesTest extends MediaWikiUnitTestCase {
 		$this->assertSame( $expected, ThumbnailSizes::fit( $width, $height, $max_width, $max_height ) );
 	}
 
+	public function test_pick_snaps_to_bucket_and_handles_missing(): void {
+		$urls = [ 64 => '/64.webp', 128 => '/128.webp', 512 => '/512.webp' ];
+
+		$this->assertSame( '/128.webp', ThumbnailSizes::pick( $urls, ThumbnailSizes::AVATAR, 104 ) );
+		$this->assertSame( '/512.webp', ThumbnailSizes::pick( $urls, ThumbnailSizes::AVATAR, 9000 ) );
+		$this->assertNull( ThumbnailSizes::pick( $urls, ThumbnailSizes::AVATAR, 200 ), 'no 256 entry' );
+		$this->assertNull( ThumbnailSizes::pick( [], ThumbnailSizes::AVATAR, 64 ) );
+		$this->assertSame( '/128.webp', ThumbnailSizes::pick( [ '128' => '/128.webp' ], ThumbnailSizes::AVATAR, 128 ), 'string keys from JSON round trips' );
+	}
+
+	public function test_density_srcset(): void {
+		$urls = [ 32 => '/32.webp', 64 => '/64.webp', 128 => '/128.webp', 256 => '/256.webp', 512 => '/512.webp' ];
+
+		$this->assertSame( '/128.webp 1x, /256.webp 2x', ThumbnailSizes::density_srcset( $urls, ThumbnailSizes::AVATAR, 128 ) );
+		$this->assertSame( '/512.webp 1x', ThumbnailSizes::density_srcset( $urls, ThumbnailSizes::AVATAR, 512 ), 'the same bucket is listed once' );
+		$this->assertSame( '', ThumbnailSizes::density_srcset( [], ThumbnailSizes::AVATAR, 128 ) );
+		$this->assertSame( '/128.webp 1x', ThumbnailSizes::density_srcset( [ 128 => '/128.webp', 256 => '/a b.webp' ], ThumbnailSizes::AVATAR, 128 ), 'whitespace would split a candidate' );
+	}
+
 	public function test_sizes_are_ascending(): void {
 		foreach ( [ ThumbnailSizes::AVATAR, ThumbnailSizes::BANNER ] as $sizes ) {
 			$sorted = $sizes;

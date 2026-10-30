@@ -110,6 +110,38 @@ class ThumbnailStorageTest extends MediaWikiUnitTestCase {
 		$this->assertSame( [ 1280, 16384 ], $banner->box( 1280 ) );
 	}
 
+	public function test_set_exists_needs_the_largest_size(): void {
+		$thumbs = $this->make_storage();
+		$thumbs->store( 7, self::VERSION, 32, $this->src );
+		$thumbs->store( 7, self::VERSION, 256, $this->src );
+
+		$this->assertFalse( $thumbs->set_exists( 7, self::VERSION ), 'a partial set must keep serving the original' );
+
+		$thumbs->store( 7, self::VERSION, 512, $this->src );
+		$this->assertTrue( $thumbs->set_exists( 7, self::VERSION ) );
+		$this->assertFalse( $thumbs->set_exists( 7, 'abcdefabcd' ) );
+		$this->assertFalse( $thumbs->set_exists( 7, '' ) );
+	}
+
+	public function test_set_exists_is_false_for_unconfigured_container(): void {
+		$this->assertFalse( $this->make_storage( '', false )->set_exists( 7, self::VERSION ) );
+	}
+
+	public function test_public_urls_cover_every_size_in_order(): void {
+		$urls = $this->make_storage()->public_urls( 7, self::VERSION );
+
+		$this->assertSame( ThumbnailSizes::AVATAR, array_keys( $urls ) );
+		$this->assertSame( '/images/ipavatars-thumbs/7/' . self::VERSION . '/64.webp', $urls[64] );
+	}
+
+	public function test_public_urls_empty_for_invalid_input(): void {
+		$thumbs = $this->make_storage();
+
+		$this->assertSame( [], $thumbs->public_urls( 7, '' ) );
+		$this->assertSame( [], $thumbs->public_urls( 7, '../../etc' ) );
+		$this->assertSame( [], $thumbs->public_urls( 0, self::VERSION ) );
+	}
+
 	public function test_delete_owner_without_thumbs_is_ok(): void {
 		$this->assertTrue( $this->make_storage()->delete_owner( 42 )->isOK() );
 	}

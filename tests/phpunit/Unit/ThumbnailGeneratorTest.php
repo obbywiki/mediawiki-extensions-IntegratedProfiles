@@ -140,6 +140,36 @@ class ThumbnailGeneratorTest extends MediaWikiUnitTestCase {
 		$this->assertFalse( $thumbs->exists( 7, 'abcdefabcd', 64 ) );
 	}
 
+	public function test_generate_for_calls_on_ready_only_after_a_full_set(): void {
+		$calls = 0;
+		$on_ready = static function () use ( &$calls ): void {
+			$calls++;
+		};
+
+		$this->assertFalse( $this->generator( [ $this->fake( 'fails', result: false ) ] )->generate_for( $this->storage( $this->thumbs() ), 7, $on_ready ) );
+		$this->assertSame( 0, $calls );
+
+		$this->assertTrue( $this->generator( [ $this->fake( 'only' ) ] )->generate_for( $this->storage( $this->thumbs() ), 7, $on_ready ) );
+		$this->assertSame( 1, $calls );
+	}
+
+	public function test_generate_for_survives_a_throwing_on_ready(): void {
+		$on_ready = static function (): void {
+			throw new RuntimeException( 'cache down' );
+		};
+
+		$this->assertTrue( $this->generator( [ $this->fake( 'only' ) ] )->generate_for( $this->storage( $this->thumbs() ), 7, $on_ready ) );
+	}
+
+	public function test_generated_set_is_seen_as_complete(): void {
+		$thumbs = $this->thumbs();
+		$this->assertFalse( $thumbs->set_exists( 7, self::VERSION ) );
+
+		$this->generator( [ $this->fake( 'only' ) ] )->generate_for( $this->storage( $thumbs ), 7 );
+
+		$this->assertTrue( $thumbs->set_exists( 7, self::VERSION ) );
+	}
+
 	public function test_generate_for_without_original_does_nothing(): void {
 		$fake = $this->fake( 'only' );
 		$storage = $this->createMock( AvatarStorage::class );

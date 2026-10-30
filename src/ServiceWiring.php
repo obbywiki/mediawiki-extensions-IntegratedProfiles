@@ -112,7 +112,8 @@ return [
 			$services->get( ProfileSubjectIds::SERVICE_NAME ),
 			new ImageUploadSanitizer( $services->getTempFSFileFactory() ),
 			new ImageUploadVerifier( $services->get( 'IntegratedProfiles.HookRunner' ) ),
-			$services->get( ThumbnailGenerator::SERVICE_NAME )
+			$services->get( ThumbnailGenerator::SERVICE_NAME ),
+			$services->get( ProfilePagePurger::SERVICE_NAME )
 		);
 	},
 
@@ -140,7 +141,8 @@ return [
 			$services->get( ProfileSubjectIds::SERVICE_NAME ),
 			new ImageUploadSanitizer( $services->getTempFSFileFactory() ),
 			new ImageUploadVerifier( $services->get( 'IntegratedProfiles.HookRunner' ) ),
-			$services->get( ThumbnailGenerator::SERVICE_NAME )
+			$services->get( ThumbnailGenerator::SERVICE_NAME ),
+			$services->get( ProfilePagePurger::SERVICE_NAME )
 		);
 	},
 

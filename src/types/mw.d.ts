@@ -1,4 +1,5 @@
 import type { App } from 'vue';
+import type { ThumbMap } from '../utils/thumbs';
 
 export type ProfileFieldsMap = {
 	'ip-about': string;
@@ -108,8 +109,10 @@ export type ProfilePayload = {
 	wiki_profiles?: WikiProfile[];
 	featured_article?: FeaturedArticle | null;
 	avatar_url: string;
+	avatar_thumbs?: ThumbMap;
 	has_custom_avatar: boolean;
 	banner_url?: string;
+	banner_thumbs?: ThumbMap;
 	custom_banner_url?: string;
 	has_custom_banner?: boolean;
 	connections: ProfileConnection[];

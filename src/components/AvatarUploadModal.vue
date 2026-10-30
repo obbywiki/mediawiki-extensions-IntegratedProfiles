@@ -251,7 +251,8 @@ const can_confirm = computed( () => {
 
 function read_masthead_avatar_url(): string {
 	const avatar_img = document.querySelector( '.ip-avatar__image' ) as HTMLImageElement | null;
-	return ( avatar_img && avatar_img.src ) || props.config.avatar_url || '';
+
+	return props.config.avatar_url || ( avatar_img && avatar_img.src ) || '';
 }
 
 function revoke_preview(): void {

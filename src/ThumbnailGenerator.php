@@ -2,6 +2,7 @@
 
 namespace MediaWiki\Extension\IntegratedProfiles;
 
+use Closure;
 use MediaWiki\Deferred\DeferredUpdates;
 use MediaWiki\Extension\IntegratedProfiles\Thumbnailer\GdThumbnailer;
 use MediaWiki\Extension\IntegratedProfiles\Thumbnailer\ImagickThumbnailer;
@@ -63,23 +64,50 @@ class ThumbnailGenerator {
 
 	/**
 	 * Queues generation after the response is sent, so uploads never wait on (or fail because of) thumbnailing.
+	 *
+	 * @param AvatarStorage|BannerStorage $storage
+	 * @param int $owner_id
+	 * @param (Closure(): void)|null $on_ready Called once a full set was stored, e.g. to drop a cached "no thumbnails" state
 	 */
-	public function schedule( AvatarStorage|BannerStorage $storage, int $owner_id ): void {
+	public function schedule( AvatarStorage|BannerStorage $storage, int $owner_id, ?Closure $on_ready = null ): void {
 		if ( $this->thumbnailers === [] || $owner_id <= 0 ) {
 			return;
 		}
 
-		DeferredUpdates::addCallableUpdate( function () use ( $storage, $owner_id ): void {
-			$this->generate_for( $storage, $owner_id );
+		DeferredUpdates::addCallableUpdate( function () use ( $storage, $owner_id, $on_ready ): void {
+			$this->generate_for( $storage, $owner_id, $on_ready );
 		} );
 	}
 
 	/**
 	 * Generates thumbnails for the owner's current original. The original is re-resolved here, so a run that starts after a replacement or deletion works on the right file (or does nothing).
 	 *
+	 * @param AvatarStorage|BannerStorage $storage
+	 * @param int $owner_id
+	 * @param (Closure(): void)|null $on_ready Called once a full set was stored
 	 * @return bool true when a full set was stored
 	 */
-	public function generate_for( AvatarStorage|BannerStorage $storage, int $owner_id ): bool {
+	public function generate_for( AvatarStorage|BannerStorage $storage, int $owner_id, ?Closure $on_ready = null ): bool {
+		if ( !$this->generate_current( $storage, $owner_id ) ) {
+			return false;
+		}
+
+		if ( $on_ready !== null ) {
+			try {
+				$on_ready();
+			} catch ( Throwable $e ) {
+				$this->logger->warning( 'Thumbnail ready callback failed for owner {owner}: {message}', [
+					'owner' => $owner_id,
+					'message' => $e->getMessage(),
+					'exception' => $e,
+				] );
+			}
+		}
+
+		return true;
+	}
+
+	private function generate_current( AvatarStorage|BannerStorage $storage, int $owner_id ): bool {
 		try {
 			$thumbs = $storage->thumbs();
 			if ( !$thumbs->is_configured() ) {

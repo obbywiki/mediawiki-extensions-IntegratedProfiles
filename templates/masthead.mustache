@@ -4,7 +4,7 @@
 </div>
 <div class="ip-masthead__body">
 <div class="ip-avatar">
-<img class="ip-avatar__image" src="{{avatar_url}}" alt="{{avatar_alt}}" width="128" height="128" />
+<img class="ip-avatar__image" src="{{avatar_url}}"{{#avatar_srcset}} srcset="{{.}}"{{/avatar_srcset}} alt="{{avatar_alt}}" width="128" height="128" />
 {{#avatar_decoration}}<div class="ip-avatar__decoration">{{{.}}}</div>{{/avatar_decoration}}
 {{#avatar_edit}}<button type="button" id="integratedprofiles-avatar-edit" class="ip-avatar__edit{{#use_floating_ui}} ext-floatingui-reference{{/use_floating_ui}}"{{#show_title}} title="{{label}}"{{/show_title}} aria-label="{{label}}"><span class="ip-avatar__edit-scrim" aria-hidden="true"></span>{{> icon_avatar_edit}}</button>{{#use_floating_ui}}{{> floating_tip}}{{/use_floating_ui}}{{/avatar_edit}}
 </div>

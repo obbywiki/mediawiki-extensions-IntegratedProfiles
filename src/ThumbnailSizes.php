@@ -35,6 +35,41 @@ final class ThumbnailSizes {
 	}
 
 	/**
+	 * @param array<int|string, string> $urls size => URL, may be empty
+	 * @param list<int> $sizes AVATAR or BANNER
+	 * @param int $requested Displayed edge or width in device pixels
+	 * @return string|null null when no thumbnail is available, so callers keep the original
+	 */
+	public static function pick( array $urls, array $sizes, int $requested ): ?string {
+		$url = $urls[self::bucket( $sizes, $requested )] ?? null;
+
+		return is_string( $url ) && $url !== '' ? $url : null;
+	}
+
+	/**
+	 * @param array<int|string, string> $urls size => URL, may be empty
+	 * @param list<int> $sizes AVATAR or BANNER
+	 * @param int $css_px Displayed edge or width in CSS pixels
+	 * @return string '' when no thumbnail is available
+	 */
+	public static function density_srcset( array $urls, array $sizes, int $css_px ): string {
+		$candidates = [];
+		$seen = [];
+		foreach ( [ 1, 2 ] as $density ) {
+			$url = self::pick( $urls, $sizes, $css_px * $density );
+			// whitespace would split a srcset candidate
+			if ( $url === null || isset( $seen[$url] ) || preg_match( '/\s/', $url ) ) {
+				continue;
+			}
+
+			$seen[$url] = true;
+			$candidates[] = $url . ' ' . $density . 'x';
+		}
+
+		return implode( ', ', $candidates );
+	}
+
+	/**
 	 * Scales $width*$height to fit inside the box while maintaining the aspect ratio.
 	 *
 	 * @return array{0: int, 1: int}

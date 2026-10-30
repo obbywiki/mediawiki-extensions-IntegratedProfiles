@@ -44,9 +44,9 @@ class ProfilePagePurger {
 	}
 
 	/**
-	 * Sends a local CDN/file-cache purge for the subject's user and talk pages.
+	 * Sends a local CDN/file-cache purge for the subject's user and talk pages (also reaches Cloudflare and others through MultiPurge's cdn-url-purges relayer).
 	 */
-	private function purge_subject_pages( UserIdentity $user ): void {
+	public function purge_subject_pages( UserIdentity $user ): void {
 		$name = $user->getName();
 		if ( $name === '' ) {
 			return;

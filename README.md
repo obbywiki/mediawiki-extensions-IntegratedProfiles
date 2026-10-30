@@ -250,7 +250,7 @@ $wgIntegratedProfilesThumbnailers = [];
 By default (recommended):
 
 ```php
-$wgIntegratedProfilesThumbnailers [ 'vips', 'imagick', 'gd' ];
+$wgIntegratedProfilesThumbnailers = [ 'vips', 'imagick', 'gd' ];
 ```
 
 ### Local settings
@@ -414,7 +414,9 @@ action=query&list=integratedprofileavatar&ipauser=User1|User2|User3
 ```
 <!-- mitosis? -->
 
-Returns a list of `{ user, avatar_url, has_custom_avatar }`. Unknown names are warned and omitted.
+Returns a list of `{ user, avatar_url, avatar_thumbs, has_custom_avatar }`. Unknown names are warned and omitted.
+
+`avatar_url` is always the full-resolution original. `avatar_thumbs` maps each fixed size to a WebP URL (`{ "32": "…", "64": "…", … }`) once thumbnails exist, and is empty otherwise (default avatar, older uploads, or right after an upload while they're still being generated). Pick the smallest size at least as large as you display, and fall back to `avatar_url`. Preview and profile payloads carry the same `avatar_thumbs` field, plus `banner_thumbs` (640/1280/1920 wide) when the painted banner is an upload.
 
 ### Getting preview payloads
 

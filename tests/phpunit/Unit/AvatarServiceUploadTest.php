@@ -3,12 +3,14 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\IntegratedProfiles\Tests\Unit;
 
+use Closure;
 use MediaWiki\Config\ServiceOptions;
 use MediaWiki\Extension\IntegratedProfiles\AvatarService;
 use MediaWiki\Extension\IntegratedProfiles\AvatarStorage;
 use MediaWiki\Extension\IntegratedProfiles\HookRunner;
 use MediaWiki\Extension\IntegratedProfiles\ImageUploadSanitizer;
 use MediaWiki\Extension\IntegratedProfiles\ImageUploadVerifier;
+use MediaWiki\Extension\IntegratedProfiles\ProfilePagePurger;
 use MediaWiki\Extension\IntegratedProfiles\ProfileSubjectIds;
 use MediaWiki\Extension\IntegratedProfiles\ThumbnailGenerator;
 use MediaWiki\Status\Status;
@@ -151,10 +153,22 @@ class AvatarServiceUploadTest extends MediaWikiUnitTestCase {
 		$storage->method( 'find_extension_with_mtime' )->willReturn( [ 'ext' => 'png', 'mtime' => '1', 'version' => '0123456789' ] );
 		$storage->method( 'public_url' )->willReturn( '/images/ipavatars/avatar_1000.png?r=1' );
 
+		$on_ready = null;
 		$thumbnails = $this->createMock( ThumbnailGenerator::class );
-		$thumbnails->expects( $this->once() )->method( 'schedule' )->with( $storage, 1000 );
+		$thumbnails->expects( $this->once() )->method( 'schedule' )
+			->with( $storage, 1000, $this->isInstanceOf( Closure::class ) )
+			->willReturnCallback( static function ( $storage, $owner, Closure $callback ) use ( &$on_ready ): void {
+				$on_ready = $callback;
+			} );
 
-		$this->assertStatusGood( $this->make_service( $storage, [], $thumbnails )->upload( 1000, $path, filesize( $path ) ) );
+		$cache = new HashBagOStuff();
+		$this->assertStatusGood( $this->make_service( $storage, [], $thumbnails, $cache )->upload( 1000, $path, filesize( $path ) ) );
+
+		$key = $cache->makeGlobalKey( 'integratedprofiles', 'avatar', AvatarService::CACHE_KEY_VERSION, '1000' );
+		$this->assertSame( '1000:png:1:0123456789:0', $cache->get( $key ), 'thumbnails are not ready right after the upload' );
+
+		$on_ready();
+		$this->assertFalse( $cache->get( $key ), 'the ready callback drops the entry so the next read sees the thumbnails' );
 	}
 
 	public function test_failed_store_does_not_schedule_thumbnails(): void {
@@ -170,18 +184,77 @@ class AvatarServiceUploadTest extends MediaWikiUnitTestCase {
 		$this->assertFalse( $this->make_service( $storage, [], $thumbnails )->upload( 1000, $path, filesize( $path ) )->isOK() );
 	}
 
-	private function make_service( AvatarStorage $storage, array $hooks = [], ?ThumbnailGenerator $thumbnails = null ): AvatarService {
+	public function test_upload_purges_profile_pages_now_and_once_thumbnails_are_ready(): void {
+		$path = $this->temp_dir . '/purge.png';
+		file_put_contents( $path, self::PNG_1X1 );
+		$user = new UserIdentityValue( 1, 'Alice' );
+
+		$storage = $this->createMock( AvatarStorage::class );
+		$storage->method( 'store' )->willReturn( Status::newGood() );
+		$storage->method( 'find_extension_with_mtime' )->willReturn( [ 'ext' => 'png', 'mtime' => '1', 'version' => '0123456789' ] );
+		$storage->method( 'public_url' )->willReturn( '/images/ipavatars/avatar_1000.png?r=1' );
+
+		$on_ready = null;
+		$thumbnails = $this->createMock( ThumbnailGenerator::class );
+		$thumbnails->method( 'schedule' )->willReturnCallback( static function ( $storage, $owner, Closure $callback ) use ( &$on_ready ): void {
+			$on_ready = $callback;
+		} );
+
+		$purged = [];
+		$purger = $this->createMock( ProfilePagePurger::class );
+		$purger->method( 'purge_subject_pages' )->willReturnCallback( static function ( $subject ) use ( &$purged ): void {
+			$purged[] = $subject->getName();
+		} );
+
+		$this->assertStatusGood( $this->make_service( $storage, [], $thumbnails, null, $purger )->upload_for_user( $user, $path, filesize( $path ) ) );
+		$this->assertSame( [ 'Alice' ], $purged, 'cached pages reference the replaced thumbnails' );
+
+		$on_ready();
+		$this->assertSame( [ 'Alice', 'Alice' ], $purged, 'pages cached since the upload switch to the thumbnails' );
+	}
+
+	public function test_rejected_upload_does_not_purge(): void {
+		$path = $this->temp_dir . '/fail.png';
+		file_put_contents( $path, self::PNG_1X1 );
+
+		$storage = $this->createMock( AvatarStorage::class );
+		$storage->method( 'store' )->willReturn( Status::newFatal( 'backend-fail-internal', 'x' ) );
+
+		$purger = $this->createMock( ProfilePagePurger::class );
+		$purger->expects( $this->never() )->method( 'purge_subject_pages' );
+
+		$this->assertFalse( $this->make_service( $storage, [], null, null, $purger )->upload_for_user( new UserIdentityValue( 1, 'Alice' ), $path, filesize( $path ) )->isOK() );
+	}
+
+	public function test_delete_purges_only_on_success(): void {
+		$user = new UserIdentityValue( 1, 'Alice' );
+
+		$ok = $this->createMock( AvatarStorage::class );
+		$ok->method( 'delete_all' )->willReturn( Status::newGood() );
+		$purger = $this->createMock( ProfilePagePurger::class );
+		$purger->expects( $this->once() )->method( 'purge_subject_pages' )->with( $user );
+		$this->assertStatusGood( $this->make_service( $ok, [], null, null, $purger )->delete_for_user( $user ) );
+
+		$failing = $this->createMock( AvatarStorage::class );
+		$failing->method( 'delete_all' )->willReturn( Status::newFatal( 'backend-fail-internal', 'x' ) );
+		$untouched = $this->createMock( ProfilePagePurger::class );
+		$untouched->expects( $this->never() )->method( 'purge_subject_pages' );
+		$this->assertFalse( $this->make_service( $failing, [], null, null, $untouched )->delete_for_user( $user )->isOK() );
+	}
+
+	private function make_service( AvatarStorage $storage, array $hooks = [], ?ThumbnailGenerator $thumbnails = null, ?HashBagOStuff $cache = null, ?ProfilePagePurger $purger = null ): AvatarService {
 		$subject_ids = $this->createMock( ProfileSubjectIds::class );
 		$subject_ids->method( 'ids_for' )->willReturn( [ 'central_id' => 1000, 'local_id' => 1 ] );
 
 		return new AvatarService(
 			new ServiceOptions( AvatarService::CONSTRUCTOR_OPTIONS, [ 'IntegratedProfilesAvatarMaxBytes' => 2097152, 'IntegratedProfilesEnableAnimatedAvatars' => true, 'ExtensionAssetsPath' => '/extensions' ] ),
 			$storage,
-			new HashBagOStuff(),
+			$cache ?? new HashBagOStuff(),
 			$subject_ids,
 			new ImageUploadSanitizer( new TempFSFileFactory( $this->temp_dir ) ),
 			new ImageUploadVerifier( new HookRunner( $this->createHookContainer( $hooks ) ) ),
-			$thumbnails
+			$thumbnails,
+			$purger
 		);
 	}
 

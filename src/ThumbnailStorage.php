@@ -99,6 +99,35 @@ class ThumbnailStorage {
 	}
 
 	/**
+	 * Whether the full set exists for a version. The generator stores sizes in ascending order, so the largest one existing means the set is complete. One stat, no matter how many sizes there are.
+	 */
+	public function set_exists( int $owner_id, string $version ): bool {
+		if ( $this->sizes === [] ) {
+			return false;
+		}
+
+		return $this->exists( $owner_id, $version, max( $this->sizes ) );
+	}
+
+	/**
+	 * Public URLs for every size of a version (without checking that they exist).
+	 *
+	 * @return array<int, string> size => URL (asc)
+	 */
+	public function public_urls( int $owner_id, string $version ): array {
+		if ( $owner_id <= 0 || !self::is_valid_version( $version ) ) {
+			return [];
+		}
+
+		$urls = [];
+		foreach ( $this->sizes as $size ) {
+			$urls[$size] = $this->public_url( $owner_id, $version, $size );
+		}
+
+		return $urls;
+	}
+
+	/**
 	 * Stores a generated thumbnail from a local temp path.
 	 */
 	public function store( int $owner_id, string $version, int $size, string $src_path ): Status {
