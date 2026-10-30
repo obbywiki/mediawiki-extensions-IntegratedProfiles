@@ -5,6 +5,7 @@ namespace MediaWiki\Extension\IntegratedProfiles;
 use Closure;
 use MediaWiki\Status\Status;
 use Wikimedia\FileBackend\FileBackend;
+use Wikimedia\Timestamp\ConvertibleTimestamp;
 
 /**
  * FileBackend I/O for generated thumbnails, kept in a sibling container of the originals (ipavatars-thumbs / ipbanners-thumbs).
@@ -21,6 +22,8 @@ class ThumbnailStorage {
 	public const EXT = 'webp';
 	public const CACHE_CONTROL = 'public, max-age=31536000, immutable';
 	private const VERSION_LENGTH = 10;
+	// object cache TTL (1d) plus MediaWiki's default $wgCdnMaxAge (rounded up)
+	public const DEFAULT_RETENTION = 2 * 86400;
 
 	private ?FileBackend $backend = null;
 	private ?bool $configured = null;
@@ -32,6 +35,8 @@ class ThumbnailStorage {
 	 * @param string $override_base IntegratedProfilesUploadBaseUrl, or '' when unset
 	 * @param string $default_http_base Fallback URL base for the container when the backend has no HTTP URL
 	 * @param bool $square Sizes bound both edges (avatars). When false, they only bound the width (banners).
+	 * @param (Closure(list<string>): void)|null $purge_urls Purges deleted thumbnail URLs from the CDN, null skips purging
+	 * @param int $retention Seconds a version must have been current before older versions are deleted
 	 */
 	public function __construct(
 		private readonly Closure $backend_provider,
@@ -40,6 +45,8 @@ class ThumbnailStorage {
 		private readonly string $override_base,
 		private readonly string $default_http_base,
 		private readonly bool $square = true,
+		private readonly ?Closure $purge_urls = null,
+		private readonly int $retention = self::DEFAULT_RETENTION,
 	) {
 	}
 
@@ -159,13 +166,28 @@ class ThumbnailStorage {
 	}
 
 	/**
-	 * Removes every thumbnail (all versions) for the provided owner.
+	 * Removes every thumbnail (all versions) for the provided owner, e.g. when the original is deleted.
 	 */
 	public function delete_owner( int $owner_id ): Status {
 		return $this->delete_versions( $owner_id, null );
 	}
 
-	public function delete_other_versions( int $owner_id, string $keep_version ): Status {
+	/**
+	 * Removes versions other than $keep_version, but only once $keep_version has been current for longer than the retention period. Until then, pages rendered before it became current can still point at an older version.
+	 *
+	 * Previously "delete_other_versions".
+	 *
+	 * @param int $owner_id
+	 * @param string $keep_version
+	 * @param string $current_since mtime of the original that $keep_version belongs to
+	 * @param int|null $now Unix time, defaults to the current time
+	 */
+	public function delete_superseded( int $owner_id, string $keep_version, string $current_since, ?int $now = null ): Status {
+		$since = $current_since !== '' ? ConvertibleTimestamp::convert( TS_UNIX, $current_since ) : false;
+		if ( !self::is_valid_version( $keep_version ) || $since === false || ( $now ?? (int)ConvertibleTimestamp::now( TS_UNIX ) ) - (int)$since <= $this->retention ) {
+			return Status::newGood();
+		}
+
 		return $this->delete_versions( $owner_id, $keep_version );
 	}
 
@@ -183,16 +205,25 @@ class ThumbnailStorage {
 		}
 
 		$status = Status::newGood();
+		$deleted = [];
 		foreach ( $files as $rel ) {
 			if ( $keep_version !== null && str_starts_with( $rel, $keep_version . '/' ) ) {
 				continue;
 			}
 
-			$status->merge( Status::wrap( $backend->quickDelete( [ 'src' => $dir . '/' . $rel ] ) ) );
+			$result = Status::wrap( $backend->quickDelete( [ 'src' => $dir . '/' . $rel ] ) );
+			$status->merge( $result );
+			if ( $result->isOK() ) {
+				$deleted[] = $this->url_for( $owner_id . '/' . $rel );
+			}
 		}
 
 		// drops the now-empty owner/version directories on filesystem backends
 		$backend->clean( [ 'dir' => $dir, 'recursive' => true ] );
+
+		if ( $deleted !== [] && $this->purge_urls !== null ) {
+			( $this->purge_urls )( $deleted );
+		}
 
 		return $status;
 	}
@@ -201,13 +232,19 @@ class ThumbnailStorage {
 	 * Public HTTP URL for a thumbnail. No cache-bust query, the version directory already changes when the original does.
 	 */
 	public function public_url( int $owner_id, string $version, int $size ): string {
-		$rel = $this->relative_path( $owner_id, $version, $size );
+		return $this->url_for( $this->relative_path( $owner_id, $version, $size ) );
+	}
 
+	/**
+	 * @param string $rel Path relative to the container
+	 */
+	private function url_for( string $rel ): string {
 		if ( $this->override_base !== '' ) {
 			return rtrim( $this->override_base, '/' ) . '/' . $this->container . '/' . $rel;
 		}
 
-		$url = $this->backend()->getFileHttpUrl( [ 'src' => $this->storage_path( $owner_id, $version, $size ) ] );
+		$path = $this->container_path() . '/' . $rel;
+		$url = $this->backend()->getFileHttpUrl( [ 'src' => FileBackend::normalizeStoragePath( $path ) ?? $path ] );
 		if ( is_string( $url ) && $url !== '' ) {
 			return $url;
 		}

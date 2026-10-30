@@ -3,12 +3,14 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\IntegratedProfiles\Tests\Unit;
 
+use Closure;
 use MediaWiki\Extension\IntegratedProfiles\ThumbnailSizes;
 use MediaWiki\Extension\IntegratedProfiles\ThumbnailStorage;
 use MediaWikiUnitTestCase;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use Wikimedia\FileBackend\FSFileBackend;
+use Wikimedia\Timestamp\ConvertibleTimestamp;
 
 /**
  * @group IntegratedProfiles
@@ -89,18 +91,51 @@ class ThumbnailStorageTest extends MediaWikiUnitTestCase {
 		$this->assertDirectoryDoesNotExist( $this->root . '/' . self::CONTAINER . '/7' );
 	}
 
-	public function test_delete_other_versions_keeps_only_the_current_one(): void {
-		$thumbs = $this->make_storage();
+	public function test_delete_superseded_keeps_only_the_current_one_after_retention(): void {
+		$thumbs = $this->make_storage( retention: 100 );
 		$thumbs->store( 7, self::VERSION, 64, $this->src );
 		$thumbs->store( 7, self::VERSION, 256, $this->src );
 		$thumbs->store( 7, 'abcdefabcd', 256, $this->src );
 
-		$this->assertTrue( $thumbs->delete_other_versions( 7, self::VERSION )->isOK() );
+		$this->assertTrue( $thumbs->delete_superseded( 7, self::VERSION, '20261029120000', $this->unix( '20261029120000' ) + 101 )->isOK() );
 
 		$this->assertTrue( $thumbs->exists( 7, self::VERSION, 64 ) );
 		$this->assertTrue( $thumbs->exists( 7, self::VERSION, 256 ) );
 		$this->assertFalse( $thumbs->exists( 7, 'abcdefabcd', 256 ) );
 		$this->assertDirectoryDoesNotExist( $this->root . '/' . self::CONTAINER . '/7/abcdefabcd' );
+	}
+
+	public function test_delete_superseded_keeps_older_versions_within_retention(): void {
+		$thumbs = $this->make_storage( retention: 100 );
+		$thumbs->store( 7, self::VERSION, 256, $this->src );
+		$thumbs->store( 7, 'abcdefabcd', 256, $this->src );
+
+		$thumbs->delete_superseded( 7, self::VERSION, '20261029120000', $this->unix( '20261029120000' ) + 100 );
+		$this->assertTrue( $thumbs->exists( 7, 'abcdefabcd', 256 ), 'pages cached before the replacement may still use it' );
+
+		$thumbs->delete_superseded( 7, self::VERSION, '', PHP_INT_MAX );
+		$thumbs->delete_superseded( 7, 'nope', '20261029120000', PHP_INT_MAX );
+		$this->assertTrue( $thumbs->exists( 7, 'abcdefabcd', 256 ), 'an unusable stat or version must never delete anything' );
+		$this->assertTrue( $thumbs->exists( 7, self::VERSION, 256 ) );
+	}
+
+	public function test_deleted_thumbnails_are_purged(): void {
+		$purged = [];
+		$thumbs = $this->make_storage( 'https://cdn.example/ip', retention: 0, purge: static function ( array $urls ) use ( &$purged ): void {
+			$purged[] = $urls;
+		} );
+		$thumbs->store( 7, self::VERSION, 256, $this->src );
+		$thumbs->store( 7, 'abcdefabcd', 64, $this->src );
+		$thumbs->store( 7, 'abcdefabcd', 256, $this->src );
+
+		$thumbs->delete_superseded( 7, self::VERSION, '20261029120000' );
+		$thumbs->delete_owner( 7 );
+		$thumbs->delete_owner( 7 );
+
+		$prefix = 'https://cdn.example/ip/' . self::CONTAINER . '/7/';
+		$this->assertCount( 2, $purged, 'nothing deleted, nothing purged' );
+		$this->assertEqualsCanonicalizing( [ $prefix . 'abcdefabcd/64.webp', $prefix . 'abcdefabcd/256.webp' ], $purged[0] );
+		$this->assertSame( [ $prefix . self::VERSION . '/256.webp' ], $purged[1] );
 	}
 
 	public function test_box_is_square_for_avatars_and_width_only_for_banners(): void {
@@ -172,7 +207,11 @@ class ThumbnailStorageTest extends MediaWikiUnitTestCase {
 		);
 	}
 
-	private function make_storage( string $override = '', bool $with_container = true ): ThumbnailStorage {
+	private function unix( string $ts ): int {
+		return (int)ConvertibleTimestamp::convert( TS_UNIX, $ts );
+	}
+
+	private function make_storage( string $override = '', bool $with_container = true, int $retention = ThumbnailStorage::DEFAULT_RETENTION, ?Closure $purge = null ): ThumbnailStorage {
 		$backend = new FSFileBackend( [
 			'name' => 'ip-thumbs-test',
 			'domainId' => 'integratedprofiles',
@@ -185,7 +224,7 @@ class ThumbnailStorageTest extends MediaWikiUnitTestCase {
 				[ 'ipavatars' => $this->root . '/ipavatars' ],
 		] );
 
-		return new ThumbnailStorage( static fn () => $backend, self::CONTAINER, ThumbnailSizes::AVATAR, $override, '/images/' . self::CONTAINER );
+		return new ThumbnailStorage( static fn () => $backend, self::CONTAINER, ThumbnailSizes::AVATAR, $override, '/images/' . self::CONTAINER, true, $purge, $retention );
 	}
 
 	private function remove_tree( string $dir ): void {

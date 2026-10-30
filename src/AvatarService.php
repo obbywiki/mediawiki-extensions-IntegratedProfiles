@@ -214,7 +214,7 @@ class AvatarService {
 
 		$found = $this->storage->find_extension_with_mtime( $central_id );
 		$this->write_cache( $central_id, $validation['ext'], $found['mtime'] ?? '', $found['version'] ?? '', false );
-		// cached pages would point at the replaced original's thumbnails, which store() just deleted
+		// cached pages would keep showing the replaced original
 		$this->purge_pages( $user );
 		$this->thumbnails?->schedule( $this->storage, $central_id, function () use ( $central_id, $user ): void {
 			// next read re-resolves and sees the new thumbnails, and so do pages cached since the upload

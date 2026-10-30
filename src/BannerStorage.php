@@ -2,6 +2,7 @@
 
 namespace MediaWiki\Extension\IntegratedProfiles;
 
+use Closure;
 use MediaWiki\Config\ServiceOptions;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Status\Status;
@@ -38,8 +39,15 @@ class BannerStorage {
 	private ?FileBackend $backend = null;
 	private ?ThumbnailStorage $thumbs = null;
 
+	/**
+	 * @param ServiceOptions $options
+	 * @param (Closure(list<string>): void)|null $purge_urls Purges the URLs of deleted files from the CDN, null skips purging
+	 * @param int $thumb_retention See ThumbnailStorage::delete_superseded
+	 */
 	public function __construct(
 		private readonly ServiceOptions $options,
+		private readonly ?Closure $purge_urls = null,
+		private readonly int $thumb_retention = ThumbnailStorage::DEFAULT_RETENTION,
 	) {
 		$options->assertRequiredOptions( self::CONSTRUCTOR_OPTIONS );
 	}
@@ -123,6 +131,7 @@ class BannerStorage {
 			return Status::wrap( $prepare );
 		}
 
+		$previous = $this->find_extension_with_mtime( $owner_id );
 		$dest = $this->storage_path( $owner_id, $ext );
 		$result = $backend->quickStore( [
 			'src' => $src_path,
@@ -137,8 +146,10 @@ class BannerStorage {
 
 		$status->merge( $this->delete_other_extensions( $owner_id, $ext ) );
 
-		// thumbnails of the replaced original live under an old version and are never referenced again, so a failed cleanup must not fail the upload
-		$this->thumbs()->delete_owner( $owner_id );
+		// the replaced original's thumbnails stay, since pages cached on other wikis still use them; only versions it superseded long enough ago go (a failed cleanup must not fail the upload)
+		if ( $previous !== null ) {
+			$this->thumbs()->delete_superseded( $owner_id, $previous['version'], $previous['mtime'] );
+		}
 
 		return $status;
 	}
@@ -159,6 +170,7 @@ class BannerStorage {
 	public function delete_other_extensions( int $owner_id, ?string $keep_ext ): Status {
 		$backend = $this->get_backend();
 		$status = Status::newGood();
+		$deleted = [];
 
 		foreach ( self::EXTENSIONS as $ext ) {
 			if ( $keep_ext !== null && $ext === $keep_ext ) {
@@ -166,12 +178,21 @@ class BannerStorage {
 			}
 
 			$path = $this->storage_path( $owner_id, $ext );
-			if ( !$backend->fileExists( [ 'src' => $path ] ) ) {
+			$stat = $backend->getFileStat( [ 'src' => $path ] );
+			if ( !is_array( $stat ) ) {
 				continue;
 			}
 
-			$result = $backend->quickDelete( [ 'src' => $path ] );
-			$status->merge( Status::wrap( $result ) );
+			$result = Status::wrap( $backend->quickDelete( [ 'src' => $path ] ) );
+			$status->merge( $result );
+			if ( $result->isOK() ) {
+				// the exact URL pages used, cache-bust included (CDNs key on the query string)
+				$deleted[] = $this->public_url( $owner_id, $ext, isset( $stat['mtime'] ) ? (string)$stat['mtime'] : '' );
+			}
+		}
+
+		if ( $deleted !== [] && $this->purge_urls !== null ) {
+			( $this->purge_urls )( $deleted );
 		}
 
 		return $status;
@@ -222,7 +243,9 @@ class BannerStorage {
 			ThumbnailSizes::BANNER,
 			trim( (string)$this->options->get( 'IntegratedProfilesUploadBaseUrl' ) ),
 			$this->default_http_base( self::THUMB_CONTAINER ),
-			false
+			false,
+			$this->purge_urls,
+			$this->thumb_retention
 		);
 
 		return $this->thumbs;

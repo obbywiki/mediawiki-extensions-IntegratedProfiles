@@ -167,14 +167,42 @@ class ThumbnailBackfillTest extends MediaWikiUnitTestCase {
 		$this->assertSame( [], $purges );
 	}
 
+	public function test_current_owners_drop_versions_superseded_past_retention(): void {
+		$this->original( 3, time() - 3 * 86400 );
+		$this->original( 5 );
+
+		$forgotten = [];
+		$purges = [];
+		$backfill = $this->backfill( $this->generator( [ $this->fake() ] ), $purges );
+		$service = $this->service( $forgotten );
+		$backfill->run( $this->storage, $service, null );
+		foreach ( [ 3, 5 ] as $owner ) {
+			$this->storage->thumbs()->store( $owner, 'abcdefabcd', 512, $this->thumb_dir( $owner ) . '/512.webp' );
+		}
+
+		$backfill->run( $this->storage, $service, null, [ 'dry_run' => true ] );
+		$this->assertTrue( $this->storage->thumbs()->exists( 3, 'abcdefabcd', 512 ), 'a dry run deletes nothing' );
+
+		$counts = $backfill->run( $this->storage, $service, null );
+		$this->assertSame( 2, $counts[ThumbnailBackfill::CURRENT] );
+		$this->assertFalse( $this->storage->thumbs()->exists( 3, 'abcdefabcd', 512 ) );
+		$this->assertFileExists( $this->thumb_dir( 3 ) . '/512.webp' );
+		$this->assertTrue( $this->storage->thumbs()->exists( 5, 'abcdefabcd', 512 ), 'replaced too recently' );
+	}
+
 	public function test_available_lists_runnable_libraries_in_order(): void {
 		$generator = $this->generator( [ $this->fake( 'a' ), $this->fake( 'b', available: false ), $this->fake( 'c' ) ] );
 
 		$this->assertSame( [ 'a', 'c' ], $generator->available() );
 	}
 
-	private function original( int $owner ): void {
-		file_put_contents( $this->root . '/ipavatars/avatar_' . $owner . '.png', self::PNG_1X1 );
+	private function original( int $owner, ?int $mtime = null ): void {
+		$path = $this->root . '/ipavatars/avatar_' . $owner . '.png';
+		file_put_contents( $path, self::PNG_1X1 );
+		if ( $mtime !== null ) {
+			touch( $path, $mtime );
+			clearstatcache();
+		}
 	}
 
 	private function thumb_dir( int $owner ): string {

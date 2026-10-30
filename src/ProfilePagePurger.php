@@ -7,7 +7,7 @@ use MediaWiki\Title\TitleFactory;
 use MediaWiki\User\UserIdentity;
 
 /**
- * Purges local User:X / User_talk:X HTML so anonymous CDN copies drop after a visibility change.
+ * Purges local User:X / User_talk:X HTML so anonymous CDN copies drop after a visibility change, and the URLs of deleted profile media.
  */
 class ProfilePagePurger {
 
@@ -76,6 +76,20 @@ class ProfilePagePurger {
 		}
 
 		$this->html_cache_updater->purgeTitleUrls( $titles );
+	}
+
+	/**
+	 * Purges media URLs (deleted originals and thumbnails) from the CDN, through the same path as page purges.
+	 *
+	 * @param list<string> $urls
+	 */
+	public function purge_urls( array $urls ): void {
+		$urls = array_values( array_unique( array_filter( $urls, static fn ( $url ): bool => is_string( $url ) && $url !== '' ) ) );
+		if ( $urls === [] ) {
+			return;
+		}
+
+		$this->html_cache_updater->purgeUrls( $urls );
 	}
 
 }

@@ -19,9 +19,28 @@ use MediaWiki\Extension\IntegratedProfiles\ProfileService;
 use MediaWiki\Extension\IntegratedProfiles\ProfileSubjectIds;
 use MediaWiki\Extension\IntegratedProfiles\ProfileTabs;
 use MediaWiki\Extension\IntegratedProfiles\ThumbnailGenerator;
+use MediaWiki\Extension\IntegratedProfiles\ThumbnailStorage;
 use MediaWiki\Html\TemplateParser;
 use MediaWiki\Logger\LoggerFactory;
 use MediaWiki\MediaWikiServices;
+
+/**
+ * The CDN purge callback for deleted media (or null), and how long a replaced version's thumbnails are kept (see the docs).
+ *
+ * @return array{0: (Closure(list<string>): void)|null, 1: int}
+ */
+$media_cleanup = static function ( MediaWikiServices $services ): array {
+	$config = $services->getMainConfig();
+	$purge_urls = (bool)$config->get( 'IntegratedProfilesPurgeMediaUrls' ) ?
+		static function ( array $urls ) use ( $services ): void {
+			$services->get( ProfilePagePurger::SERVICE_NAME )->purge_urls( $urls );
+		} :
+		null;
+
+	$retention = max( ThumbnailStorage::DEFAULT_RETENTION, AvatarService::CACHE_TTL + (int)$config->get( 'CdnMaxAge' ) );
+
+	return [ $purge_urls, $retention ];
+};
 
 return [
 	'IntegratedProfiles.ProfilePermissions' => static function (): ProfilePermissions {
@@ -75,12 +94,16 @@ return [
 		return new ProfilePagePurger( $html_cache, $services->getTitleFactory() );
 	},
 
-	AvatarStorage::SERVICE_NAME => static function ( MediaWikiServices $services ): AvatarStorage {
+	AvatarStorage::SERVICE_NAME => static function ( MediaWikiServices $services ) use ( $media_cleanup ): AvatarStorage {
+		[ $purge_urls, $retention ] = $media_cleanup( $services );
+
 		return new AvatarStorage(
 			new ServiceOptions(
 				AvatarStorage::CONSTRUCTOR_OPTIONS,
 				$services->getMainConfig()
-			)
+			),
+			$purge_urls,
+			$retention
 		);
 	},
 
@@ -117,12 +140,16 @@ return [
 		);
 	},
 
-	BannerStorage::SERVICE_NAME => static function ( MediaWikiServices $services ): BannerStorage {
+	BannerStorage::SERVICE_NAME => static function ( MediaWikiServices $services ) use ( $media_cleanup ): BannerStorage {
+		[ $purge_urls, $retention ] = $media_cleanup( $services );
+
 		return new BannerStorage(
 			new ServiceOptions(
 				BannerStorage::CONSTRUCTOR_OPTIONS,
 				$services->getMainConfig()
-			)
+			),
+			$purge_urls,
+			$retention
 		);
 	},
 

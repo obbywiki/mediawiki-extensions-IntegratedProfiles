@@ -210,6 +210,7 @@ Below are open-source integrations that implement IntegratedProfiles' hooks or A
 | `$wgIntegratedProfilesBannerMaxBytes` | ![number](https://img.shields.io/badge/-number-green?style=flat-square) | `4194304` | Maximum banner upload size in bytes (default 4 MiB). |
 | `$wgIntegratedProfilesThumbnailers` | array | `["vips", "imagick", "gd"]` | Image libraries used for WebP thumbnails, tried in order. Unavailable ones are skipped. Overrides (rather than merges with) the default. `[]` disables thumbnails. See below. |
 | `$wgIntegratedProfilesVipsCommand` | ![string](https://img.shields.io/badge/-string-blue?style=flat-square) | `'/usr/bin/vipsthumbnail'` | Path to `vipsthumbnail`, used by `vips`. |
+| `$wgIntegratedProfilesPurgeMediaUrls` | ![boolean](https://img.shields.io/badge/-boolean-orange?style=flat-square) | `true` | Purge the URLs of deleted avatars, banners, and thumbnails from the CDN. Disable this when your CDN does not cover `$wgIntegratedProfilesUploadBaseUrl`. See below. |
 | `$wgIntegratedProfilesBannerPresetImages` | array | `[]` | Map of preset ID => image URL (max 8). Replaces gradients on a single wiki, or creates a local extra row with GlobalPreferences per-wiki. |
 | `$wgIntegratedProfilesBannerPresetDefault` | ![string](https://img.shields.io/badge/-string-blue?style=flat-square) | `''` | Optional preset ID to use as the single-wiki default. If empty, the first item in `$wgIntegratedProfilesBannerPresetImages` will be used. |
 | `$wgIntegratedProfilesLanguageInterwikis` | array | `[]` | Language interwiki prefixes to inject on user/user talk pages (e.g. ["en","ko","ja"]). Skips the wiki content language and $wgLocalInterwikis. See below. |
@@ -253,9 +254,11 @@ By default (recommended):
 $wgIntegratedProfilesThumbnailers = [ 'vips', 'imagick', 'gd' ];
 ```
 
+Thumbnail URLs change whenever the original does, so they are cached as immutable for up to a year. Replacing an upload keeps the previous thumbnails for a while (`$wgCdnMaxAge` plus one day, at least two days), since pages cached on other wikis can still point towards them. They are removed on a later upload or by the maintenance script below. Deleting an avatar or banner removes all of its files at once, and purges their URLs from the CDN (`$wgCdnServers`, or Cloudflare and others via MultiPurge or similar) so they stop being served.
+
 #### Generating thumbnails for existing uploads
 
-In the event that you lose the thumbnails or purge them (or if you are updating from a version before 0.8.0), you can backfill the generated thumbnails by running the dedicated maintenance script:
+In the event that you lose the thumbnails or purge them (or if you are updating from a version before 0.8.0), you can backfill the generated thumbnails by running the dedicated maintenance script. It also removes thumbnails of replaced uploads once they are past the retention period, so running it periodically (e.g. weekly) keeps the thumbnail containers small:
 
 ```bash
 php maintenance/run.php IntegratedProfiles:GenerateThumbnails

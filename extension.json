@@ -500,6 +500,10 @@
 			"value": "/usr/bin/vipsthumbnail",
 			"description": "Path to the vipsthumbnail binary used by the vips thumbnailer."
 		},
+		"IntegratedProfilesPurgeMediaUrls": {
+			"value": true,
+			"description": "Purge the URLs of deleted avatars, banners and thumbnails from the CDN (through $wgCdnServers and the cdn-url-purges relayer). Disable when the CDN does not cover $wgIntegratedProfilesUploadBaseUrl."
+		},
 		"IntegratedProfilesBannerPresetImages": {
 			"value": [],
 			"description": "Map of banner preset id to image URL (http(s) or site-relative). At most 8 entries are used."

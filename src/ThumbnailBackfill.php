@@ -6,7 +6,7 @@ use Closure;
 use MediaWiki\User\UserIdentity;
 
 /**
- * Backfills thumbnails from stored originals that don't already have any current set. Runs synchronously, see maintenance/GenerateThumbnails.php.
+ * Backfills thumbnails from stored originals that don't already have any current set, and removes versions superseded for longer than the retention period. Runs synchronously, see maintenance/GenerateThumbnails.php.
  *
  * Can potentially purge a lot of cached user pages (in batches). Only purges in the wiki that it runs in (TODO).
  */
@@ -91,6 +91,11 @@ class ThumbnailBackfill {
 		}
 
 		if ( !$force && $storage->thumbs()->set_exists( $owner_id, $version ) ) {
+			if ( !$dry_run ) {
+				// uploads keep the replaced version around for cached pages, this is what eventually removes it
+				$storage->thumbs()->delete_superseded( $owner_id, $version, $found['mtime'] );
+			}
+
 			return self::CURRENT;
 		}
 

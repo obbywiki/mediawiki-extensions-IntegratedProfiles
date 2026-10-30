@@ -135,7 +135,7 @@ class ThumbnailGenerator {
 				return false;
 			}
 
-			$thumbs->delete_other_versions( $owner_id, $version );
+			$thumbs->delete_superseded( $owner_id, $version, $found['mtime'] );
 			return true;
 		} catch ( Throwable $e ) {
 			$this->logger->error( 'Thumbnail generation failed for owner {owner}: {message}', [

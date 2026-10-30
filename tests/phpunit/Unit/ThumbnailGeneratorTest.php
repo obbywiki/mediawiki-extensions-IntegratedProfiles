@@ -20,6 +20,7 @@ use RuntimeException;
 use Wikimedia\FileBackend\FileBackend;
 use Wikimedia\FileBackend\FSFile\TempFSFileFactory;
 use Wikimedia\FileBackend\FSFileBackend;
+use Wikimedia\Timestamp\ConvertibleTimestamp;
 
 /**
  * @group IntegratedProfiles
@@ -138,6 +139,15 @@ class ThumbnailGeneratorTest extends MediaWikiUnitTestCase {
 		$this->assertTrue( $this->generator( [ $this->fake( 'only' ) ] )->generate_for( $this->storage( $thumbs ), 7 ) );
 		$this->assertTrue( $thumbs->exists( 7, self::VERSION, 256 ) );
 		$this->assertFalse( $thumbs->exists( 7, 'abcdefabcd', 64 ) );
+	}
+
+	public function test_generate_for_keeps_the_replaced_version_after_a_fresh_upload(): void {
+		$thumbs = $this->thumbs();
+		$thumbs->store( 7, 'abcdefabcd', 64, $this->root . '/ipavatars/avatar_7.png' );
+
+		$this->assertTrue( $this->generator( [ $this->fake( 'only' ) ] )->generate_for( $this->storage( $thumbs, ConvertibleTimestamp::now() ), 7 ) );
+		$this->assertTrue( $thumbs->exists( 7, self::VERSION, 256 ) );
+		$this->assertTrue( $thumbs->exists( 7, 'abcdefabcd', 64 ), 'pages cached on other wikis still point at it' );
 	}
 
 	public function test_generate_for_calls_on_ready_only_after_a_full_set(): void {
@@ -290,10 +300,10 @@ class ThumbnailGeneratorTest extends MediaWikiUnitTestCase {
 		);
 	}
 
-	private function storage( ThumbnailStorage $thumbs ): AvatarStorage {
+	private function storage( ThumbnailStorage $thumbs, string $mtime = '20200101000000' ): AvatarStorage {
 		$storage = $this->createMock( AvatarStorage::class );
 		$storage->method( 'thumbs' )->willReturn( $thumbs );
-		$storage->method( 'find_extension_with_mtime' )->willReturn( [ 'ext' => 'png', 'mtime' => '1', 'version' => self::VERSION ] );
+		$storage->method( 'find_extension_with_mtime' )->willReturn( [ 'ext' => 'png', 'mtime' => $mtime, 'version' => self::VERSION ] );
 		$storage->method( 'get_backend' )->willReturn( $this->backend );
 		$storage->method( 'storage_path' )->willReturn( $this->backend->getContainerStoragePath( 'ipavatars' ) . '/avatar_7.png' );
 
