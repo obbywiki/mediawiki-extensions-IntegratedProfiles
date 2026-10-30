@@ -89,6 +89,27 @@ class ThumbnailStorageTest extends MediaWikiUnitTestCase {
 		$this->assertDirectoryDoesNotExist( $this->root . '/' . self::CONTAINER . '/7' );
 	}
 
+	public function test_delete_other_versions_keeps_only_the_current_one(): void {
+		$thumbs = $this->make_storage();
+		$thumbs->store( 7, self::VERSION, 64, $this->src );
+		$thumbs->store( 7, self::VERSION, 256, $this->src );
+		$thumbs->store( 7, 'abcdefabcd', 256, $this->src );
+
+		$this->assertTrue( $thumbs->delete_other_versions( 7, self::VERSION )->isOK() );
+
+		$this->assertTrue( $thumbs->exists( 7, self::VERSION, 64 ) );
+		$this->assertTrue( $thumbs->exists( 7, self::VERSION, 256 ) );
+		$this->assertFalse( $thumbs->exists( 7, 'abcdefabcd', 256 ) );
+		$this->assertDirectoryDoesNotExist( $this->root . '/' . self::CONTAINER . '/7/abcdefabcd' );
+	}
+
+	public function test_box_is_square_for_avatars_and_width_only_for_banners(): void {
+		$this->assertSame( [ 256, 256 ], $this->make_storage()->box( 256 ) );
+
+		$banner = new ThumbnailStorage( static fn () => null, 'ipbanners-thumbs', ThumbnailSizes::BANNER, '', '/images/ipbanners-thumbs', false );
+		$this->assertSame( [ 1280, 16384 ], $banner->box( 1280 ) );
+	}
+
 	public function test_delete_owner_without_thumbs_is_ok(): void {
 		$this->assertTrue( $this->make_storage()->delete_owner( 42 )->isOK() );
 	}

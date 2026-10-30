@@ -31,6 +31,7 @@ class ThumbnailStorage {
 	 * @param list<int> $sizes Allowed sizes (see ThumbnailSizes)
 	 * @param string $override_base IntegratedProfilesUploadBaseUrl, or '' when unset
 	 * @param string $default_http_base Fallback URL base for the container when the backend has no HTTP URL
+	 * @param bool $square Sizes bound both edges (avatars). When false, they only bound the width (banners).
 	 */
 	public function __construct(
 		private readonly Closure $backend_provider,
@@ -38,7 +39,17 @@ class ThumbnailStorage {
 		private readonly array $sizes,
 		private readonly string $override_base,
 		private readonly string $default_http_base,
+		private readonly bool $square = true,
 	) {
+	}
+
+	/**
+	 * Bounding box for a size bucket. Thumbnails fit inside it, keep the source aspect, and are never upscaled.
+	 *
+	 * @return array{0: int, 1: int} [max_width, max_height]
+	 */
+	public function box( int $size ): array {
+		return [ $size, $this->square ? $size : ImageLimits::MAX_EDGE ];
 	}
 
 	/**
@@ -122,6 +133,14 @@ class ThumbnailStorage {
 	 * Removes every thumbnail (all versions) for the provided owner.
 	 */
 	public function delete_owner( int $owner_id ): Status {
+		return $this->delete_versions( $owner_id, null );
+	}
+
+	public function delete_other_versions( int $owner_id, string $keep_version ): Status {
+		return $this->delete_versions( $owner_id, $keep_version );
+	}
+
+	private function delete_versions( int $owner_id, ?string $keep_version ): Status {
 		// nothing can have been stored in a container that the backend cannot resolve
 		if ( $owner_id <= 0 || !$this->is_configured() ) {
 			return Status::newGood();
@@ -136,6 +155,10 @@ class ThumbnailStorage {
 
 		$status = Status::newGood();
 		foreach ( $files as $rel ) {
+			if ( $keep_version !== null && str_starts_with( $rel, $keep_version . '/' ) ) {
+				continue;
+			}
+
 			$status->merge( Status::wrap( $backend->quickDelete( [ 'src' => $dir . '/' . $rel ] ) ) );
 		}
 

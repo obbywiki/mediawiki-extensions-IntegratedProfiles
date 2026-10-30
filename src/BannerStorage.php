@@ -198,7 +198,8 @@ class BannerStorage {
 			self::THUMB_CONTAINER,
 			ThumbnailSizes::BANNER,
 			trim( (string)$this->options->get( 'IntegratedProfilesUploadBaseUrl' ) ),
-			$this->default_http_base( self::THUMB_CONTAINER )
+			$this->default_http_base( self::THUMB_CONTAINER ),
+			false
 		);
 
 		return $this->thumbs;

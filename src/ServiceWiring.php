@@ -18,7 +18,9 @@ use MediaWiki\Extension\IntegratedProfiles\ProfileRenderer;
 use MediaWiki\Extension\IntegratedProfiles\ProfileService;
 use MediaWiki\Extension\IntegratedProfiles\ProfileSubjectIds;
 use MediaWiki\Extension\IntegratedProfiles\ProfileTabs;
+use MediaWiki\Extension\IntegratedProfiles\ThumbnailGenerator;
 use MediaWiki\Html\TemplateParser;
+use MediaWiki\Logger\LoggerFactory;
 use MediaWiki\MediaWikiServices;
 
 return [
@@ -82,6 +84,19 @@ return [
 		);
 	},
 
+	ThumbnailGenerator::SERVICE_NAME => static function ( MediaWikiServices $services ): ThumbnailGenerator {
+		$config = $services->getMainConfig();
+
+		return new ThumbnailGenerator(
+			ThumbnailGenerator::thumbnailers_from_config(
+				(array)$config->get( 'IntegratedProfilesThumbnailers' ),
+				(string)$config->get( 'IntegratedProfilesVipsCommand' )
+			),
+			$services->getTempFSFileFactory(),
+			LoggerFactory::getInstance( 'IntegratedProfiles' )
+		);
+	},
+
 	AvatarService::SERVICE_NAME => static function ( MediaWikiServices $services ): AvatarService {
 		$cache_type = $services->getMainConfig()->get( 'IntegratedProfilesCacheType' );
 		$cache_factory = $services->getObjectCacheFactory();
@@ -96,7 +111,8 @@ return [
 			$cache_type === null ? $cache_factory->getLocalClusterInstance() : $cache_factory->getInstance( $cache_type ),
 			$services->get( ProfileSubjectIds::SERVICE_NAME ),
 			new ImageUploadSanitizer( $services->getTempFSFileFactory() ),
-			new ImageUploadVerifier( $services->get( 'IntegratedProfiles.HookRunner' ) )
+			new ImageUploadVerifier( $services->get( 'IntegratedProfiles.HookRunner' ) ),
+			$services->get( ThumbnailGenerator::SERVICE_NAME )
 		);
 	},
 
@@ -123,7 +139,8 @@ return [
 			$cache_type === null ? $cache_factory->getLocalClusterInstance() : $cache_factory->getInstance( $cache_type ),
 			$services->get( ProfileSubjectIds::SERVICE_NAME ),
 			new ImageUploadSanitizer( $services->getTempFSFileFactory() ),
-			new ImageUploadVerifier( $services->get( 'IntegratedProfiles.HookRunner' ) )
+			new ImageUploadVerifier( $services->get( 'IntegratedProfiles.HookRunner' ) ),
+			$services->get( ThumbnailGenerator::SERVICE_NAME )
 		);
 	},
 

@@ -29,6 +29,7 @@ class BannerService {
 		private readonly ProfileSubjectIds $subject_ids,
 		private readonly ImageUploadSanitizer $sanitizer,
 		private readonly ImageUploadVerifier $verifier,
+		private readonly ?ThumbnailGenerator $thumbnails = null,
 	) {
 		$options->assertRequiredOptions( self::CONSTRUCTOR_OPTIONS );
 		$this->validator = new BannerValidator(
@@ -175,6 +176,7 @@ class BannerService {
 
 		$found = $this->storage->find_extension_with_mtime( $central_id );
 		$this->write_cache( $central_id, $validation['ext'], $found['mtime'] ?? '', $found['version'] ?? '' );
+		$this->thumbnails?->schedule( $this->storage, $central_id );
 
 		return Status::newGood( $this->get_banner_info( $central_id ) );
 	}

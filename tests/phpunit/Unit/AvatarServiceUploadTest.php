@@ -10,6 +10,7 @@ use MediaWiki\Extension\IntegratedProfiles\HookRunner;
 use MediaWiki\Extension\IntegratedProfiles\ImageUploadSanitizer;
 use MediaWiki\Extension\IntegratedProfiles\ImageUploadVerifier;
 use MediaWiki\Extension\IntegratedProfiles\ProfileSubjectIds;
+use MediaWiki\Extension\IntegratedProfiles\ThumbnailGenerator;
 use MediaWiki\Status\Status;
 use MediaWiki\User\UserIdentityValue;
 use MediaWikiUnitTestCase;
@@ -141,7 +142,35 @@ class AvatarServiceUploadTest extends MediaWikiUnitTestCase {
 		$this->assertStatusGood( $status );
 	}
 
-	private function make_service( AvatarStorage $storage, array $hooks = [] ): AvatarService {
+	public function test_successful_upload_schedules_thumbnails(): void {
+		$path = $this->temp_dir . '/thumbs.png';
+		file_put_contents( $path, self::PNG_1X1 );
+
+		$storage = $this->createMock( AvatarStorage::class );
+		$storage->method( 'store' )->willReturn( Status::newGood() );
+		$storage->method( 'find_extension_with_mtime' )->willReturn( [ 'ext' => 'png', 'mtime' => '1', 'version' => '0123456789' ] );
+		$storage->method( 'public_url' )->willReturn( '/images/ipavatars/avatar_1000.png?r=1' );
+
+		$thumbnails = $this->createMock( ThumbnailGenerator::class );
+		$thumbnails->expects( $this->once() )->method( 'schedule' )->with( $storage, 1000 );
+
+		$this->assertStatusGood( $this->make_service( $storage, [], $thumbnails )->upload( 1000, $path, filesize( $path ) ) );
+	}
+
+	public function test_failed_store_does_not_schedule_thumbnails(): void {
+		$path = $this->temp_dir . '/fail.png';
+		file_put_contents( $path, self::PNG_1X1 );
+
+		$storage = $this->createMock( AvatarStorage::class );
+		$storage->method( 'store' )->willReturn( Status::newFatal( 'backend-fail-internal', 'x' ) );
+
+		$thumbnails = $this->createMock( ThumbnailGenerator::class );
+		$thumbnails->expects( $this->never() )->method( 'schedule' );
+
+		$this->assertFalse( $this->make_service( $storage, [], $thumbnails )->upload( 1000, $path, filesize( $path ) )->isOK() );
+	}
+
+	private function make_service( AvatarStorage $storage, array $hooks = [], ?ThumbnailGenerator $thumbnails = null ): AvatarService {
 		$subject_ids = $this->createMock( ProfileSubjectIds::class );
 		$subject_ids->method( 'ids_for' )->willReturn( [ 'central_id' => 1000, 'local_id' => 1 ] );
 
@@ -151,7 +180,8 @@ class AvatarServiceUploadTest extends MediaWikiUnitTestCase {
 			new HashBagOStuff(),
 			$subject_ids,
 			new ImageUploadSanitizer( new TempFSFileFactory( $this->temp_dir ) ),
-			new ImageUploadVerifier( new HookRunner( $this->createHookContainer( $hooks ) ) )
+			new ImageUploadVerifier( new HookRunner( $this->createHookContainer( $hooks ) ) ),
+			$thumbnails
 		);
 	}
 

@@ -34,4 +34,19 @@ final class ThumbnailSizes {
 		return $sizes[count( $sizes ) - 1];
 	}
 
+	/**
+	 * Scales $width*$height to fit inside the box while maintaining the aspect ratio.
+	 *
+	 * @return array{0: int, 1: int}
+	 */
+	public static function fit( int $width, int $height, int $max_width, int $max_height ): array {
+		if ( $width <= 0 || $height <= 0 ) {
+			return [ 1, 1 ];
+		}
+
+		$scale = min( 1.0, $max_width / $width, $max_height / $height );
+
+		return [ max( 1, (int)round( $width * $scale ) ), max( 1, (int)round( $height * $scale ) ) ];
+	}
+
 }

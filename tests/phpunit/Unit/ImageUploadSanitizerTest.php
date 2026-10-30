@@ -175,6 +175,29 @@ class ImageUploadSanitizerTest extends MediaWikiUnitTestCase {
 		return [ 'little endian' => [ 'II' ], 'big endian' => [ 'MM' ] ];
 	}
 
+	/**
+	 * @dataProvider provide_byte_orders
+	 */
+	public function test_jpeg_orientation_reads_kept_tag( string $order ): void {
+		$app1 = $this->jpeg_segment( 0xE1, "Exif\x00\x00" . $this->tiff_ifd0( $order, [ [ 0x0112, 3, 1, 8 ] ] ) );
+
+		$this->assertSame( 8, ImageUploadSanitizer::jpeg_orientation( $this->jpeg( $app1 ) ) );
+		$this->assertSame( 8, ImageUploadSanitizer::jpeg_orientation( ImageUploadSanitizer::sanitize( $this->jpeg( $app1 ), 'jpg' ) ) );
+	}
+
+	public function test_jpeg_orientation_null_without_exif_or_for_non_jpeg(): void {
+		$this->assertNull( ImageUploadSanitizer::jpeg_orientation( $this->jpeg( '' ) ) );
+		$this->assertNull( ImageUploadSanitizer::jpeg_orientation( $this->png_1x1() ) );
+		$this->assertNull( ImageUploadSanitizer::jpeg_orientation( "\xFF\xD8\xFF\xE1\x00" ) );
+	}
+
+	public function test_jpeg_orientation_ignores_app1_after_scan(): void {
+		$app1 = $this->jpeg_segment( 0xE1, "Exif\x00\x00" . $this->tiff_ifd0( 'MM', [ [ 0x0112, 3, 1, 6 ] ] ) );
+		$jpeg = "\xFF\xD8" . self::APP0 . self::SOF0 . self::SOS . "\x00" . $app1 . "\xFF\xD9";
+
+		$this->assertNull( ImageUploadSanitizer::jpeg_orientation( $jpeg ) );
+	}
+
 	public function test_jpeg_normal_orientation_writes_no_app1(): void {
 		$app1 = $this->jpeg_segment( 0xE1, "Exif\x00\x00" . $this->tiff_ifd0( 'II', [ [ 0x0112, 3, 1, 1 ] ] ) );
 		$this->assertSame( $this->jpeg( '' ), ImageUploadSanitizer::sanitize( $this->jpeg( $app1 ), 'jpg' ) );

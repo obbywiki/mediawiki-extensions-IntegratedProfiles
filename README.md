@@ -39,6 +39,7 @@ IntegratedProfiles implements modern and extensible user profiles with the added
 ### Suggestions
 
 * [Extension:FloatingUI](https://www.mediawiki.org/wiki/Extension:FloatingUI)
+* An image library for WebP thumbnails, any of: [libvips](https://www.libvips.org) (`vipsthumbnail`, recommended), the PHP `imagick` extension, or PHP `gd` with WebP support.
 * Any Codex-compatible skin[^1], or one of the following skins for the best results:
   * [Citizen](https://www.mediawiki.org/wiki/Skin:Citizen) (built-in improvements)
   * Vector 2022
@@ -207,6 +208,8 @@ Below are open-source integrations that implement IntegratedProfiles' hooks or A
 | `$wgIntegratedProfilesEnableAnimatedAvatars` | ![boolean](https://img.shields.io/badge/-boolean-orange?style=flat-square) | `true` | When false, reject animated avatar uploads regardless of user rights. Existing animated files will still be displayed. |
 | `$wgIntegratedProfilesEnableAnimatedBanners` | ![boolean](https://img.shields.io/badge/-boolean-orange?style=flat-square) | `true` | When false, reject animated banner uploads regardless of user rights. Existing animated files will still be displayed. |
 | `$wgIntegratedProfilesBannerMaxBytes` | ![number](https://img.shields.io/badge/-number-green?style=flat-square) | `4194304` | Maximum banner upload size in bytes (default 4 MiB). |
+| `$wgIntegratedProfilesThumbnailers` | array | `["vips", "imagick", "gd"]` | Image libraries used for WebP thumbnails, tried in order. Unavailable ones are skipped. Overrides (rather than merges with) the default. `[]` disables thumbnails. See below. |
+| `$wgIntegratedProfilesVipsCommand` | ![string](https://img.shields.io/badge/-string-blue?style=flat-square) | `'/usr/bin/vipsthumbnail'` | Path to `vipsthumbnail`, used by `vips`. |
 | `$wgIntegratedProfilesBannerPresetImages` | array | `[]` | Map of preset ID => image URL (max 8). Replaces gradients on a single wiki, or creates a local extra row with GlobalPreferences per-wiki. |
 | `$wgIntegratedProfilesBannerPresetDefault` | ![string](https://img.shields.io/badge/-string-blue?style=flat-square) | `''` | Optional preset ID to use as the single-wiki default. If empty, the first item in `$wgIntegratedProfilesBannerPresetImages` will be used. |
 | `$wgIntegratedProfilesLanguageInterwikis` | array | `[]` | Language interwiki prefixes to inject on user/user talk pages (e.g. ["en","ko","ja"]). Skips the wiki content language and $wgLocalInterwikis. See below. |
@@ -222,6 +225,33 @@ $wgIntegratedProfilesCacheType = 'shared-media';
 ```
 
 Integer cache constants are also accepted. You can use `CACHE_NONE` to disable this metadata cache, or `null` to inherit it from `$wgMainCacheType`.
+
+### Thumbnails
+
+After an avatar or banner upload, IntegratedProfiles renders a fixed set of WebP thumbnails once the response has been sent (avatars: 32, 64, 128, 256 and 512px squares | banners: 640, 1280 and 1920px wide). It also keeps the original available on-disk.
+
+IntegratedProfiles works down the provided list of libraries in the order of `$wgIntegratedProfilesThumbnailers`:
+
+| Library | Requires | Animation |
+| --- | --- | --- |
+| `vips` | `vipsthumbnail` at `$wgIntegratedProfilesVipsCommand`, and shell access (`$wgShellDisabled` unset) | GIF, WebP |
+| `imagick` | PHP `imagick` extension with WebP support | GIF, WebP (up to 25 million frame pixels) |
+| `gd` | PHP `gd` extension with WebP support | None |
+
+A missing or failing library is skipped, and an upload is never interrupted because of a thumbnailing failure. If no library can handle a file (for example, an animated upload with only `gd`, or an APNG), its original keeps being served. Failures are logged to the `IntegratedProfiles` log channel.
+
+```php
+// e.g. only use GD
+$wgIntegratedProfilesThumbnailers = [ 'gd' ];
+// or disable thumbnails entirely
+$wgIntegratedProfilesThumbnailers = [];
+```
+
+By default (recommended):
+
+```php
+$wgIntegratedProfilesThumbnailers [ 'vips', 'imagick', 'gd' ];
+```
 
 ### Local settings
 

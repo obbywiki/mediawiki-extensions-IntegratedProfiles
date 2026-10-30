@@ -260,6 +260,53 @@ class ImageUploadSanitizer {
 	}
 
 	/**
+	 * Reads the EXIF orientation (1-8) of a JPEG, e.g. the one kept by strip_jpeg(), for thumbnailers that do not apply it themselves.
+	 *
+	 * @return int|null null when the file has no usable Orientation tag before the first scan
+	 */
+	public static function jpeg_orientation( string $data ): ?int {
+		// see https://exiftool.org/TagNames/EXIF.html (0x0112; Orientation)
+
+		$len = strlen( $data );
+		if ( $len < 4 || !str_starts_with( $data, "\xFF\xD8" ) ) {
+			return null;
+		}
+
+		$offset = 2;
+		while ( $offset + 4 <= $len ) {
+			if ( $data[$offset] !== "\xFF" ) {
+				return null;
+			}
+
+			$marker = ord( $data[$offset + 1] );
+			if ( $marker === 0xFF ) {
+				// fill byte
+				$offset++;
+				continue;
+			}
+			if ( $marker === 0xDA || $marker === 0xD9 ) {
+				return null;
+			}
+
+			$seg_len = unpack( 'n', substr( $data, $offset + 2, 2 ) )[1];
+			if ( $seg_len < 2 || $offset + 2 + $seg_len > $len ) {
+				return null;
+			}
+
+			if ( $marker === 0xE1 ) {
+				$orientation = self::exif_orientation( substr( $data, $offset + 4, $seg_len - 2 ) );
+				if ( $orientation !== null ) {
+					return $orientation;
+				}
+			}
+
+			$offset += 2 + $seg_len;
+		}
+
+		return null;
+	}
+
+	/**
 	 * Read the IFD0 Orientation tag from an APP1 payload.
 	 */
 	private static function exif_orientation( string $payload ): ?int {

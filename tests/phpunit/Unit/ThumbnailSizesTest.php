@@ -41,6 +41,25 @@ class ThumbnailSizesTest extends MediaWikiUnitTestCase {
 		$this->assertContains( ThumbnailSizes::BANNER_DEFAULT, ThumbnailSizes::BANNER );
 	}
 
+	public static function provide_fit(): array {
+		return [
+			'square shrink' => [ 2048, 2048, 256, 256, [ 256, 256 ] ],
+			'wide in square box' => [ 1000, 500, 128, 128, [ 128, 64 ] ],
+			'tall in square box' => [ 500, 1000, 128, 128, [ 64, 128 ] ],
+			'banner width only' => [ 3000, 500, 1280, 16384, [ 1280, 213 ] ],
+			'never upscales' => [ 40, 20, 512, 512, [ 40, 20 ] ],
+			'extreme aspect keeps 1px' => [ 10000, 2, 32, 32, [ 32, 1 ] ],
+			'invalid source' => [ 0, 10, 32, 32, [ 1, 1 ] ],
+		];
+	}
+
+	/**
+	 * @dataProvider provide_fit
+	 */
+	public function test_fit( int $width, int $height, int $max_width, int $max_height, array $expected ): void {
+		$this->assertSame( $expected, ThumbnailSizes::fit( $width, $height, $max_width, $max_height ) );
+	}
+
 	public function test_sizes_are_ascending(): void {
 		foreach ( [ ThumbnailSizes::AVATAR, ThumbnailSizes::BANNER ] as $sizes ) {
 			$sorted = $sizes;

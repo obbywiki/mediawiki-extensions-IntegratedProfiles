@@ -490,6 +490,15 @@
 			"value": 4194304,
 			"description": "Maximum banner upload size in bytes (default 4 MiB)."
 		},
+		"IntegratedProfilesThumbnailers": {
+			"value": [ "vips", "imagick", "gd" ],
+			"merge_strategy": "provide_default",
+			"description": "Image libraries used to generate avatar/banner WebP thumbnails. Set it to an empty list in order to disable thumbnailing and serve the originals directlty instead. GD may break animated avatars/thumbnails, using vips is recommended."
+		},
+		"IntegratedProfilesVipsCommand": {
+			"value": "/usr/bin/vipsthumbnail",
+			"description": "Path to the vipsthumbnail binary used by the vips thumbnailer."
+		},
 		"IntegratedProfilesBannerPresetImages": {
 			"value": [],
 			"description": "Map of banner preset id to image URL (http(s) or site-relative). At most 8 entries are used."
