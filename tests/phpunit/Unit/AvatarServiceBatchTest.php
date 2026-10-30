@@ -29,7 +29,7 @@ class AvatarServiceBatchTest extends MediaWikiUnitTestCase {
 		$cache->set( $this->cache_key( $cache, '2' ), '' );
 
 		$storage = $this->createMock( AvatarStorage::class );
-		$storage->expects( $this->never() )->method( 'find_extension_with_mtime' );
+		$storage->expects( $this->never() )->method( 'lookup_original' );
 		$storage->method( 'public_url' )->willReturnCallback(
 			static fn ( int $owner_id, string $ext, ?string $mtime ): string => "/images/ipavatars/avatar_{$owner_id}.{$ext}?r={$mtime}"
 		);
@@ -63,7 +63,7 @@ class AvatarServiceBatchTest extends MediaWikiUnitTestCase {
 
 		$storage = $this->createMock( AvatarStorage::class );
 		$storage->method( 'thumbs' )->willReturn( $thumbs );
-		$storage->method( 'find_extension_with_mtime' )->willReturn( [ 'ext' => 'webp', 'mtime' => '7', 'version' => self::VERSION ] );
+		$storage->method( 'lookup_original' )->willReturn( [ 'ext' => 'webp', 'mtime' => '7', 'version' => self::VERSION ] );
 		$storage->method( 'public_url' )->willReturn( '/images/ipavatars/avatar_8.webp?r=7' );
 
 		$info = $this->make_service( $storage, $cache )->get_avatar_info( 8 );
@@ -83,7 +83,7 @@ class AvatarServiceBatchTest extends MediaWikiUnitTestCase {
 		$thumbs->method( 'public_urls' )->willReturn( [ 128 => '/t/128.webp' ] );
 
 		$storage = $this->createMock( AvatarStorage::class );
-		$storage->expects( $this->never() )->method( 'find_extension_with_mtime' );
+		$storage->expects( $this->never() )->method( 'lookup_original' );
 		$storage->method( 'thumbs' )->willReturn( $thumbs );
 		$storage->method( 'public_url' )->willReturn( '/a.webp' );
 
@@ -106,7 +106,7 @@ class AvatarServiceBatchTest extends MediaWikiUnitTestCase {
 		$cache->set( $this->cache_key( $cache, '8' ), '8:webp:7:' . self::VERSION );
 
 		$storage = $this->createMock( AvatarStorage::class );
-		$storage->expects( $this->once() )->method( 'find_extension_with_mtime' )->willReturn( null );
+		$storage->expects( $this->once() )->method( 'lookup_original' )->willReturn( false );
 
 		$this->assertFalse( $this->make_service( $storage, $cache )->get_avatar_info( 8 )['has_custom_avatar'] );
 	}
@@ -116,7 +116,7 @@ class AvatarServiceBatchTest extends MediaWikiUnitTestCase {
 		$cache->set( $this->cache_key( $cache, '5' ), '5:webp:9::0' );
 
 		$storage = $this->createMock( AvatarStorage::class );
-		$storage->expects( $this->never() )->method( 'find_extension_with_mtime' );
+		$storage->expects( $this->never() )->method( 'lookup_original' );
 		$storage->method( 'public_url' )->willReturn( '/a.webp?r=9' );
 
 		$service = $this->make_service( $storage, $cache );
@@ -134,7 +134,7 @@ class AvatarServiceBatchTest extends MediaWikiUnitTestCase {
 	public function test_batch_storage_miss_then_cache_write(): void {
 		$cache = $this->new_cache();
 		$storage = $this->createMock( AvatarStorage::class );
-		$storage->method( 'find_extension_with_mtime' )->willReturn( [
+		$storage->method( 'lookup_original' )->willReturn( [
 			'ext' => 'jpg',
 			'mtime' => '42',
 		] );
@@ -153,7 +153,7 @@ class AvatarServiceBatchTest extends MediaWikiUnitTestCase {
 	public function test_batch_storage_miss_caches_thumbnail_version(): void {
 		$cache = $this->new_cache();
 		$storage = $this->createMock( AvatarStorage::class );
-		$storage->method( 'find_extension_with_mtime' )->willReturn( [
+		$storage->method( 'lookup_original' )->willReturn( [
 			'ext' => 'webp',
 			'mtime' => '20261029120000',
 			'version' => '0123456789',
@@ -168,12 +168,23 @@ class AvatarServiceBatchTest extends MediaWikiUnitTestCase {
 		);
 	}
 
+	public function test_failed_lookup_is_not_cached_as_no_avatar(): void {
+		$cache = $this->new_cache();
+		$storage = $this->createMock( AvatarStorage::class );
+		$storage->expects( $this->exactly( 2 ) )->method( 'lookup_original' )->willReturn( null );
+		$service = $this->make_service( $storage, $cache );
+
+		$this->assertFalse( $service->get_avatar_info( 8 )['has_custom_avatar'] );
+		$this->assertFalse( $service->get_avatar_info( 8 )['has_custom_avatar'] );
+		$this->assertFalse( $cache->get( $this->cache_key( $cache, '8' ) ) );
+	}
+
 	public function test_batch_ignores_cache_with_invalid_version(): void {
 		$cache = $this->new_cache();
 		$cache->set( $this->cache_key( $cache, '3' ), '3:png:100:../evil:1' );
 
 		$storage = $this->createMock( AvatarStorage::class );
-		$storage->expects( $this->once() )->method( 'find_extension_with_mtime' )->with( 3 )->willReturn( null );
+		$storage->expects( $this->once() )->method( 'lookup_original' )->with( 3 )->willReturn( false );
 
 		$info = $this->make_service( $storage, $cache )->get_avatar_info_for_users( [ $this->identity( 3, 'User3' ) ] );
 

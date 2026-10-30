@@ -304,8 +304,12 @@ class AvatarService {
 	 * @return array{owner_id: int, ext: string, mtime: string, version: string, thumbs: bool}|null
 	 */
 	private function resolve_file_from_storage( int $central_id ): ?array {
-		$found = $this->storage->find_extension_with_mtime( $central_id );
-		if ( $found !== null ) {
+		$found = $this->storage->lookup_original( $central_id );
+		if ( $found === null ) {
+			// the backend could not tell, so cache nothing (a cached negative would hide the file for CACHE_TTL)
+			return null;
+		}
+		if ( $found !== false ) {
 			$version = $found['version'] ?? '';
 			$thumbs = $this->storage->thumbs()->set_exists( $central_id, $version );
 			$this->write_cache( $central_id, $found['ext'], $found['mtime'], $version, $thumbs );
