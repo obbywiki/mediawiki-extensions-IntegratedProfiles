@@ -39,11 +39,7 @@
 		"vue-eslint-parser": "^10.4.1",
 		"vue-tsc": "^3.3.13"
 	},
-	"devEngines": {
-		"packageManager": {
-			"name": "pnpm",
-			"version": ">=12.0.0 <13.0.0",
-			"onFail": "download"
-		}
-  }
+	"engines": {
+		"pnpm": "^12.0.0"
+	}
 }
