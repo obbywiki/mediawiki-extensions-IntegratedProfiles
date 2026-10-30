@@ -41,7 +41,8 @@ class ImagickThumbnailer implements Thumbnailer {
 		$this->error = '';
 
 		try {
-			return $animated ? $this->render_animated( $src_path, $targets ) : $this->render_static( $src_path, $targets );
+			$source = self::source( $src_path, $ext );
+			return $animated ? $this->render_animated( $source, $targets ) : $this->render_static( $source, $targets );
 		} catch ( Throwable $e ) {
 			$this->error = get_class( $e ) . ': ' . $e->getMessage();
 			return false;
@@ -53,15 +54,27 @@ class ImagickThumbnailer implements Thumbnailer {
 	}
 
 	/**
-	 * @param string $src_path
+	 * Pins the coder to the validated extension, so ImageMagick never picks one (MVG, MSL, SVG, text, ...) from the file's contents.
+	 */
+	private static function source( string $src_path, string $ext ): string {
+		return match ( $ext ) {
+			'jpg' => 'jpeg',
+			'png' => 'png',
+			'gif' => 'gif',
+			'webp' => 'webp',
+		} . ':' . $src_path;
+	}
+
+	/**
+	 * @param string $source Path with a coder prefix, see source()
 	 * @param list<array{path: string, max_width: int, max_height: int}> $targets
 	 * @return bool
 	 */
-	private function render_static( string $src_path, array $targets ): bool {
+	private function render_static( string $source, array $targets ): bool {
 		$image = new Imagick();
 		try {
 			// first frame only (so  a single frame GIF/WebP does not decode extra frames)
-			$image->readImage( $src_path . '[0]' );
+			$image->readImage( $source . '[0]' );
 			self::orient( $image );
 			if ( $image->getImageColorspace() === Imagick::COLORSPACE_CMYK ) {
 				$image->transformImageColorspace( Imagick::COLORSPACE_SRGB );
@@ -93,14 +106,14 @@ class ImagickThumbnailer implements Thumbnailer {
 	}
 
 	/**
-	 * @param string $src_path
+	 * @param string $source Path with a coder prefix, see source()
 	 * @param list<array{path: string, max_width: int, max_height: int}> $targets
 	 * @return bool
 	 */
-	private function render_animated( string $src_path, array $targets ): bool {
+	private function render_animated( string $source, array $targets ): bool {
 		$probe = new Imagick();
 		try {
-			$probe->pingImage( $src_path );
+			$probe->pingImage( $source );
 			$area = $probe->getNumberImages() * $probe->getImageWidth() * $probe->getImageHeight();
 		} finally {
 			$probe->clear();
@@ -111,9 +124,9 @@ class ImagickThumbnailer implements Thumbnailer {
 			return false;
 		}
 
-		$source = new Imagick( $src_path );
-		$frames = $source->coalesceImages();
-		$source->clear();
+		$image = new Imagick( $source );
+		$frames = $image->coalesceImages();
+		$image->clear();
 
 		try {
 			$canvas_width = $frames->getImageWidth();

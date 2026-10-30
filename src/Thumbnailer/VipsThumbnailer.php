@@ -95,6 +95,8 @@ class VipsThumbnailer implements Thumbnailer {
 		}
 
 		$result = Shell::command( $cmd )
+			// only libvips' fuzzed loaders (vips >= 8.13, ignored by older versions)
+			->environment( [ 'VIPS_BLOCK_UNTRUSTED' => '1' ] )
 			->limits( [ 'filesize' => self::MAX_OUTPUT_KB ] )
 			->includeStderr()
 			->execute();
