@@ -7,6 +7,7 @@ use MediaWiki\Extension\IntegratedProfiles\NewAuthBridge;
 use MediaWiki\User\UserIdentity;
 use MediaWikiUnitTestCase;
 use RuntimeException;
+use Wikimedia\Services\ServiceContainer;
 
 /**
  * @group IntegratedProfiles
@@ -74,8 +75,6 @@ class NewAuthBridgeTest extends MediaWikiUnitTestCase {
 	public function test_flag_off_returns_empty(): void {
 		$bridge = new NewAuthBridge(
 			false,
-			null,
-			null,
 			static fn (): bool => true,
 			static fn (): array => [
 				[
@@ -93,8 +92,6 @@ class NewAuthBridgeTest extends MediaWikiUnitTestCase {
 	public function test_newauth_unloaded_returns_empty(): void {
 		$bridge = new NewAuthBridge(
 			true,
-			null,
-			null,
 			static fn (): bool => false,
 			static fn (): array => [
 				[
@@ -112,8 +109,6 @@ class NewAuthBridgeTest extends MediaWikiUnitTestCase {
 	public function test_fetch_success_filters_google(): void {
 		$bridge = new NewAuthBridge(
 			true,
-			null,
-			null,
 			static fn (): bool => true,
 			static fn (): array => [
 				[
@@ -136,11 +131,47 @@ class NewAuthBridgeTest extends MediaWikiUnitTestCase {
 		$this->assertSame( 'discord', $links[0]['provider'] );
 	}
 
+	public function test_fetch_uses_newauth_supplied_store(): void {
+		$user = $this->identity();
+		$rows = [
+			[ 'provider' => 'discord', 'remote_user' => '123', 'remote_username' => 'current', 'metadata' => [] ],
+		];
+		$store = $this->getMockBuilder( \stdClass::class )
+			->addMethods( [ 'get_links_for_user' ] )
+			->getMock();
+		$store->expects( $this->once() )->method( 'get_links_for_user' )
+			->with( $this->identicalTo( $user ) )->willReturn( $rows );
+		$services = new ServiceContainer();
+		$services->defineService( 'NewAuth.LinkedAccountStore', static fn () => $store );
+		$bridge = new NewAuthBridge(
+			true,
+			static fn (): bool => true,
+			services: $services
+		);
+
+		$this->assertSame( $rows, $bridge->get_links_for_user( $user ) );
+	}
+
+	public function test_missing_store_returns_empty_without_legacy_fallback(): void {
+		$services = new ServiceContainer();
+		$obsolete_service_requested = false;
+		$services->defineService( 'NewAuth.NewAuthService', static function () use ( &$obsolete_service_requested ) {
+			$obsolete_service_requested = true;
+			throw new RuntimeException( 'The obsolete service must not be used.' );
+		} );
+		$bridge = new NewAuthBridge(
+			true,
+			static fn (): bool => true,
+			services: $services
+		);
+
+		$this->assertSame( [], $bridge->get_links_for_user( $this->identity() ) );
+		$this->assertFalse( $obsolete_service_requested );
+	}
+
 	public function test_fetch_exception_returns_empty(): void {
 		$bridge = new NewAuthBridge(
 			true,
-			null,
-			null,
 			static fn (): bool => true,
 			static function (): array {
 				throw new RuntimeException( 'newauth boom' );
@@ -154,8 +185,6 @@ class NewAuthBridgeTest extends MediaWikiUnitTestCase {
 		$calls = 0;
 		$bridge = new NewAuthBridge(
 			true,
-			null,
-			null,
 			static fn (): bool => true,
 			static function () use ( &$calls ): array {
 				$calls++;

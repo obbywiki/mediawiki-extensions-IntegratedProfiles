@@ -6,6 +6,7 @@ use ExtensionRegistry;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\User\UserIdentity;
 use Throwable;
+use Wikimedia\Services\ServiceContainer;
 
 /**
  * Soft adapter for NewAuth verified OAuth links.
@@ -20,10 +21,9 @@ class NewAuthBridge {
 
 	public function __construct(
 		private readonly bool $enabled,
-		private readonly mixed $connection_provider = null,
-		private readonly mixed $user_factory = null,
 		private readonly mixed $is_newauth_loaded = null,
 		private readonly mixed $fetch_raw_links = null,
+		private readonly ?ServiceContainer $services = null,
 	) {
 	}
 
@@ -90,26 +90,13 @@ class NewAuthBridge {
 	}
 
 	private function fetch_from_newauth( UserIdentity $user ): array {
-		$services = MediaWikiServices::getInstance();
+		$services = $this->services ?? MediaWikiServices::getInstance();
 
-		if ( $services->hasService( 'NewAuth.NewAuthService' ) ) {
-			$service = $services->get( 'NewAuth.NewAuthService' );
-			if ( is_object( $service ) && method_exists( $service, 'get_links_for_user' ) ) {
-				$links = $service->get_links_for_user( $user );
-
-				return is_array( $links ) ? $links : [];
-			}
-		}
-
-		if ( $this->connection_provider === null || $this->user_factory === null || !class_exists( \MediaWiki\Extension\NewAuth\LinkedAccountStore::class ) ) {
+		if ( !$services->hasService( 'NewAuth.LinkedAccountStore' ) ) {
 			return [];
 		}
 
-		$store = new \MediaWiki\Extension\NewAuth\LinkedAccountStore(
-			$this->connection_provider,
-			$this->user_factory
-		);
-
+		$store = $services->get( 'NewAuth.LinkedAccountStore' );
 		$links = $store->get_links_for_user( $user );
 		return is_array( $links ) ? $links : [];
 	}

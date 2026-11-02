@@ -176,8 +176,7 @@ return [
 	NewAuthBridge::SERVICE_NAME => static function ( MediaWikiServices $services ): NewAuthBridge {
 		return new NewAuthBridge(
 			(bool)$services->getMainConfig()->get( 'IntegratedProfilesEnableNewAuthPanel' ),
-			$services->getConnectionProvider(),
-			$services->getUserFactory()
+			services: $services
 		);
 	},
 
