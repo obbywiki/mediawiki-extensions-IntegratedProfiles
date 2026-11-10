@@ -70,7 +70,7 @@ jobs:
       run:
         working-directory: mediawiki
     steps:
-      - uses: shivammathur/setup-php@0b3aa3e956e05acdd8d6d246bce4a2010b36df7a
+      - uses: shivammathur/setup-php@9a96576163ad88ed6f6f2cbf381c5229baf95677
         with:
           php-version: ${{ matrix.php }}
           extensions: mbstring, intl, pdo_sqlite
