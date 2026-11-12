@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.9.0](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/compare/v0.8.0...v0.9.0) (2026-11-12)
+
+
+### Features
+
+* support newauth database migration/changes ([a95098f](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/a95098f4d4863953b0fba93efefd8289bf131dc9))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the minor-updates group with 2 updates ([#41](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/issues/41)) ([3005a4c](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/3005a4c10a871d8c29b9de661ef55af26f5ca57e))
+* **deps-dev:** bump the patch-updates group with 4 updates ([#50](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/issues/50)) ([d3a5404](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/d3a5404019a45dfa644c484bb4565e11ee5de9ba))
+* **deps-dev:** bump vite ([#46](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/issues/46)) ([d84ca08](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/d84ca08452a851b53568a8ede8e49700a55aa1e9))
+* **deps-dev:** bump vite ([#51](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/issues/51)) ([71dd7dc](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/71dd7dc6c869f43f708732181f0ac01c29697e13))
+* **deps-dev:** bump vue-eslint-parser ([#47](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/issues/47)) ([19a1652](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/19a1652d3acedf9f75a7737c19540d13d400ce6d))
+* **deps-dev:** bump vue-tsc ([#42](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/issues/42)) ([f9f57b8](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/f9f57b87224d69fb6714f02c456b9c19ae46f90f))
+* **deps:** bump shivammathur/setup-php from 0b3aa3e956e05acdd8d6d246bce4a2010b36df7a to 9a96576163ad88ed6f6f2cbf381c5229baf95677 ([#49](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/issues/49)) ([0e7fe3e](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/0e7fe3ef3dd07f659bb7ce5575974cbe3858b101))
+* **deps:** bump shivammathur/setup-php from 3bdfe21000ea9539e3a94c4f692f984b24fa97e0 to 0b3aa3e956e05acdd8d6d246bce4a2010b36df7a ([#44](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/issues/44)) ([d6728e4](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/d6728e4c5eef15ecd58d9adcbf1215d00e23d7b1))
+
 ## [0.8.0](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/compare/v0.7.0...v0.8.0) (2026-10-30)
 
 
