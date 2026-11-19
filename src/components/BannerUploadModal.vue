@@ -151,9 +151,8 @@ import ImageCropper from './ImageCropper.vue';
 import { apply_payload_to_dom, delete_banner, msg, upload_banner } from '../utils/api';
 import { BANNER_GUIDE_ASPECT, BANNER_MAX_WIDTH, banner_output_max_height, read_banner_frame_aspect, type CropRect } from '../utils/crop';
 import { prepare_upload_file } from '../utils/crop_export';
-import { inspect_image_file } from '../utils/image_meta';
-import { ImageDimensionsError } from '../utils/image_dimensions';
 import { contain_modal_focus } from '../utils/modal_focus';
+import { use_upload_preview } from './use_upload_preview';
 
 type CropperExpose = {
 	get_crop_rect: () => CropRect | null;
@@ -192,35 +191,37 @@ function custom_file_url( source: { custom_banner_url?: string; banner_url?: str
 
 const title_id = 'ip-banner-modal-title';
 const dialog_el = ref<HTMLElement | null>( null );
-const file_input = ref<HTMLInputElement | null>( null );
 const cropper_el = ref<CropperExpose | null>( null );
 
 const busy = ref( false );
-const inspecting_file = ref( false );
-const error_message = ref( '' );
 const has_custom_banner = ref( !!props.config.has_custom_banner );
 const current_banner_url = ref( custom_file_url( props.config ) );
-const pending_file = ref<File | null>( null );
-const preview_url = ref( '' );
-const skip_crop = ref( false );
-const cropper_ready = ref( false );
-const can_reset_crop = ref( false );
 const banner_aspect = ref( read_banner_frame_aspect() );
-let pick_generation = 0;
 let release_focus_guard: ( () => void ) | null = null;
 
 const banner_max_bytes = computed( () => ( props.config.limits && props.config.limits.banner_max_bytes ) || 4194304 );
-const banner_max_mb = computed( () => {
-	const megabytes = banner_max_bytes.value / ( 1024 * 1024 );
+const can_upload = computed( () => props.config.can_edit && props.config.can_upload_banner );
+const can_upload_animated_banner = computed( () => !!props.config.can_upload_animated_banner );
 
-	return Number.isInteger( megabytes ) ? String( megabytes ) : megabytes.toFixed( 1 );
+const {
+	file_input,
+	error_message,
+	pending_file,
+	preview_url,
+	skip_crop,
+	cropper_ready,
+	can_reset_crop,
+	can_confirm,
+	file_accept,
+	max_mb,
+	revoke_preview,
+	clear_pending,
+	on_file_selected
+} = use_upload_preview( can_upload, can_upload_animated_banner, banner_max_bytes, {
+	size: 'integratedprofiles-error-banner-size',
+	animated: 'integratedprofiles-error-banner-animated',
+	invalid: 'integratedprofiles-banner-error'
 } );
-
-const can_upload_animated_banner = computed(
-	() => !!props.config.can_upload_animated_banner
-);
-
-const file_accept = computed( () => can_upload_animated_banner.value ? 'image/jpeg,image/png,image/gif,image/webp' : 'image/jpeg,image/png,image/webp' );
 
 const help_text = computed( () => {
 	if ( pending_file.value ) {
@@ -229,7 +230,7 @@ const help_text = computed( () => {
 
 	const key = can_upload_animated_banner.value ? 'integratedprofiles-banner-help-size' : 'integratedprofiles-banner-help-size-static';
 
-	return msg( key, banner_max_mb.value );
+	return msg( key, max_mb.value );
 } );
 
 const display_url = computed( () => preview_url.value || current_banner_url.value );
@@ -255,39 +256,6 @@ const choose_label = computed( () => {
 		has_custom_banner.value ? 'integratedprofiles-banner-replace' : 'integratedprofiles-banner-choose'
 	);
 } );
-
-const can_upload = computed( () => props.config.can_edit && props.config.can_upload_banner );
-
-const can_confirm = computed( () => {
-	if ( !can_upload.value ) { return false; }
-	if ( !pending_file.value || inspecting_file.value ) {
-		return false;
-	}
-	return skip_crop.value || cropper_ready.value;
-} );
-
-function revoke_preview(): void {
-	pick_generation++;
-	inspecting_file.value = false;
-	if ( preview_url.value ) {
-		URL.revokeObjectURL( preview_url.value );
-		preview_url.value = '';
-	}
-
-	pending_file.value = null;
-	skip_crop.value = false;
-	cropper_ready.value = false;
-	can_reset_crop.value = false;
-
-	if ( file_input.value ) {
-		file_input.value.value = '';
-	}
-}
-
-function clear_pending(): void {
-	revoke_preview();
-	error_message.value = '';
-}
 
 function on_reset_crop(): void {
 	if ( cropper_el.value ) {
@@ -325,62 +293,6 @@ function on_dialog_keydown( event: KeyboardEvent ): void {
 		event.stopPropagation();
 		on_confirm();
 	}
-}
-
-async function on_file_selected( event: Event ): Promise<void> {
-	if ( !can_upload.value ) { return; }
-	const input = event.target as HTMLInputElement;
-	const file = input.files && input.files[ 0 ];
-	if ( !file ) { return; }
-
-	const generation = ++pick_generation;
-	inspecting_file.value = false;
-
-	if ( file.size > banner_max_bytes.value ) {
-		error_message.value = msg( 'integratedprofiles-error-banner-size' );
-		input.value = '';
-
-		return;
-	}
-
-	if ( !can_upload_animated_banner.value && file.type === 'image/gif' ) {
-		error_message.value = msg( 'integratedprofiles-error-banner-animated' );
-		input.value = '';
-
-		return;
-	}
-
-	let animated;
-	inspecting_file.value = true;
-	try {
-		animated = ( await inspect_image_file( file ) ).animated;
-	} catch ( err ) {
-		if ( generation !== pick_generation ) { return; }
-		error_message.value = msg( err instanceof ImageDimensionsError ? 'integratedprofiles-error-image-dimensions' : 'integratedprofiles-banner-error' );
-		input.value = '';
-
-		return;
-	} finally {
-		if ( generation === pick_generation ) { inspecting_file.value = false; }
-	}
-
-	if ( generation !== pick_generation ) {
-		return;
-	}
-
-	if ( animated && !can_upload_animated_banner.value ) {
-		error_message.value = msg( 'integratedprofiles-error-banner-animated' );
-		input.value = '';
-
-		return;
-	}
-
-	revoke_preview();
-	error_message.value = '';
-	skip_crop.value = animated;
-	cropper_ready.value = animated;
-	pending_file.value = file;
-	preview_url.value = URL.createObjectURL( file );
 }
 
 function sync_config_banner( file_url: string, custom: boolean ): void {
@@ -485,7 +397,6 @@ onMounted( () => {
 
 onUnmounted( () => {
 	window.removeEventListener( 'resize', sync_banner_aspect );
-	revoke_preview();
 	document.body.classList.remove( 'ip-banner-modal-open' );
 
 	release_focus_guard?.();
