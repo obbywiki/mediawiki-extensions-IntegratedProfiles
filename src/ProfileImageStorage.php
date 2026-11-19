@@ -197,6 +197,11 @@ abstract class ProfileImageStorage {
 
 			$path = $this->storage_path( $owner_id, $ext );
 			$stat = $backend->getFileStat( [ 'src' => $path ] );
+			// null means the backend could not tell whether the file exists or not, so it could still be there
+			if ( $stat === null ) {
+				$status->fatal( 'backend-fail-stat', $path );
+				continue;
+			}
 			if ( !is_array( $stat ) ) {
 				continue;
 			}

@@ -99,6 +99,37 @@ class ProfileImageStorageTest extends MediaWikiIntegrationTestCase {
 	}
 
 	/** @dataProvider provide_storage_classes */
+	public function test_failed_stat_fails_deletion( string $class ): void {
+		$backend = $this->getMockBuilder( FileBackend::class )
+			->setConstructorArgs( [ [
+				'name' => 'test-backend',
+				'domainId' => 'test',
+				'lockManager' => new NullLockManager( [] ),
+				'statusWrapper' => [ Status::class, 'wrap' ],
+			] ] )
+			->onlyMethods( [ 'getFileStat', 'doQuickOperationsInternal' ] )
+			->getMockForAbstractClass();
+		// the png stat fails (null), every other format is missing (false)
+		$backend->method( 'getFileStat' )->willReturnCallback(
+			static fn ( array $params ): ?bool => str_ends_with( $params['src'], '.png' ) ? null : false
+		);
+		$backend->expects( $this->never() )->method( 'doQuickOperationsInternal' );
+		$storage = $this->getMockBuilder( $class )
+			->disableOriginalConstructor()
+			->onlyMethods( [ 'get_backend', 'storage_path' ] )
+			->getMock();
+		$storage->method( 'get_backend' )->willReturn( $backend );
+		$storage->method( 'storage_path' )->willReturnCallback(
+			static fn ( int $owner_id, string $ext ): string => "mwstore://test-backend/c/{$owner_id}.{$ext}"
+		);
+
+		$status = $storage->delete_other_extensions( 7, null );
+		$this->assertStatusError( 'backend-fail-stat', $status );
+		// the format being kept is never checked, so its stat failing does not matter
+		$this->assertStatusGood( $storage->delete_other_extensions( 7, 'png' ) );
+	}
+
+	/** @dataProvider provide_storage_classes */
 	public function test_public_url_override_and_cache_busting( string $class, string $container, string $prefix ): void {
 		$storage = $this->new_storage( $class, [
 			'IntegratedProfilesUploadBaseUrl' => ' https://cdn.example.test/profiles/ ',
