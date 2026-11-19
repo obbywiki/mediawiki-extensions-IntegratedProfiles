@@ -3,14 +3,13 @@
 namespace MediaWiki\Extension\IntegratedProfiles;
 
 use MediaWiki\Config\ServiceOptions;
-use MediaWiki\Status\Status;
 use MediaWiki\User\UserIdentity;
 use Wikimedia\ObjectCache\BagOStuff;
 
 /**
  * THE AvatarService. There are many like it, but this one is mine. Handles validation, caching, and URL resolution for user avatars.
  */
-class AvatarService {
+class AvatarService extends ProfileImageService {
 
 	public const SERVICE_NAME = 'IntegratedProfiles.AvatarService';
 	public const CACHE_TTL = ProfileImageResolver::CACHE_TTL;
@@ -21,22 +20,30 @@ class AvatarService {
 		'ExtensionAssetsPath'
 	];
 
-	private readonly AvatarValidator $validator;
-	private readonly ProfileImageResolver $resolver;
-
 	public function __construct(
-		private readonly ServiceOptions $options,
-		private readonly AvatarStorage $storage,
+		ServiceOptions $options,
+		AvatarStorage $storage,
 		BagOStuff $cache,
-		private readonly ProfileSubjectIds $subject_ids,
-		private readonly ImageUploadSanitizer $sanitizer,
-		private readonly ImageUploadVerifier $verifier,
-		private readonly ?ThumbnailGenerator $thumbnails = null,
-		private readonly ?ProfilePagePurger $purger = null,
+		ProfileSubjectIds $subject_ids,
+		ImageUploadSanitizer $sanitizer,
+		ImageUploadVerifier $verifier,
+		?ThumbnailGenerator $thumbnails = null,
+		?ProfilePagePurger $purger = null,
 	) {
 		$options->assertRequiredOptions( self::CONSTRUCTOR_OPTIONS );
-		$this->resolver = new ProfileImageResolver( $storage, $cache, $subject_ids, 'avatar', self::CACHE_TTL, self::CACHE_KEY_VERSION );
-		$this->validator = new AvatarValidator( (int)$options->get( 'IntegratedProfilesAvatarMaxBytes' ) );
+		parent::__construct(
+			$options,
+			$storage,
+			$cache,
+			$subject_ids,
+			$sanitizer,
+			$verifier,
+			$thumbnails,
+			$purger,
+			'avatar',
+			new AvatarValidator( (int)$options->get( 'IntegratedProfilesAvatarMaxBytes' ) ),
+			'IntegratedProfilesEnableAnimatedAvatars',
+		);
 	}
 
 	/**
@@ -99,126 +106,16 @@ class AvatarService {
 		return $assets . '/IntegratedProfiles/resources/avatars/default.svg';
 	}
 
-	/**
-	 * Validates and stores an uploaded avatar temp file under the central id.
-	 *
-	 * @param UserIdentity $user Subject user
-	 * @param string $tmp_path Local filesystem path to the upload
-	 * @param int $size Byte length reported by the upload
-	 * @param bool $allow_animated Whether animated GIF / WebP / APNG is allowed
-	 */
-	public function upload_for_user( UserIdentity $user, string $tmp_path, int $size, bool $allow_animated = false ): Status {
-		$ids = $this->subject_ids->ids_for( $user );
-		return $this->upload(
-			$ids['central_id'],
-			$tmp_path,
-			$size,
-			$allow_animated,
-			$user
-		);
-	}
-
-	/**
-	 * @param int $central_id Storage owner ID
-	 * @param string $tmp_path Local filesystem path to the upload
-	 * @param int $size Byte length reported by the upload
-	 * @param bool $allow_animated Whether animated GIF / WebP / APNG is allowed
-	 * @param UserIdentity|null $user Profile owner, passed to IntegratedProfilesVerifyImageUpload
-	 */
-	public function upload( int $central_id, string $tmp_path, int $size, bool $allow_animated = false, ?UserIdentity $user = null ): Status {
-		if ( $central_id <= 0 ) {
-			return Status::newFatal( 'integratedprofiles-error-avatar-upload' );
-		}
-
-		$allow_animated = $allow_animated && (bool)$this->options->get( 'IntegratedProfilesEnableAnimatedAvatars' );
-		$validation = $this->validator->validate_upload( $tmp_path, $size, $allow_animated );
-		if ( !$validation['ok'] ) {
-			return Status::newFatal( $validation['error'] );
-		}
-
-		$status = $this->sanitizer->with_sanitized_file(
-			$tmp_path,
-			$validation['ext'],
-
-			function ( string $path ) use ( $central_id, $validation, $user ): Status {
-				$verified = $this->verifier->verify( 'avatar', $path, $validation['ext'], $central_id, $user );
-				if ( !$verified->isOK() ) {
-					return $verified;
-				}
-
-				$stored = $this->storage->store( $central_id, $validation['ext'], $path );
-				if ( !$stored->isOK() ) {
-					// the backend's own errors take priority
-					$stored->fatal( 'integratedprofiles-error-avatar-upload' );
-				}
-
-				return $stored;
-			}
-		);
-
-		if ( !$status->isOK() ) {
-			return $status;
-		}
-
-		$found = $this->storage->find_extension_with_mtime( $central_id );
-		$this->resolver->remember( $central_id, $validation['ext'], $found['mtime'] ?? '', $found['version'] ?? '', false );
-		// cached pages would keep showing the replaced original
-		$this->purge_pages( $user );
-		$this->thumbnails?->schedule( $this->storage, $central_id, function () use ( $central_id, $user ): void {
-			// next read re-resolves and sees the new thumbnails, and so do pages cached since the upload
-			$this->forget_cached( $central_id );
-			$this->purge_pages( $user );
-		} );
-
-		return Status::newGood( $this->get_avatar_info( $central_id ) );
-	}
-
-	/**
-	 * Deletes custom avatar files and restores the default URL.
-	 */
-	public function delete_for_user( UserIdentity $user ): Status {
-		$ids = $this->subject_ids->ids_for( $user );
-		$status = $this->delete( $ids['central_id'] );
-		if ( $status->isOK() ) {
-			$this->purge_pages( $user );
-		}
-
-		return $status;
-	}
-
-	public function forget_cached( int $central_id ): void {
-		$this->resolver->forget( $central_id );
-	}
-
-	private function purge_pages( ?UserIdentity $user ): void {
-		if ( $user !== null ) {
-			$this->purger?->purge_subject_pages( $user );
-		}
-	}
-
-	public function delete( int $central_id ): Status {
-		$status = Status::newGood();
-		if ( $central_id > 0 ) {
-			$status->merge( $this->storage->delete_all( $central_id ) );
-		}
-
-		if ( !$status->isOK() ) {
-			$status->fatal( 'integratedprofiles-error-avatar-delete' );
-			return $status;
-		}
-
-		if ( $central_id > 0 ) {
-			$this->resolver->remember_missing( $central_id );
-		}
-
-		return Status::newGood( $this->info_from_resolved( null ) );
+	/** @inheritDoc */
+	protected function get_uploaded_image_info( int $central_id ): array {
+		return $this->get_avatar_info( $central_id );
 	}
 
 	/**
 	 * @param array{owner_id: int, ext: string, mtime: string, version: string, thumbs: bool}|null $resolved
 	 * @return array{avatar_url: string, has_custom_avatar: bool, avatar_thumbs: array<int, string>}
 	 */
-	private function info_from_resolved( ?array $resolved ): array {
+	protected function info_from_resolved( ?array $resolved ): array {
 		if ( $resolved === null ) {
 			return [ 'avatar_url' => $this->default_avatar_url(), 'has_custom_avatar' => false, 'avatar_thumbs' => [] ];
 		}

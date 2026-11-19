@@ -3,14 +3,13 @@
 namespace MediaWiki\Extension\IntegratedProfiles;
 
 use MediaWiki\Config\ServiceOptions;
-use MediaWiki\Status\Status;
 use MediaWiki\User\UserIdentity;
 use Wikimedia\ObjectCache\BagOStuff;
 
 /**
- * Similar to AvatarService, but for banners.
+ * Resolves profile banner URLs and thumbnails.
  */
-class BannerService {
+class BannerService extends ProfileImageService {
 
 	public const SERVICE_NAME = 'IntegratedProfiles.BannerService';
 	public const CACHE_TTL = ProfileImageResolver::CACHE_TTL;
@@ -20,23 +19,29 @@ class BannerService {
 		'IntegratedProfilesEnableAnimatedBanners',
 	];
 
-	private readonly BannerValidator $validator;
-	private readonly ProfileImageResolver $resolver;
-
 	public function __construct(
-		private readonly ServiceOptions $options,
-		private readonly BannerStorage $storage,
+		ServiceOptions $options,
+		BannerStorage $storage,
 		BagOStuff $cache,
-		private readonly ProfileSubjectIds $subject_ids,
-		private readonly ImageUploadSanitizer $sanitizer,
-		private readonly ImageUploadVerifier $verifier,
-		private readonly ?ThumbnailGenerator $thumbnails = null,
-		private readonly ?ProfilePagePurger $purger = null,
+		ProfileSubjectIds $subject_ids,
+		ImageUploadSanitizer $sanitizer,
+		ImageUploadVerifier $verifier,
+		?ThumbnailGenerator $thumbnails = null,
+		?ProfilePagePurger $purger = null,
 	) {
 		$options->assertRequiredOptions( self::CONSTRUCTOR_OPTIONS );
-		$this->resolver = new ProfileImageResolver( $storage, $cache, $subject_ids, 'banner', self::CACHE_TTL, self::CACHE_KEY_VERSION );
-		$this->validator = new BannerValidator(
-			(int)$options->get( 'IntegratedProfilesBannerMaxBytes' )
+		parent::__construct(
+			$options,
+			$storage,
+			$cache,
+			$subject_ids,
+			$sanitizer,
+			$verifier,
+			$thumbnails,
+			$purger,
+			'banner',
+			new BannerValidator( (int)$options->get( 'IntegratedProfilesBannerMaxBytes' ) ),
+			'IntegratedProfilesEnableAnimatedBanners',
 		);
 	}
 
@@ -74,114 +79,16 @@ class BannerService {
 		return $result;
 	}
 
-	/**
-	 * Validates and stores an uploaded banner temp file under the central ID.
-	 */
-	public function upload_for_user( UserIdentity $user, string $tmp_path, int $size, bool $allow_animated = false ): Status {
-		$ids = $this->subject_ids->ids_for( $user );
-		return $this->upload( $ids['central_id'], $tmp_path, $size, $allow_animated, $user );
-	}
-
-	/**
-	 * @param int $central_id Storage owner ID
-	 * @param string $tmp_path Local filesystem path to the upload
-	 * @param int $size Byte length reported by the upload
-	 * @param bool $allow_animated Whether animated GIF / WebP / APNG is allowed
-	 * @param UserIdentity|null $user Profile owner, passed to IntegratedProfilesVerifyImageUpload
-	 */
-	public function upload( int $central_id, string $tmp_path, int $size, bool $allow_animated = false, ?UserIdentity $user = null ): Status {
-		if ( $central_id <= 0 ) {
-			return Status::newFatal( 'integratedprofiles-error-banner-upload' );
-		}
-
-		$allow_animated = $allow_animated && (bool)$this->options->get( 'IntegratedProfilesEnableAnimatedBanners' );
-		$validation = $this->validator->validate_upload( $tmp_path, $size, $allow_animated );
-		if ( !$validation['ok'] ) {
-			return Status::newFatal( $validation['error'] );
-		}
-
-		$status = $this->sanitizer->with_sanitized_file(
-			$tmp_path,
-			$validation['ext'],
-
-			function ( string $path ) use ( $central_id, $validation, $user ): Status {
-				$verified = $this->verifier->verify( 'banner', $path, $validation['ext'], $central_id, $user );
-				if ( !$verified->isOK() ) {
-					return $verified;
-				}
-
-				$stored = $this->storage->store( $central_id, $validation['ext'], $path );
-				if ( !$stored->isOK() ) {
-					$stored->fatal( 'integratedprofiles-error-banner-upload' );
-				}
-
-				return $stored;
-			}
-		);
-
-		if ( !$status->isOK() ) {
-			return $status;
-		}
-
-		$found = $this->storage->find_extension_with_mtime( $central_id );
-		$this->resolver->remember( $central_id, $validation['ext'], $found['mtime'] ?? '', $found['version'] ?? '', false );
-		// cached pages would keep showing the replaced original
-		$this->purge_pages( $user );
-		$this->thumbnails?->schedule( $this->storage, $central_id, function () use ( $central_id, $user ): void {
-			// next read re-resolves and sees the new thumbnails, and so do pages cached since the upload
-			$this->forget_cached( $central_id );
-			$this->purge_pages( $user );
-		} );
-
-		return Status::newGood( $this->get_banner_info( $central_id ) );
-	}
-
-	/**
-	 * Deletes custom banner files.
-	 */
-	public function delete_for_user( UserIdentity $user ): Status {
-		$ids = $this->subject_ids->ids_for( $user );
-		$status = $this->delete( $ids['central_id'] );
-		if ( $status->isOK() ) {
-			$this->purge_pages( $user );
-		}
-
-		return $status;
-	}
-
-	public function forget_cached( int $central_id ): void {
-		$this->resolver->forget( $central_id );
-	}
-
-	private function purge_pages( ?UserIdentity $user ): void {
-		if ( $user !== null ) {
-			$this->purger?->purge_subject_pages( $user );
-		}
-	}
-
-	public function delete( int $central_id ): Status {
-		$status = Status::newGood();
-		if ( $central_id > 0 ) {
-			$status->merge( $this->storage->delete_all( $central_id ) );
-		}
-
-		if ( !$status->isOK() ) {
-			$status->fatal( 'integratedprofiles-error-banner-delete' );
-			return $status;
-		}
-
-		if ( $central_id > 0 ) {
-			$this->resolver->remember_missing( $central_id );
-		}
-
-		return Status::newGood( $this->info_from_resolved( null ) );
+	/** @inheritDoc */
+	protected function get_uploaded_image_info( int $central_id ): array {
+		return $this->get_banner_info( $central_id );
 	}
 
 	/**
 	 * @param array{owner_id: int, ext: string, mtime: string, version: string, thumbs: bool}|null $resolved
 	 * @return array{banner_url: string, has_custom_banner: bool, banner_thumbs: array<int, string>}
 	 */
-	private function info_from_resolved( ?array $resolved ): array {
+	protected function info_from_resolved( ?array $resolved ): array {
 		if ( $resolved === null ) {
 			return [ 'banner_url' => '', 'has_custom_banner' => false, 'banner_thumbs' => [] ];
 		}
