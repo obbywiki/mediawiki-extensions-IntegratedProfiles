@@ -462,56 +462,6 @@
 						</p>
 					</div>
 
-					<div
-						v-if="website_enabled"
-						class="ip-editor__field"
-					>
-						<label for="ip-field-website">
-							{{ msg( 'integratedprofiles-field-website' ) }}
-						</label>
-						<div
-							class="ip-editor__removal-target"
-							:class="{ 'ip-editor__removal-target--active': removal_only && can_clear_field( 'ip-website' ) && !!draft[ 'ip-website' ] }"
-						>
-							<input
-								id="ip-field-website"
-								v-model="draft['ip-website']"
-								class="cdx-text-input__input"
-								type="url"
-								:maxlength="link_max"
-								:disabled="busy"
-								:readonly="removal_only"
-								:placeholder="msg( 'integratedprofiles-field-website-placeholder' )"
-							>
-							<button
-								v-if="removal_only && can_clear_field( 'ip-website' )"
-								type="button"
-								class="cdx-button cdx-button--icon-only cdx-button--action-destructive
-									cdx-button--weight-primary ip-editor__delete"
-								:disabled="busy || !draft[ 'ip-website' ]"
-								:aria-label="msg( 'integratedprofiles-remove-field', msg( 'integratedprofiles-field-website' ) )"
-								:title="msg( 'integratedprofiles-remove-field', msg( 'integratedprofiles-field-website' ) )"
-								@click="on_clear_field( 'ip-website' )"
-							>
-								<svg
-									class="ip-editor__delete-icon"
-									viewBox="0 0 20 20"
-									aria-hidden="true"
-									focusable="false"
-								>
-									<path
-										fill="currentColor"
-										fill-rule="evenodd"
-										d="M7 2h6v2h4v2H3V4h4V2ZM5 7h10l-1 11H6L5 7Zm3 2v7h1V9H8Zm3 0v7h1V9h-1Z"
-									/>
-								</svg>
-							</button>
-						</div>
-						<p class="ip-editor__help">
-							{{ msg( 'integratedprofiles-field-website-help' ) }}
-						</p>
-					</div>
-
 					<div v-if="!removal_only" class="ip-editor__field">
 						<span
 							id="ip-field-visibility-label"
@@ -589,7 +539,7 @@
 			</fieldset>
 
 			<fieldset
-				v-if="bundle_social_links.length || show_wiki_profiles"
+				v-if="website_enabled || bundle_social_links.length || show_wiki_profiles"
 				class="ip-editor__section"
 				aria-labelledby="ip-section-links"
 			>
@@ -602,6 +552,56 @@
 				</h3>
 
 				<div class="ip-editor__fields">
+					<div
+						v-if="website_enabled"
+						class="ip-editor__field"
+					>
+						<label for="ip-field-website">
+							{{ msg( 'integratedprofiles-field-website' ) }}
+						</label>
+						<div
+							class="ip-editor__removal-target"
+							:class="{ 'ip-editor__removal-target--active': removal_only && can_clear_field( 'ip-website' ) && !!draft[ 'ip-website' ] }"
+						>
+							<input
+								id="ip-field-website"
+								v-model="draft['ip-website']"
+								class="cdx-text-input__input"
+								type="url"
+								:maxlength="link_max"
+								:disabled="busy"
+								:readonly="removal_only"
+								:placeholder="msg( 'integratedprofiles-field-website-placeholder' )"
+							>
+							<button
+								v-if="removal_only && can_clear_field( 'ip-website' )"
+								type="button"
+								class="cdx-button cdx-button--icon-only cdx-button--action-destructive
+									cdx-button--weight-primary ip-editor__delete"
+								:disabled="busy || !draft[ 'ip-website' ]"
+								:aria-label="msg( 'integratedprofiles-remove-field', msg( 'integratedprofiles-field-website' ) )"
+								:title="msg( 'integratedprofiles-remove-field', msg( 'integratedprofiles-field-website' ) )"
+								@click="on_clear_field( 'ip-website' )"
+							>
+								<svg
+									class="ip-editor__delete-icon"
+									viewBox="0 0 20 20"
+									aria-hidden="true"
+									focusable="false"
+								>
+									<path
+										fill="currentColor"
+										fill-rule="evenodd"
+										d="M7 2h6v2h4v2H3V4h4V2ZM5 7h10l-1 11H6L5 7Zm3 2v7h1V9H8Zm3 0v7h1V9h-1Z"
+									/>
+								</svg>
+							</button>
+						</div>
+						<p class="ip-editor__help">
+							{{ msg( 'integratedprofiles-field-website-help' ) }}
+						</p>
+					</div>
+
 					<details
 						v-if="bundle_social_links.length"
 						class="ip-editor__social-bundle"
