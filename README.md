@@ -392,15 +392,13 @@ Avatar and banner upload/delete requests share the `integratedprofiles-upload` r
 
 ## Hooks
 
-Please see better hook documentation at <https://www.mediawiki.org/wiki/Extension:IntegratedProfiles> where the up-to-date documentation is. Shortcuts:
+The PHP hook interfaces in [`src/Hook/`](src/Hook/) define the supported handler signatures and describe when each hook runs.
 
 * [IntegratedProfilesAfterMasthead](https://www.mediawiki.org/wiki/Special:MyLanguage/Extension:IntegratedProfiles/Hooks/IntegratedProfilesAfterMasthead)
 * [IntegratedProfilesAfterAvatar](https://www.mediawiki.org/wiki/Special:MyLanguage/Extension:IntegratedProfiles/Hooks/IntegratedProfilesAfterAvatar)
 * [IntegratedProfilesGetTabs](https://www.mediawiki.org/wiki/Special:MyLanguage/Extension:IntegratedProfiles/Hooks/IntegratedProfilesGetTabs)
 * [IntegratedProfilesRenderTab](https://www.mediawiki.org/wiki/Special:MyLanguage/Extension:IntegratedProfiles/Hooks/IntegratedProfilesRenderTab)
-* [IntegratedProfilesVerifyImageUpload](https://www.mediawiki.org/wiki/Special:MyLanguage/Extension:IntegratedProfiles/Hooks/IntegratedProfilesVerifyImageUpload)
-
-There should be code and usage examples there, along with other information about how these hooks are used internally and where they fit in. If not, you can view light documentation with-in the repo at src/HookRunner.php and in the files under src/Hook.
+* [IntegratedProfilesVerifyImageUpload](src/Hook/IntegratedProfilesVerifyImageUploadHook.php)
 
 If there's a performant way to implement another hook with a lot of potential use cases, create an issue on this GitHub issue as a request.
 

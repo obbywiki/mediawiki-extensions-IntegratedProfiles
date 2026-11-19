@@ -5,6 +5,9 @@ namespace MediaWiki\Extension\IntegratedProfiles\Hook;
 use MediaWiki\User\UserIdentity;
 use Wikimedia\Message\MessageSpecifier;
 
+/**
+ * @stable to implement
+ */
 interface IntegratedProfilesVerifyImageUploadHook {
 
 	/**

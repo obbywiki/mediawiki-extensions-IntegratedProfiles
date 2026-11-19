@@ -2,9 +2,11 @@
 
 namespace MediaWiki\Extension\IntegratedProfiles;
 
+use MediaWiki\Extension\IntegratedProfiles\Hook\IntegratedProfilesGetTabsHook;
+
 /**
  * This script is responsible for handling tabs themselves, not injecting new ones.
- * If you are looking to register your own tab from an extension, see HookRunner.php.
+ * If you are looking to register your own tab from an extension, see IntegratedProfilesGetTabsHook.
  */
 class ProfileTabs {
 
@@ -22,7 +24,7 @@ class ProfileTabs {
 	/**
 	 * Build the ordered tab list and resolve the active tab.
 	 *
-	 * @see onIntegratedProfilesGetTabs in HookRunner.php for documentation.
+	 * @see IntegratedProfilesGetTabsHook
 	 */
 	public function build( string $iptab, string $page_local_url, array $labels, array $profile, string $contributions_url = '', string $talk_url = '', ?string $forced_active = null ): array {
 		$tabs = [
@@ -61,7 +63,7 @@ class ProfileTabs {
 	 * @param list<mixed> $tabs Raw tab entries (core + companions)
 	 * @return array{ active: string, tabs: list<array{id: string, label: string, url: string, weight: int, active: bool}> }
 	 *
-	 * @see onIntegratedProfilesGetTabs in HookRunner.php for documentation.
+	 * @see IntegratedProfilesGetTabsHook
 	 */
 	public static function resolve( array $tabs, string $iptab, string $page_local_url, string $contributions_url = '', string $talk_url = '', ?string $forced_active = null ): array {
 		$tabs = self::normalize_and_sort( $tabs );
