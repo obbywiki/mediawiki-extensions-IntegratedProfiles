@@ -190,15 +190,23 @@ describe( 'profile editor permission modes', () => {
 
 	it( 'keeps normal editing and the existing save API for users with edit permission', async () => {
 		config.can_edit = true;
+		config.preferences_url = '/wiki/Special:Preferences';
 		api.save.mockResolvedValue( profile() );
 		const wrapper = mount_editor();
 		expect( wrapper.find( '#ip-field-about' ).attributes( 'readonly' ) ).toBeUndefined();
 		expect( wrapper.find( '#ip-field-about + button' ).exists() ).toBe( false );
-		expect( wrapper.find( '#ip-field-visibility-label' ).exists() ).toBe( true );
+		expect( wrapper.find( '[aria-labelledby="ip-section-connections"]' ).exists() ).toBe( true );
+		const privacy = wrapper.get( 'fieldset.ip-editor__section:last-child' );
+		expect( privacy.attributes( 'aria-labelledby' ) ).toBe( 'ip-section-privacy' );
+		const visibility = privacy.get( '[role="radiogroup"]' );
+		expect( visibility.findAll( 'input[type="radio"]' ) ).toHaveLength( 3 );
+		expect( visibility.findAll( '.ip-editor__visibility-desc' ) ).toHaveLength( 3 );
+		expect( visibility.get( 'input[value="public"]' ).element ).toHaveProperty( 'checked', true );
+		await visibility.get( 'input[value="private"]' ).setValue();
 		await wrapper.find( '#ip-field-about' ).setValue( 'Updated' );
 		await wrapper.find( '.ip-editor__actions button:last-child' ).trigger( 'click' );
 		await flushPromises();
-		expect( api.save ).toHaveBeenCalledWith( expect.objectContaining( { 'ip-about': 'Updated' } ), 'Example' );
+		expect( api.save ).toHaveBeenCalledWith( expect.objectContaining( { 'ip-about': 'Updated', 'ip-visibility': 'private' } ), 'Example' );
 		expect( api.clear ).not.toHaveBeenCalled();
 		wrapper.unmount();
 	} );

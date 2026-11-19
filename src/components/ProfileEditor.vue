@@ -461,80 +461,6 @@
 							{{ msg( 'integratedprofiles-field-featured-article-help' ) }}
 						</p>
 					</div>
-
-					<div v-if="!removal_only" class="ip-editor__field">
-						<span
-							id="ip-field-visibility-label"
-							class="ip-editor__label"
-						>
-							{{ msg( 'integratedprofiles-field-visibility' ) }}
-						</span>
-						<div
-							class="ip-editor__visibility"
-							role="radiogroup"
-							aria-labelledby="ip-field-visibility-label"
-						>
-							<label
-								v-for="option in visibility_options"
-								:key="option.value"
-								class="ip-editor__visibility-option"
-								:class="{ 'ip-editor__visibility-option--selected': draft[ 'ip-visibility' ] === option.value }"
-							>
-								<input
-									v-model="draft['ip-visibility']"
-									class="ip-editor__visibility-input"
-									type="radio"
-									name="ip-visibility"
-									:value="option.value"
-									:disabled="busy"
-								>
-								<span class="ip-editor__visibility-copy">
-									<span class="ip-editor__visibility-title">
-										{{ option.label }}
-									</span>
-									<span class="ip-editor__visibility-desc">
-										{{ option.help }}
-									</span>
-								</span>
-							</label>
-						</div>
-						<p class="ip-editor__help">
-							{{ msg( 'integratedprofiles-field-visibility-help' ) }}
-						</p>
-					</div>
-
-					<div v-if="!removal_only" class="ip-editor__field ip-editor__field--toggle">
-						<label class="ip-editor__toggle" for="ip-field-show-pronouns">
-							<span class="ip-editor__toggle-copy">
-								<span class="ip-editor__toggle-label">
-									{{ msg( 'integratedprofiles-field-show-pronouns' ) }}
-								</span>
-								<span class="ip-editor__help">
-									{{ msg( 'integratedprofiles-field-show-pronouns-help' ) }}
-								</span>
-							</span>
-							<span class="ip-editor__toggle-control">
-								<input
-									id="ip-field-show-pronouns"
-									v-model="show_pronouns"
-									class="ip-editor__toggle-input"
-									type="checkbox"
-									role="switch"
-									:disabled="busy"
-								>
-								<span class="ip-editor__toggle-track" aria-hidden="true">
-									<span class="ip-editor__toggle-thumb" />
-								</span>
-							</span>
-						</label>
-						<a
-							v-if="user_preferences_url"
-							class="ip-editor__prefs-link"
-							:href="user_preferences_url"
-						>
-							{{ msg( 'integratedprofiles-field-show-pronouns-manage' ) }}
-						</a>
-					</div>
 				</div>
 			</fieldset>
 
@@ -843,7 +769,7 @@
 			</fieldset>
 
 			<fieldset
-				v-if="show_manage_connections || show_connection_privacy"
+				v-if="show_manage_connections && preferences_url"
 				class="ip-editor__section"
 				aria-labelledby="ip-section-connections"
 			>
@@ -856,45 +782,133 @@
 				</h3>
 
 				<div class="ip-editor__fields">
-					<template v-if="show_manage_connections && preferences_url">
-						<ul class="ip-editor__connections">
-							<li
-								v-for="provider in connection_rows"
-								:key="provider.id"
-								class="ip-editor__connection"
-							>
-								<span class="ip-editor__connection-identity">
+					<ul class="ip-editor__connections">
+						<li
+							v-for="provider in connection_rows"
+							:key="provider.id"
+							class="ip-editor__connection"
+						>
+							<span class="ip-editor__connection-identity">
+								<span
+									class="ip-editor__connection-chip"
+									:class="'ip-editor__connection-chip--' + provider.id"
+									aria-hidden="true"
+								>
 									<span
-										class="ip-editor__connection-chip"
-										:class="'ip-editor__connection-chip--' + provider.id"
-										aria-hidden="true"
-									>
-										<span
-											class="ip-brand-icon"
-											:class="'ip-brand-icon--' + provider.id"
-										/>
+										class="ip-brand-icon"
+										:class="'ip-brand-icon--' + provider.id"
+									/>
+								</span>
+								<span class="ip-editor__connection-name">
+									{{ provider.label }}
+								</span>
+							</span>
+							<p class="ip-editor__connection-status">
+								<span class="ip-editor__connection-state">
+									{{ provider.status }}
+								</span>
+								<a
+									class="ip-editor__manage-connections"
+									:href="preferences_url"
+								>
+									{{ provider.action_label }}
+								</a>
+							</p>
+						</li>
+					</ul>
+					<p class="ip-editor__help ip-editor__help--connections">
+						{{ msg( 'integratedprofiles-connection-external-help' ) }}
+					</p>
+				</div>
+			</fieldset>
+
+			<fieldset
+				v-if="!removal_only"
+				class="ip-editor__section"
+				aria-labelledby="ip-section-privacy"
+			>
+				<h3 id="ip-section-privacy" class="ip-editor__section-title">
+					<span
+						class="ip-editor__glyph ip-editor__glyph--lock"
+						aria-hidden="true"
+					/>
+					{{ msg( 'integratedprofiles-editor-section-privacy' ) }}
+				</h3>
+
+				<div class="ip-editor__fields">
+					<div class="ip-editor__field">
+						<span
+							id="ip-field-visibility-label"
+							class="ip-editor__label"
+						>
+							{{ msg( 'integratedprofiles-field-visibility' ) }}
+						</span>
+						<div
+							class="ip-editor__visibility"
+							role="radiogroup"
+							aria-labelledby="ip-field-visibility-label"
+						>
+							<label
+								v-for="option in visibility_options"
+								:key="option.value"
+								class="ip-editor__visibility-option"
+								:class="{ 'ip-editor__visibility-option--selected': draft[ 'ip-visibility' ] === option.value }"
+							>
+								<input
+									v-model="draft['ip-visibility']"
+									class="ip-editor__visibility-input"
+									type="radio"
+									name="ip-visibility"
+									:value="option.value"
+									:disabled="busy"
+								>
+								<span class="ip-editor__visibility-copy">
+									<span class="ip-editor__visibility-title">
+										{{ option.label }}
 									</span>
-									<span class="ip-editor__connection-name">
-										{{ provider.label }}
+									<span class="ip-editor__visibility-desc">
+										{{ option.help }}
 									</span>
 								</span>
-								<p class="ip-editor__connection-status">
-									<span class="ip-editor__connection-state">
-										{{ provider.status }}
-									</span>
-									<a
-										class="ip-editor__manage-connections"
-										:href="preferences_url"
-									>
-										{{ provider.action_label }}
-									</a>
-								</p>
-							</li>
-						</ul>
-						<p class="ip-editor__help ip-editor__help--connections">
-							{{ msg( 'integratedprofiles-connection-external-help' ) }}
+							</label>
+						</div>
+						<p class="ip-editor__help">
+							{{ msg( 'integratedprofiles-field-visibility-help' ) }}
 						</p>
-					</template>
+					</div>
+
+					<div class="ip-editor__field ip-editor__field--toggle">
+						<label class="ip-editor__toggle" for="ip-field-show-pronouns">
+							<span class="ip-editor__toggle-copy">
+								<span class="ip-editor__toggle-label">
+									{{ msg( 'integratedprofiles-field-show-pronouns' ) }}
+								</span>
+								<span class="ip-editor__help">
+									{{ msg( 'integratedprofiles-field-show-pronouns-help' ) }}
+								</span>
+							</span>
+							<span class="ip-editor__toggle-control">
+								<input
+									id="ip-field-show-pronouns"
+									v-model="show_pronouns"
+									class="ip-editor__toggle-input"
+									type="checkbox"
+									role="switch"
+									:disabled="busy"
+								>
+								<span class="ip-editor__toggle-track" aria-hidden="true">
+									<span class="ip-editor__toggle-thumb" />
+								</span>
+							</span>
+						</label>
+						<a
+							v-if="user_preferences_url"
+							class="ip-editor__prefs-link"
+							:href="user_preferences_url"
+						>
+							{{ msg( 'integratedprofiles-field-show-pronouns-manage' ) }}
+						</a>
+					</div>
 
 					<div
 						v-if="show_connection_privacy"
