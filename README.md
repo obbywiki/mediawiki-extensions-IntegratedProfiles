@@ -395,7 +395,7 @@ Avatar and banner upload/delete requests share the `integratedprofiles-upload` r
 The PHP hook interfaces in [`src/Hook/`](src/Hook/) define the supported handler signatures and describe when each hook runs.
 
 * [IntegratedProfilesAfterMasthead](https://www.mediawiki.org/wiki/Special:MyLanguage/Extension:IntegratedProfiles/Hooks/IntegratedProfilesAfterMasthead)
-* [IntegratedProfilesAfterAvatar](https://www.mediawiki.org/wiki/Special:MyLanguage/Extension:IntegratedProfiles/Hooks/IntegratedProfilesAfterAvatar)
+* [IntegratedProfilesAfterAvatar](src/Hook/IntegratedProfilesAfterAvatarHook.php) now passes `&$html` first and `$profile` second. Update existing handlers when upgrading.
 * [IntegratedProfilesGetTabs](https://www.mediawiki.org/wiki/Special:MyLanguage/Extension:IntegratedProfiles/Hooks/IntegratedProfilesGetTabs)
 * [IntegratedProfilesRenderTab](https://www.mediawiki.org/wiki/Special:MyLanguage/Extension:IntegratedProfiles/Hooks/IntegratedProfilesRenderTab)
 * [IntegratedProfilesVerifyImageUpload](src/Hook/IntegratedProfilesVerifyImageUploadHook.php)

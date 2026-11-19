@@ -42,12 +42,18 @@ class HookRunnerTest extends MediaWikiUnitTestCase {
 				'IntegratedProfilesAfterAvatar',
 				$this->callback( static function ( array $args ) use ( $profile ): bool {
 					return count( $args ) === 2
-						&& $args[0] === $profile
-						&& is_string( $args[1] );
+						&& is_string( $args[0] )
+						&& $args[1] === $profile;
 				} )
-			);
+			)
+			->willReturnCallback( static function ( string $hook, array $args ): bool {
+				$args[0] .= '<span>Flair</span>';
 
-		( new HookRunner( $hook_container ) )->onIntegratedProfilesAfterAvatar( $profile, $html );
+				return true;
+			} );
+
+		( new HookRunner( $hook_container ) )->onIntegratedProfilesAfterAvatar( $html, $profile );
+		$this->assertSame( '<span>Flair</span>', $html );
 	}
 
 	public function test_get_tabs_runs_hook(): void {

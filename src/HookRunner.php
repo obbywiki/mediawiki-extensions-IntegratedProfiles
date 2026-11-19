@@ -35,8 +35,8 @@ class HookRunner implements
 	}
 
 	/** @inheritDoc */
-	public function onIntegratedProfilesAfterAvatar( array $profile, string &$html ): void {
-		$this->hook_container->run( 'IntegratedProfilesAfterAvatar', [ $profile, &$html ] );
+	public function onIntegratedProfilesAfterAvatar( string &$html, array $profile ): void {
+		$this->hook_container->run( 'IntegratedProfilesAfterAvatar', [ &$html, $profile ] );
 	}
 
 	/** @inheritDoc */

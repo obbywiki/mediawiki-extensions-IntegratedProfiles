@@ -115,7 +115,7 @@ class ProfileHandler {
 		$render_payload['groups'] = $this->build_group_items( is_array( $payload['groups'] ?? null ) ? $payload['groups'] : [], $context, $subject_user );
 
 		$decoration = '';
-		$this->hook_runner->onIntegratedProfilesAfterAvatar( $payload, $decoration );
+		$this->hook_runner->onIntegratedProfilesAfterAvatar( $decoration, $payload );
 
 		$html = $this->profile_renderer->render_masthead( $render_payload, $can_edit, $messages, $contributions_url, $use_floating_ui, $is_owner, $decoration, $can_remove, $can_upload_avatar );
 
