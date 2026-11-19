@@ -3,28 +3,28 @@ declare( strict_types=1 );
 
 namespace MediaWiki\Extension\IntegratedProfiles\Tests\Unit;
 
+use MediaWiki\Extension\IntegratedProfiles\AvatarValidator;
 use MediaWiki\Extension\IntegratedProfiles\BannerValidator;
 use MediaWiki\Extension\IntegratedProfiles\ImageAnimation;
+use MediaWiki\Extension\IntegratedProfiles\ImageValidator;
 use MediaWikiUnitTestCase;
 
 /**
  * @group IntegratedProfiles
+ * @covers \MediaWiki\Extension\IntegratedProfiles\ImageValidator
+ * @covers \MediaWiki\Extension\IntegratedProfiles\AvatarValidator
  * @covers \MediaWiki\Extension\IntegratedProfiles\BannerValidator
  * @covers \MediaWiki\Extension\IntegratedProfiles\ImageAnimation
- *
- * TODO: largely a duplicate of AvatarValidatorTest.php, could be merged.
  */
-class BannerValidatorTest extends MediaWikiUnitTestCase {
+class ImageValidatorTest extends MediaWikiUnitTestCase {
 
-	private BannerValidator $validator;
+	private ImageValidator $validator;
 
 	private string $temp_dir;
 
 	protected function setUp(): void {
 		parent::setUp();
-		$this->validator = new BannerValidator( 1024 );
-		$this->temp_dir = sys_get_temp_dir() . '/ip-banner-tests-' . getmypid();
-
+		$this->temp_dir = sys_get_temp_dir() . '/ip-image-tests-' . getmypid();
 		if ( !is_dir( $this->temp_dir ) ) {
 			mkdir( $this->temp_dir, 0700, true );
 		}
@@ -44,7 +44,9 @@ class BannerValidatorTest extends MediaWikiUnitTestCase {
 		parent::tearDown();
 	}
 
-	public function test_extension_for_mime_map(): void {
+	/** @dataProvider provide_validators */
+	public function test_extension_for_mime_map( string $class, string $error_prefix ): void {
+		$this->validator = new $class( 1024 );
 		$this->assertSame( 'jpg', $this->validator->extension_for_mime( 'image/jpeg' ) );
 		$this->assertSame( 'png', $this->validator->extension_for_mime( 'image/png; charset=binary' ) );
 		$this->assertSame( 'gif', $this->validator->extension_for_mime( 'IMAGE/GIF' ) );
@@ -53,10 +55,15 @@ class BannerValidatorTest extends MediaWikiUnitTestCase {
 		$this->assertNull( $this->validator->extension_for_mime( null ) );
 	}
 
-	public function test_validate_accepts_png(): void {
+	/** @dataProvider provide_validators */
+	public function test_validate_accepts_png( string $class, string $error_prefix ): void {
+		$this->validator = new $class( 1024 );
 		$path = $this->temp_dir . '/ok.png';
-		$png = base64_decode( 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', true );
-
+		// 1x1 PNG
+		$png = base64_decode(
+			'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+			true
+		);
 		$this->assertNotFalse( $png );
 		file_put_contents( $path, $png );
 
@@ -65,33 +72,43 @@ class BannerValidatorTest extends MediaWikiUnitTestCase {
 		$this->assertSame( 'png', $result['ext'] );
 	}
 
-	public function test_validate_rejects_oversized(): void {
+	/** @dataProvider provide_validators */
+	public function test_validate_rejects_oversized( string $class, string $error_prefix ): void {
+		$this->validator = new $class( 1024 );
 		$path = $this->temp_dir . '/big.png';
-		$png = base64_decode( 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', true );
-
+		$png = base64_decode(
+			'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+			true
+		);
 		file_put_contents( $path, $png );
 
 		$result = $this->validator->validate_upload( $path, 2048 );
 		$this->assertFalse( $result['ok'] );
-		$this->assertSame( 'integratedprofiles-error-banner-size', $result['error'] );
+		$this->assertSame( $error_prefix . 'size', $result['error'] );
 	}
 
-	public function test_validate_rejects_missing_file(): void {
+	/** @dataProvider provide_validators */
+	public function test_validate_rejects_missing_file( string $class, string $error_prefix ): void {
+		$this->validator = new $class( 1024 );
 		$result = $this->validator->validate_upload( $this->temp_dir . '/missing.png', 10 );
 		$this->assertFalse( $result['ok'] );
-		$this->assertSame( 'integratedprofiles-error-banner-size', $result['error'] );
+		$this->assertSame( $error_prefix . 'size', $result['error'] );
 	}
 
-	public function test_validate_rejects_non_image(): void {
+	/** @dataProvider provide_validators */
+	public function test_validate_rejects_non_image( string $class, string $error_prefix ): void {
+		$this->validator = new $class( 1024 );
 		$path = $this->temp_dir . '/plain.txt';
 		file_put_contents( $path, 'not an image' );
 
 		$result = $this->validator->validate_upload( $path, strlen( 'not an image' ) );
 		$this->assertFalse( $result['ok'] );
-		$this->assertSame( 'integratedprofiles-error-banner-type', $result['error'] );
+		$this->assertSame( $error_prefix . 'type', $result['error'] );
 	}
 
-	public function test_validate_accepts_static_gif_without_animated_right(): void {
+	/** @dataProvider provide_validators */
+	public function test_validate_accepts_static_gif_without_animated_right( string $class, string $error_prefix ): void {
+		$this->validator = new $class( 1024 );
 		$path = $this->write_temp( 'static.gif', $this->build_gif( 1, false ) );
 
 		$result = $this->validator->validate_upload( $path, filesize( $path ) ?: 0 );
@@ -99,23 +116,29 @@ class BannerValidatorTest extends MediaWikiUnitTestCase {
 		$this->assertSame( 'gif', $result['ext'] );
 	}
 
-	public function test_validate_rejects_multiframe_gif_without_animated_right(): void {
+	/** @dataProvider provide_validators */
+	public function test_validate_rejects_multiframe_gif_without_animated_right( string $class, string $error_prefix ): void {
+		$this->validator = new $class( 1024 );
 		$path = $this->write_temp( 'anim.gif', $this->build_gif( 2, false ) );
 
 		$result = $this->validator->validate_upload( $path, filesize( $path ) ?: 0 );
 		$this->assertFalse( $result['ok'] );
-		$this->assertSame( 'integratedprofiles-error-banner-animated', $result['error'] );
+		$this->assertSame( $error_prefix . 'animated', $result['error'] );
 	}
 
-	public function test_validate_rejects_netscape_gif_without_animated_right(): void {
+	/** @dataProvider provide_validators */
+	public function test_validate_rejects_netscape_gif_without_animated_right( string $class, string $error_prefix ): void {
+		$this->validator = new $class( 1024 );
 		$path = $this->write_temp( 'loop.gif', $this->build_gif( 1, true ) );
 
 		$result = $this->validator->validate_upload( $path, filesize( $path ) ?: 0 );
 		$this->assertFalse( $result['ok'] );
-		$this->assertSame( 'integratedprofiles-error-banner-animated', $result['error'] );
+		$this->assertSame( $error_prefix . 'animated', $result['error'] );
 	}
 
-	public function test_validate_accepts_animated_gif_with_flag(): void {
+	/** @dataProvider provide_validators */
+	public function test_validate_accepts_animated_gif_with_flag( string $class, string $error_prefix ): void {
+		$this->validator = new $class( 1024 );
 		$path = $this->write_temp( 'allowed.gif', $this->build_gif( 2, true ) );
 
 		$result = $this->validator->validate_upload( $path, filesize( $path ) ?: 0, true );
@@ -123,33 +146,71 @@ class BannerValidatorTest extends MediaWikiUnitTestCase {
 		$this->assertSame( 'gif', $result['ext'] );
 	}
 
-	public function test_validate_rejects_animated_webp_without_flag(): void {
+	/** @dataProvider provide_validators */
+	public function test_validate_rejects_animated_webp_without_flag( string $class, string $error_prefix ): void {
+		$this->validator = new $class( 1024 );
 		$path = $this->write_temp( 'anim.webp', $this->build_animated_webp() );
 
 		$this->assertTrue( ImageAnimation::is_animated( $path, 'webp' ) );
 
 		$result = $this->validator->validate_upload( $path, filesize( $path ) ?: 0 );
-		if ( !$result['ok'] && ( $result['error'] ?? '' ) === 'integratedprofiles-error-banner-type' ) {
+		if ( !$result['ok'] && ( $result['error'] ?? '' ) === $error_prefix . 'type' ) {
 			$this->markTestSkipped( 'getimagesize/MIME did not accept the VP8X fixture' );
 		}
 		$this->assertFalse( $result['ok'] );
-		$this->assertSame( 'integratedprofiles-error-banner-animated', $result['error'] );
+		$this->assertSame( $error_prefix . 'animated', $result['error'] );
 	}
 
-	public function test_validate_rejects_apng_without_flag(): void {
+	/** @dataProvider provide_validators */
+	public function test_validate_rejects_apng_without_flag( string $class, string $error_prefix ): void {
+		$this->validator = new $class( 1024 );
 		$path = $this->write_temp( 'anim.png', $this->build_apng() );
 
 		$result = $this->validator->validate_upload( $path, filesize( $path ) ?: 0 );
 		$this->assertFalse( $result['ok'] );
-		$this->assertSame( 'integratedprofiles-error-banner-animated', $result['error'] );
+		$this->assertSame( $error_prefix . 'animated', $result['error'] );
 	}
 
-	public function test_validate_accepts_apng_with_flag(): void {
+	/** @dataProvider provide_validators */
+	public function test_validate_accepts_apng_with_flag( string $class, string $error_prefix ): void {
+		$this->validator = new $class( 1024 );
 		$path = $this->write_temp( 'allowed.png', $this->build_apng() );
 
 		$result = $this->validator->validate_upload( $path, filesize( $path ) ?: 0, true );
 		$this->assertTrue( $result['ok'] );
 		$this->assertSame( 'png', $result['ext'] );
+	}
+
+	/** @dataProvider provide_validators */
+	public function test_validate_size_boundaries( string $class, string $error_prefix ): void {
+		$bytes = $this->build_gif( 1, false );
+		$path = $this->write_temp( 'boundary.gif', $bytes );
+		$validator = new $class( strlen( $bytes ) );
+		$this->assertSame( [ 'ok' => true, 'ext' => 'gif' ], $validator->validate_upload( $path, strlen( $bytes ) ) );
+		foreach ( [ 0, -1, strlen( $bytes ) + 1 ] as $size ) {
+			$this->assertSame(
+				[ 'ok' => false, 'error' => $error_prefix . 'size' ],
+				$validator->validate_upload( $path, $size )
+			);
+		}
+	}
+
+	/** @dataProvider provide_validators */
+	public function test_validate_rejects_excessive_dimensions( string $class, string $error_prefix ): void {
+		$bytes = substr_replace( $this->build_gif( 1, false ), pack( 'vv', 65535, 65535 ), 6, 4 );
+		$path = $this->write_temp( 'huge.gif', $bytes );
+		$validator = new $class( 1024 );
+		$this->assertSame(
+			[ 'ok' => false, 'error' => 'integratedprofiles-error-image-dimensions' ],
+			$validator->validate_upload( $path, strlen( $bytes ), true )
+		);
+	}
+
+	public static function provide_validators(): array {
+		return [
+			'avatar' => [ AvatarValidator::class, 'integratedprofiles-error-avatar-' ],
+			'banner' => [ BannerValidator::class, 'integratedprofiles-error-banner-' ],
+		];
 	}
 
 	private function write_temp( string $name, string $bytes ): string {
@@ -159,6 +220,7 @@ class BannerValidatorTest extends MediaWikiUnitTestCase {
 	}
 
 	private function build_gif( int $frame_count, bool $netscape ): string {
+		// 1x1 GIF89a + optional extra frames + netscape loop block
 		$header = 'GIF89a' . "\x01\x00\x01\x00\x80\x00\x00" . "\x00\x00\x00\xFF\xFF\xFF";
 		$netscape_block = $netscape ? "\x21\xFF\x0BNETSCAPE2.0\x03\x01\x00\x00\x00" : '';
 		$frame = "\x21\xF9\x04\x00\x0A\x00\x00\x00"
