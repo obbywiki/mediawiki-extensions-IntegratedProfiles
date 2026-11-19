@@ -146,6 +146,11 @@ class ImageValidatorTest extends MediaWikiUnitTestCase {
 		$this->assertSame( 'gif', $result['ext'] );
 	}
 
+	public function test_animation_detection_treats_truncated_gif_as_animated(): void {
+		$path = $this->write_temp( 'truncated.gif', 'GIF89a' );
+		$this->assertTrue( ImageAnimation::is_animated( $path, 'gif' ) );
+	}
+
 	/** @dataProvider provide_validators */
 	public function test_validate_rejects_animated_webp_without_flag( string $class, string $error_prefix ): void {
 		$this->validator = new $class( 1024 );
