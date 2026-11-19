@@ -344,6 +344,10 @@ class ProfileService {
 	 *
 	 * Previously get_card_payload, renamed as of v0.7.0. Now global, so you can use this without `$wgIntegratedProfilesEnableUserCards`.
 	 *
+	 * Companion extensions should pass only $subject and $viewer. The remaining
+	 * arguments are reserved for internal batching.
+	 *
+	 * @stable to call
 	 * @param User $subject Profile owner
 	 * @param UserIdentity $viewer Requesting user
 	 * @param array{avatar_url: string, has_custom_avatar: bool, avatar_thumbs: array<int, string>}|null $avatar_info Prefetched avatar row
@@ -446,6 +450,7 @@ class ProfileService {
 	/**
 	 * A helper for getting preview payloads for more than one user, with additional optimizations for batching. Use this instead of calling get_preview_payload multiple times.
 	 *
+	 * @stable to call
 	 * @param list<User> $subjects
 	 * @param UserIdentity $viewer Requesting user
 	 * @return list<array{

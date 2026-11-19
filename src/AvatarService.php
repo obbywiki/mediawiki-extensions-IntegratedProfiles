@@ -56,6 +56,8 @@ class AvatarService extends ProfileImageService {
 
 	/**
 	 * Returns the public avatar URL for a user (custom file or extension default).
+	 *
+	 * @stable to call
 	 */
 	public function get_avatar_url_for_user( UserIdentity $user ): string {
 		return $this->get_avatar_info_for_user( $user )['avatar_url'];
@@ -77,8 +79,11 @@ class AvatarService extends ProfileImageService {
 	}
 
 	/**
+	 * Returns public avatar URLs in one batch, skipping anonymous users.
+	 *
+	 * @stable to call
 	 * @param iterable<UserIdentity> $users
-	 * @return array<string, string> Username => avatar URL
+	 * @return array<string, string> Canonical username => avatar URL
 	 */
 	public function get_avatar_urls_for_users( iterable $users ): array {
 		$urls = [];
