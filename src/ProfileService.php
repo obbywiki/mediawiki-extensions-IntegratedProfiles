@@ -688,7 +688,9 @@ class ProfileService {
 	}
 
 	/**
-	 * Delete a custom banner and reset ip-banner to accent. Caller must check can_edit.
+	 * Delete a custom banner, resetting ip-banner to accent only if it pointed at the custom image. Caller must check can_remove.
+	 *
+	 * Other presets (including the wiki preset, which can never reference the custom image) are left alone.
 	 */
 	public function delete_banner( User $subject, ?UserIdentity $viewer = null ): Status {
 		$status = $this->banner_service->delete_for_user( $subject );
@@ -696,9 +698,11 @@ class ProfileService {
 			return $status;
 		}
 
-		$this->set_profile_option( $subject, ProfileFields::KEY_BANNER, ProfileFields::BANNER_ACCENT );
-		$this->set_profile_option( $subject, ProfileFields::KEY_BANNER_WIKI, '' );
-		$this->user_options_manager->saveOptions( $subject );
+		$current = ProfileFields::normalize_banner( (string)$this->user_options_lookup->getOption( $subject, ProfileFields::KEY_BANNER ) );
+		if ( $current === ProfileFields::BANNER_CUSTOM ) {
+			$this->set_profile_option( $subject, ProfileFields::KEY_BANNER, ProfileFields::BANNER_ACCENT );
+			$this->user_options_manager->saveOptions( $subject );
+		}
 
 		return Status::newGood( $this->get_payload( $subject, $viewer ) );
 	}

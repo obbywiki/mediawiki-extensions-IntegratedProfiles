@@ -6,6 +6,10 @@ namespace MediaWiki\Extension\IntegratedProfiles\Tests\Unit;
 use MediaWiki\Extension\IntegratedProfiles\BannerService;
 use MediaWiki\Extension\IntegratedProfiles\ProfileFields;
 use MediaWiki\Extension\IntegratedProfiles\ProfileService;
+use MediaWiki\Status\Status;
+use MediaWiki\User\Options\UserOptionsLookup;
+use MediaWiki\User\Options\UserOptionsManager;
+use MediaWiki\User\User;
 use MediaWiki\User\UserIdentity;
 use MediaWikiUnitTestCase;
 use ReflectionClass;
@@ -48,6 +52,55 @@ class BannerCleanupTest extends MediaWikiUnitTestCase {
 			'ocean',
 			'sunset'
 		);
+	}
+
+	public function test_delete_banner_resets_custom_to_accent(): void {
+		$manager = $this->createMock( UserOptionsManager::class );
+		$manager->expects( $this->once() )->method( 'setOption' )
+			->with( $this->anything(), ProfileFields::KEY_BANNER, ProfileFields::BANNER_ACCENT, $this->anything() );
+		$manager->expects( $this->once() )->method( 'saveOptions' );
+
+		$this->assertStatusGood( $this->delete_banner_with( ProfileFields::BANNER_CUSTOM, $manager ) );
+	}
+
+	public function test_delete_banner_keeps_other_presets(): void {
+		$manager = $this->createMock( UserOptionsManager::class );
+		$manager->expects( $this->never() )->method( 'setOption' );
+		$manager->expects( $this->never() )->method( 'saveOptions' );
+
+		$this->assertStatusGood( $this->delete_banner_with( 'ocean', $manager ) );
+	}
+
+	public function test_failed_delete_banner_keeps_options(): void {
+		$banner = $this->createMock( BannerService::class );
+		$banner->method( 'delete_for_user' )->willReturn( Status::newFatal( 'backend-fail-internal', 'x' ) );
+		$manager = $this->createMock( UserOptionsManager::class );
+		$manager->expects( $this->never() )->method( 'setOption' );
+
+		$this->assertStatusError( 'backend-fail-internal', $this->delete_banner_with( ProfileFields::BANNER_CUSTOM, $manager, $banner ) );
+	}
+
+	private function delete_banner_with( string $current, UserOptionsManager $manager, ?BannerService $banner = null ): Status {
+		if ( $banner === null ) {
+			$banner = $this->createMock( BannerService::class );
+			$banner->method( 'delete_for_user' )->willReturn( Status::newGood() );
+		}
+		$lookup = $this->createMock( UserOptionsLookup::class );
+		$lookup->method( 'getOption' )->willReturnCallback(
+			static fn ( $user, string $key ) => $key === ProfileFields::KEY_BANNER ? $current : null
+		);
+
+		$service = $this->getMockBuilder( ProfileService::class )
+			->disableOriginalConstructor()
+			->onlyMethods( [ 'get_payload' ] )
+			->getMock();
+		$service->method( 'get_payload' )->willReturn( [] );
+		$reflection = new ReflectionClass( ProfileService::class );
+		foreach ( [ 'banner_service' => $banner, 'user_options_lookup' => $lookup, 'user_options_manager' => $manager ] as $name => $value ) {
+			$reflection->getProperty( $name )->setValue( $service, $value );
+		}
+
+		return $service->delete_banner( $this->createMock( User::class ) );
 	}
 
 	private function profile_service_with_banner( BannerService $banner ): ProfileService {
