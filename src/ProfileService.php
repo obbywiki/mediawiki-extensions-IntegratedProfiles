@@ -621,27 +621,17 @@ class ProfileService {
 			return Status::newGood( $this->get_payload( $subject, $viewer ) );
 		}
 
-		$previous_banner = ProfileFields::normalize_banner(
-			(string)$this->user_options_lookup->getOption( $subject, ProfileFields::KEY_BANNER )
-		);
-
 		foreach ( $result['fields'] as $key => $value ) {
 			$this->set_profile_option( $subject, $key, $value );
 		}
+		// leaving the custom banner deletes its files through the SaveUserOptions hook (Hooks::onSaveUserOptions)
 		$this->user_options_manager->saveOptions( $subject );
-
-		if ( array_key_exists( ProfileFields::KEY_BANNER, $result['fields'] ) ) {
-			$new_banner = ProfileFields::normalize_banner(
-				(string)$result['fields'][ ProfileFields::KEY_BANNER ]
-			);
-			$this->maybe_delete_unused_banner( $subject, $previous_banner, $new_banner );
-		}
 
 		return Status::newGood( $this->get_payload( $subject, $viewer ) );
 	}
 
 	/**
-	 * Delete custom banner files when leaving the custom preset.
+	 * Delete custom banner files when leaving the custom preset. Called from the SaveUserOptions hook, so every options save is covered.
 	 */
 	public function maybe_delete_unused_banner(
 		UserIdentity $subject,
