@@ -14,6 +14,7 @@ use MediaWikiUnitTestCase;
 use Wikimedia\ObjectCache\HashBagOStuff;
 
 /**
+ * @covers \MediaWiki\Extension\IntegratedProfiles\ProfileImageResolver
  * @group IntegratedProfiles
  * @covers \MediaWiki\Extension\IntegratedProfiles\AvatarService
  */

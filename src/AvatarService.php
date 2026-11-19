@@ -13,8 +13,8 @@ use Wikimedia\ObjectCache\BagOStuff;
 class AvatarService {
 
 	public const SERVICE_NAME = 'IntegratedProfiles.AvatarService';
-	public const CACHE_TTL = 86400;
-	public const CACHE_KEY_VERSION = '4'; // also bump in BannerService
+	public const CACHE_TTL = ProfileImageResolver::CACHE_TTL;
+	public const CACHE_KEY_VERSION = ProfileImageResolver::CACHE_KEY_VERSION;
 	public const CONSTRUCTOR_OPTIONS = [
 		'IntegratedProfilesAvatarMaxBytes',
 		'IntegratedProfilesEnableAnimatedAvatars',
@@ -22,11 +22,12 @@ class AvatarService {
 	];
 
 	private readonly AvatarValidator $validator;
+	private readonly ProfileImageResolver $resolver;
 
 	public function __construct(
 		private readonly ServiceOptions $options,
 		private readonly AvatarStorage $storage,
-		private readonly BagOStuff $cache,
+		BagOStuff $cache,
 		private readonly ProfileSubjectIds $subject_ids,
 		private readonly ImageUploadSanitizer $sanitizer,
 		private readonly ImageUploadVerifier $verifier,
@@ -34,6 +35,7 @@ class AvatarService {
 		private readonly ?ProfilePagePurger $purger = null,
 	) {
 		$options->assertRequiredOptions( self::CONSTRUCTOR_OPTIONS );
+		$this->resolver = new ProfileImageResolver( $storage, $cache, $subject_ids, 'avatar', self::CACHE_TTL, self::CACHE_KEY_VERSION );
 		$this->validator = new AvatarValidator( (int)$options->get( 'IntegratedProfilesAvatarMaxBytes' ) );
 	}
 
@@ -59,63 +61,9 @@ class AvatarService {
 	 * @return array<string, array{avatar_url: string, has_custom_avatar: bool, avatar_thumbs: array<int, string>}>
 	 */
 	public function get_avatar_info_for_users( iterable $users ): array {
-		/** @var array<string, array{central_id: int, local_id: int}> $subjects */
-		$subjects = [];
-		foreach ( $users as $user ) {
-			if ( $user->getId() <= 0 ) {
-				continue;
-			}
-
-			$name = $user->getName();
-			if ( $name === '' || isset( $subjects[$name] ) ) {
-				continue;
-			}
-
-			$subjects[$name] = $this->subject_ids->ids_for( $user );
-		}
-
-		if ( $subjects === [] ) {
-			return [];
-		}
-
-		$keys_by_central = [];
-		foreach ( $subjects as $ids ) {
-			$central_id = $ids['central_id'];
-			if ( $central_id > 0 && !isset( $keys_by_central[$central_id] ) ) {
-				$keys_by_central[$central_id] = $this->cache_key( $central_id );
-			}
-		}
-
-		$multi = $keys_by_central === [] ? [] : $this->cache->getMulti( array_values( $keys_by_central ) );
-
 		$result = [];
-		foreach ( $subjects as $name => $ids ) {
-			$central_id = $ids['central_id'];
-
-			if ( $central_id <= 0 ) {
-				$result[$name] = $this->info_from_resolved( null );
-				continue;
-			}
-
-			$key = $keys_by_central[$central_id];
-			if ( array_key_exists( $key, $multi ) ) {
-				$parsed = $this->parse_cache_value( $multi[$key], $central_id );
-				if ( $parsed === false ) {
-					$result[$name] = $this->info_from_resolved( null );
-					continue;
-				}
-
-				if ( is_array( $parsed ) ) {
-					$result[$name] = $this->info_from_resolved( $parsed );
-					continue;
-				}
-
-				// invalid cache value will fall through to storage
-			}
-
-			$result[$name] = $this->info_from_resolved(
-				$this->resolve_file_from_storage( $central_id )
-			);
+		foreach ( $this->resolver->resolve_for_users( $users ) as $name => $resolved ) {
+			$result[$name] = $this->info_from_resolved( $resolved );
 		}
 
 		return $result;
@@ -143,7 +91,7 @@ class AvatarService {
 			return $this->info_from_resolved( null );
 		}
 
-		return $this->info_from_resolved( $this->resolve_file( $central_id ) );
+		return $this->info_from_resolved( $this->resolver->resolve( $central_id ) );
 	}
 
 	public function default_avatar_url(): string {
@@ -213,7 +161,7 @@ class AvatarService {
 		}
 
 		$found = $this->storage->find_extension_with_mtime( $central_id );
-		$this->write_cache( $central_id, $validation['ext'], $found['mtime'] ?? '', $found['version'] ?? '', false );
+		$this->resolver->remember( $central_id, $validation['ext'], $found['mtime'] ?? '', $found['version'] ?? '', false );
 		// cached pages would keep showing the replaced original
 		$this->purge_pages( $user );
 		$this->thumbnails?->schedule( $this->storage, $central_id, function () use ( $central_id, $user ): void {
@@ -239,9 +187,7 @@ class AvatarService {
 	}
 
 	public function forget_cached( int $central_id ): void {
-		if ( $central_id > 0 ) {
-			$this->cache->delete( $this->cache_key( $central_id ) );
-		}
+		$this->resolver->forget( $central_id );
 	}
 
 	private function purge_pages( ?UserIdentity $user ): void {
@@ -262,7 +208,7 @@ class AvatarService {
 		}
 
 		if ( $central_id > 0 ) {
-			$this->write_cache_negative( $central_id );
+			$this->resolver->remember_missing( $central_id );
 		}
 
 		return Status::newGood( $this->info_from_resolved( null ) );
@@ -282,109 +228,6 @@ class AvatarService {
 			'has_custom_avatar' => true,
 			'avatar_thumbs' => $resolved['thumbs'] ? $this->storage->thumbs()->public_urls( $resolved['owner_id'], $resolved['version'] ) : [],
 		];
-	}
-
-	/**
-	 * @return array{owner_id: int, ext: string, mtime: string, version: string, thumbs: bool}|null
-	 */
-	private function resolve_file( int $central_id ): ?array {
-		$cached = $this->read_cache( $central_id );
-		if ( $cached === false ) {
-			return null;
-		}
-
-		if ( is_array( $cached ) ) {
-			return $cached;
-		}
-
-		return $this->resolve_file_from_storage( $central_id );
-	}
-
-	/**
-	 * @return array{owner_id: int, ext: string, mtime: string, version: string, thumbs: bool}|null
-	 */
-	private function resolve_file_from_storage( int $central_id ): ?array {
-		$found = $this->storage->lookup_original( $central_id );
-		if ( $found === null ) {
-			// the backend could not tell, so cache nothing (a cached negative would hide the file for CACHE_TTL)
-			return null;
-		}
-		if ( $found !== false ) {
-			$version = $found['version'] ?? '';
-			$thumbs = $this->storage->thumbs()->set_exists( $central_id, $version );
-			$this->write_cache( $central_id, $found['ext'], $found['mtime'], $version, $thumbs );
-
-			return [ 'owner_id' => $central_id, 'ext' => $found['ext'], 'mtime' => $found['mtime'], 'version' => $version, 'thumbs' => $thumbs ];
-		}
-
-		$this->write_cache_negative( $central_id );
-		return null;
-	}
-
-	/**
-	 * @return array{owner_id: int, ext: string, mtime: string, version: string, thumbs: bool}|false|null
-	 *   array on hit, false for negative cache, null for miss/invalid
-	 */
-	private function read_cache( int $central_id ): array|false|null {
-		$raw = $this->cache->get( $this->cache_key( $central_id ) );
-		if ( $raw === false || $raw === null ) {
-			return null;
-		}
-
-		return $this->parse_cache_value( $raw, $central_id );
-	}
-
-	/**
-	 * @return array{owner_id: int, ext: string, mtime: string, version: string, thumbs: bool}|false|null
-	 *   array on hit, false for negative cache, null for miss/invalid
-	 */
-	private function parse_cache_value( mixed $raw, int $central_id ): array|false|null {
-		if ( $raw === false || $raw === null ) {
-			return null;
-		}
-		if ( $raw === '' ) {
-			return false;
-		}
-		if ( !is_string( $raw ) ) {
-			return null;
-		}
-
-		$parts = explode( ':', $raw, 5 );
-		if ( count( $parts ) !== 5 ) {
-			return null;
-		}
-
-		[ $owner_raw, $ext, $mtime, $version, $thumbs ] = $parts;
-		$owner_id = (int)$owner_raw;
-
-		if ( $owner_id !== $central_id || !in_array( $ext, AvatarStorage::EXTENSIONS, true ) ||
-			( $version !== '' && !ThumbnailStorage::is_valid_version( $version ) )
-		) {
-			return null;
-		}
-
-		return [ 'owner_id' => $owner_id, 'ext' => $ext, 'mtime' => $mtime, 'version' => $version, 'thumbs' => $thumbs === '1' && $version !== '' ];
-	}
-
-	private function write_cache( int $central_id, string $ext, string $mtime, string $version, bool $thumbs ): void {
-		$this->cache->set(
-			$this->cache_key( $central_id ),
-			$central_id . ':' . $ext . ':' . $mtime . ':' . $version . ':' . ( $thumbs ? '1' : '0' ),
-			self::CACHE_TTL
-		);
-	}
-
-	private function write_cache_negative( int $central_id ): void {
-		$this->cache->set( $this->cache_key( $central_id ), '', self::CACHE_TTL );
-	}
-
-	private function cache_key( int $central_id ): string {
-		return $this->cache->makeGlobalKey(
-			'integratedprofiles',
-			'avatar',
-			self::CACHE_KEY_VERSION,
-			(string)$central_id
-		);
 	}
 
 }

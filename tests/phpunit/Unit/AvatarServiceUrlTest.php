@@ -8,6 +8,7 @@ use MediaWiki\User\UserIdentity;
 use MediaWikiUnitTestCase;
 
 /**
+ * @covers \MediaWiki\Extension\IntegratedProfiles\ProfileImageResolver
  * @group IntegratedProfiles
  * @covers \MediaWiki\Extension\IntegratedProfiles\AvatarService
  */
