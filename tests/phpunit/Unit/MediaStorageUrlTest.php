@@ -11,6 +11,7 @@ use Wikimedia\FileBackend\FileBackend;
 
 /**
  * @group IntegratedProfiles
+ * @covers \MediaWiki\Extension\IntegratedProfiles\ProfileImageStorage
  * @covers \MediaWiki\Extension\IntegratedProfiles\AvatarStorage
  * @covers \MediaWiki\Extension\IntegratedProfiles\BannerStorage
  * @covers \MediaWiki\Extension\IntegratedProfiles\ThumbnailStorage
