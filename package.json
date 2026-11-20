@@ -4,7 +4,7 @@
 	"description": "Implements modern user profiles with the ability for other extensions to build on it.",
 	"private": true,
 	"scripts": {
-		"build": "vite build -c vite.build.config.mjs",
+		"build": "vite build -c vite.build.config.mjs && vite build -c vite.build.config.mjs --mode upload-modals",
 		"typecheck": "vue-tsc --noEmit",
 		"lint": "pnpm lint:js && pnpm lint:styles && pnpm lint:md",
 		"lint:js": "eslint resources src tests",

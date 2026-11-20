@@ -1581,22 +1581,39 @@ async function on_save(): Promise<void> {
 	}
 }
 
+function open_upload_modal(
+	method: 'open_avatar_modal' | 'open_banner_modal',
+	trigger: HTMLElement | null
+): void {
+	const open = mw.IntegratedProfiles?.[ method ];
+	if ( open ) {
+		open( trigger );
+		return;
+	}
+
+	mw.loader.using( 'ext.IntegratedProfiles.uploadModals' ).then( () => {
+		if ( trigger?.isConnected && !busy.value ) {
+			mw.IntegratedProfiles?.[ method ]?.( trigger );
+		}
+	}, () => {
+		error_message.value = msg(
+			method === 'open_avatar_modal' ? 'integratedprofiles-avatar-error' : 'integratedprofiles-banner-error'
+		);
+	} );
+}
+
 function on_open_avatar_modal( event: MouseEvent ): void {
 	if ( !can_upload_avatar.value || busy.value ) { return; }
 	const trigger = event.currentTarget as HTMLElement | null;
 
-	if ( mw.IntegratedProfiles && typeof mw.IntegratedProfiles.open_avatar_modal === 'function' ) {
-		mw.IntegratedProfiles.open_avatar_modal( trigger );
-	}
+	open_upload_modal( 'open_avatar_modal', trigger );
 }
 
 function on_open_banner_modal( event: MouseEvent ): void {
 	if ( !can_upload_banner.value || busy.value ) { return; }
 	const trigger = event.currentTarget as HTMLElement | null;
 
-	if ( mw.IntegratedProfiles && typeof mw.IntegratedProfiles.open_banner_modal === 'function' ) {
-		mw.IntegratedProfiles.open_banner_modal( trigger );
-	}
+	open_upload_modal( 'open_banner_modal', trigger );
 }
 
 function on_cancel(): void {

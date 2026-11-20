@@ -1,25 +1,7 @@
 'use strict';
 
-const APP_MODULE = 'ext.IntegratedProfiles.app';
-
-/** @type {Promise<void>|null} */
-let app_load = null;
-
-/**
- * Loads the Vue editor application once while sharing in-flight work across Edit/avatar clicks.
- *
- * @return {Promise<void>}
- */
-function load_app() {
-	if ( !app_load ) {
-		app_load = mw.loader.using( APP_MODULE ).catch( ( err ) => {
-			app_load = null;
-			throw err;
-		} );
-	}
-
-	return app_load;
-}
+const EDITOR_MODULE = 'ext.IntegratedProfiles.app';
+const UPLOAD_MODALS_MODULE = 'ext.IntegratedProfiles.uploadModals';
 
 /**
  * @param {HTMLButtonElement|null} trigger
@@ -39,18 +21,22 @@ function set_trigger_busy( trigger, busy ) {
 }
 
 /**
- * Prefetches the editor app when the user is likely to open it.
+ * Prefetches the module for the given trigger.
  *
  * @param {HTMLElement|null} trigger
+ * @param {string} module_name
  */
-function prefetch_app( trigger ) {
+function prefetch_module( trigger, module_name ) {
 	if ( !trigger || trigger.dataset.ipPrefetch === '1' ) {
 		return;
 	}
 
 	trigger.dataset.ipPrefetch = '1';
-	trigger.addEventListener( 'pointerenter', load_app, { once: true } );
-	trigger.addEventListener( 'focus', load_app, { once: true } );
+	const prefetch = () => {
+		mw.loader.using( module_name ).catch( () => {} );
+	};
+	trigger.addEventListener( 'pointerenter', prefetch, { once: true } );
+	trigger.addEventListener( 'focus', prefetch, { once: true } );
 }
 
 function open_editor() {
@@ -62,7 +48,7 @@ function open_editor() {
 	const edit_button = document.getElementById( 'integratedprofiles-edit' );
 	set_trigger_busy( edit_button, true );
 
-	load_app().then( () => {
+	mw.loader.using( EDITOR_MODULE ).then( () => {
 		if (
 			!mw.IntegratedProfiles ||
 			typeof mw.IntegratedProfiles.mount_editor !== 'function'
@@ -94,7 +80,7 @@ function open_editor() {
 function open_avatar_modal( avatar_button ) {
 	set_trigger_busy( avatar_button, true );
 
-	load_app().then( () => {
+	mw.loader.using( UPLOAD_MODALS_MODULE ).then( () => {
 		set_trigger_busy( avatar_button, false );
 		if (
 			!mw.IntegratedProfiles ||
@@ -150,7 +136,7 @@ function bind_edit_button() {
 	if ( !edit_button || edit_button.dataset.ipBound === '1' ) { return; }
 
 	edit_button.dataset.ipBound = '1';
-	prefetch_app( edit_button );
+	prefetch_module( edit_button, EDITOR_MODULE );
 	edit_button.addEventListener( 'click', () => {
 		const mount_root = document.getElementById( 'integratedprofiles-editor-root' );
 		if ( mount_root ) {
@@ -166,7 +152,7 @@ function bind_avatar_edit_button() {
 	if ( !avatar_button || avatar_button.dataset.ipBound === '1' ) { return; }
 
 	avatar_button.dataset.ipBound = '1';
-	prefetch_app( avatar_button );
+	prefetch_module( avatar_button, UPLOAD_MODALS_MODULE );
 	avatar_button.addEventListener( 'click', () => {
 		open_avatar_modal( avatar_button );
 	} );

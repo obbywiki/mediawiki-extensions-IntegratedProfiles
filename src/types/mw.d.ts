@@ -146,7 +146,7 @@ declare global {
 	}
 
 	namespace mw {
-		var IntegratedProfiles: IntegratedProfilesApi | undefined;
+		var IntegratedProfiles: Partial<IntegratedProfilesApi> | undefined;
 	}
 }
 

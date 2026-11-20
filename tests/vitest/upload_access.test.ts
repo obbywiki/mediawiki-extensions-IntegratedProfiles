@@ -5,7 +5,6 @@ const create_app = vi.hoisted( () => vi.fn( () => ( { mount: vi.fn(), unmount: v
 vi.mock( 'vue', () => ( { createApp: create_app } ) );
 vi.mock( '../../src/components/AvatarUploadModal.vue', () => ( { default: {} } ) );
 vi.mock( '../../src/components/BannerUploadModal.vue', () => ( { default: {} } ) );
-vi.mock( '../../src/components/ProfileEditor.vue', () => ( { default: {} } ) );
 
 describe( 'upload modal entry points', () => {
 	let config: IntegratedProfilesConfig;
@@ -19,13 +18,13 @@ describe( 'upload modal entry points', () => {
 			can_upload_avatar: false, can_upload_banner: false,
 		} as IntegratedProfilesConfig;
 		vi.stubGlobal( 'mw', { config: { get: () => config } } );
-		await import( '../../src/app/main' );
+		await import( '../../src/app/upload_modals' );
 	} );
 
 	it.each( [ 'avatar', 'banner' ] as const )( 'requires the matching right to open the %s modal', ( kind ) => {
 		config[ kind === 'avatar' ? 'can_upload_banner' : 'can_upload_avatar' ] = true;
-		const open = kind === 'avatar' ? mw.IntegratedProfiles!.open_avatar_modal : mw.IntegratedProfiles!.open_banner_modal;
-		const mount = kind === 'avatar' ? mw.IntegratedProfiles!.mount_avatar_modal : mw.IntegratedProfiles!.mount_banner_modal;
+		const open = kind === 'avatar' ? mw.IntegratedProfiles!.open_avatar_modal! : mw.IntegratedProfiles!.open_banner_modal!;
+		const mount = kind === 'avatar' ? mw.IntegratedProfiles!.mount_avatar_modal! : mw.IntegratedProfiles!.mount_banner_modal!;
 		const root = document.getElementById( 'integratedprofiles-modal-root' )!;
 		expect( open() ).toBeNull();
 		expect( mount( root ) ).toBeNull();
@@ -39,8 +38,8 @@ describe( 'upload modal entry points', () => {
 		config.can_edit = false;
 		config.can_upload_avatar = true;
 		config.can_upload_banner = true;
-		expect( mw.IntegratedProfiles!.open_avatar_modal() ).toBeNull();
-		expect( mw.IntegratedProfiles!.open_banner_modal() ).toBeNull();
+		expect( mw.IntegratedProfiles!.open_avatar_modal!() ).toBeNull();
+		expect( mw.IntegratedProfiles!.open_banner_modal!() ).toBeNull();
 		expect( create_app ).not.toHaveBeenCalled();
 	} );
 } );
