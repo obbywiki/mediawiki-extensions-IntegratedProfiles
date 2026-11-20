@@ -33,7 +33,7 @@ IntegratedProfiles implements modern and extensible user profiles with the added
 ### Requirements
 
 * MediaWiki 1.45 or later
-  * Only MW 1.45 and MW 1.46 have been tested. Earlier versions may work but are not officially supported.
+  * Only MW 1.45, MW 1.46, and MW 1.47 have been tested. Earlier versions may work but are not officially supported.
 
 ### Suggestions
 
