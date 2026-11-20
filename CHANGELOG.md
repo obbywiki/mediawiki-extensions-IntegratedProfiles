@@ -1,5 +1,53 @@
 # Changelog
 
+## [0.9.0](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/compare/v0.8.0...v0.9.0) (2026-11-20)
+
+
+### ⚠ BREAKING CHANGES
+
+* **IntegratedProfilesAfterAvatarHook:** switch param orders around (html and profile)
+
+### Features
+
+* consolidate privacy options into dedicated privacy section ([9204efa](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/9204efaffdec4c6882f20200e235780995e7b413))
+* improve modal button styling for default codex skins ([c47339b](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/c47339b023c66bfa775ec913b65711096a700ae8))
+* move the website field to the links section ([8dfa0bd](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/8dfa0bdd33c1a5595f3e93fa8d2ac529bf993f84))
+* support mastodon as a social link option ([967ca2c](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/967ca2c829398fee907d7039f7636b3f43f200c1))
+* support newauth database migration/changes ([a95098f](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/a95098f4d4863953b0fba93efefd8289bf131dc9))
+
+
+### Bug Fixes
+
+* prevent a storage error from being reported as a successful deletion ([556be41](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/556be415763448632a44db0644a815ed588ac4d7))
+* prevent delete_banner() from resetting a user's preset when a custom banner is not present ([4d42fd7](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/4d42fd70bcb15e3cc0c3075a8923947749cdb5ea))
+
+
+### Performance Improvements
+
+* remove redundant cleanup operation in save_fields ([8ad604e](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/8ad604ebfabd4fa44153f0577658d50d35c1a3da))
+* split upload modal resources up from editor resources (closes [#25](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/issues/25)) ([4b1ad60](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/4b1ad60e21238ec2efccb332b9cc4e378e2020be))
+
+
+### Miscellaneous Chores
+
+* **deps-dev:** bump the minor-updates group with 2 updates ([#41](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/issues/41)) ([3005a4c](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/3005a4c10a871d8c29b9de661ef55af26f5ca57e))
+* **deps-dev:** bump the minor-updates group with 2 updates ([#55](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/issues/55)) ([caa1581](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/caa1581799f9ef39bf2ec36ddd97960ce0c92ce3))
+* **deps-dev:** bump the minor-updates group with 3 updates ([#53](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/issues/53)) ([a429976](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/a429976b99828a4c4db01cc5f5b1e1dce41fc3ad))
+* **deps-dev:** bump the patch-updates group with 2 updates ([#52](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/issues/52)) ([1aad155](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/1aad155acffd94fd384513c4e0bb20b7505c5b57))
+* **deps-dev:** bump the patch-updates group with 4 updates ([#50](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/issues/50)) ([d3a5404](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/d3a5404019a45dfa644c484bb4565e11ee5de9ba))
+* **deps-dev:** bump vite ([#46](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/issues/46)) ([d84ca08](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/d84ca08452a851b53568a8ede8e49700a55aa1e9))
+* **deps-dev:** bump vite ([#51](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/issues/51)) ([71dd7dc](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/71dd7dc6c869f43f708732181f0ac01c29697e13))
+* **deps-dev:** bump vue-eslint-parser ([#47](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/issues/47)) ([19a1652](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/19a1652d3acedf9f75a7737c19540d13d400ce6d))
+* **deps-dev:** bump vue-tsc ([#42](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/issues/42)) ([f9f57b8](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/f9f57b87224d69fb6714f02c456b9c19ae46f90f))
+* **deps:** bump shivammathur/setup-php from 0b3aa3e956e05acdd8d6d246bce4a2010b36df7a to 9a96576163ad88ed6f6f2cbf381c5229baf95677 ([#49](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/issues/49)) ([0e7fe3e](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/0e7fe3ef3dd07f659bb7ce5575974cbe3858b101))
+* **deps:** bump shivammathur/setup-php from 3bdfe21000ea9539e3a94c4f692f984b24fa97e0 to 0b3aa3e956e05acdd8d6d246bce4a2010b36df7a ([#44](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/issues/44)) ([d6728e4](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/d6728e4c5eef15ecd58d9adcbf1215d00e23d7b1))
+* drop MW 1.44 ([4649144](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/4649144bafa0be1162537954cf960772d18e3505))
+
+
+### Code Refactoring
+
+* **IntegratedProfilesAfterAvatarHook:** switch param orders around (html and profile) ([8892fc6](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/commit/8892fc6e4170bb8059527e394c99175cdea146ce))
+
 ## [0.8.0](https://github.com/obbywiki/mediawiki-extensions-IntegratedProfiles/compare/v0.7.0...v0.8.0) (2026-10-30)
 
 
