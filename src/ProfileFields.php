@@ -16,6 +16,7 @@ class ProfileFields {
 	public const KEY_DISCORD = 'ip-discord';
 	public const KEY_ROBLOX = 'ip-roblox';
 	public const KEY_YOUTUBE = 'ip-youtube';
+	public const KEY_MASTODON = 'ip-mastodon';
 	public const KEY_MEDIAWIKI = 'ip-mediawiki';
 	public const KEY_MIRAHEZE = 'ip-miraheze';
 	public const KEY_FANDOM = 'ip-fandom';
@@ -36,6 +37,7 @@ class ProfileFields {
 		self::KEY_DISCORD,
 		self::KEY_ROBLOX,
 		self::KEY_YOUTUBE,
+		self::KEY_MASTODON,
 		self::KEY_MEDIAWIKI,
 		self::KEY_MIRAHEZE,
 		self::KEY_FANDOM,
@@ -73,6 +75,7 @@ class ProfileFields {
 	public const SOCIAL_DISCORD = 'discord';
 	public const SOCIAL_ROBLOX = 'roblox';
 	public const SOCIAL_YOUTUBE = 'youtube';
+	public const SOCIAL_MASTODON = 'mastodon';
 
 	public const SOCIAL_TYPE_URL = 'url';
 	public const SOCIAL_TYPE_HANDLE = 'handle';
@@ -109,6 +112,10 @@ class ProfileFields {
 		self::SOCIAL_YOUTUBE => [
 			'key' => self::KEY_YOUTUBE,
 			'type' => self::SOCIAL_TYPE_YOUTUBE_URL,
+		],
+		self::SOCIAL_MASTODON => [
+			'key' => self::KEY_MASTODON,
+			'type' => self::SOCIAL_TYPE_URL,
 		],
 	];
 
@@ -162,6 +169,7 @@ class ProfileFields {
 		self::KEY_DISCORD,
 		self::KEY_ROBLOX,
 		self::KEY_YOUTUBE,
+		self::KEY_MASTODON,
 		self::KEY_MEDIAWIKI,
 		self::KEY_MIRAHEZE,
 		self::KEY_FANDOM,

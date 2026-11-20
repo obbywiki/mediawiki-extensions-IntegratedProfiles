@@ -303,7 +303,17 @@ On a single wiki these replace the gradient presets. Users without a custom uplo
 $wgIntegratedProfilesEnabledSocialLinks = [ 'website', 'discord', 'roblox' ];
 ```
 
-While `website` is in the facts strip, it is still controlled by the enabled social links settings.
+While `website` is not a social link, it is still controlled by the enabled social links settings.
+
+Available:
+
+* `website`
+* `discord`
+* `roblox`
+* `twitter`
+* `github`
+* `youtube`
+* `mastodon`
 
 ### Language interwikis
 

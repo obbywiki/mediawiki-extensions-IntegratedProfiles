@@ -11,6 +11,7 @@ export type ProfileFieldsMap = {
 	'ip-discord': string;
 	'ip-roblox': string;
 	'ip-youtube': string;
+	'ip-mastodon': string;
 	'ip-mediawiki': string;
 	'ip-miraheze': string;
 	'ip-fandom': string;

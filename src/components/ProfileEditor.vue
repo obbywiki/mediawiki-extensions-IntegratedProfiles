@@ -1055,6 +1055,7 @@ const draft = reactive<ProfileFieldsMap>( {
 	'ip-discord': field_or_empty( props.config.fields && props.config.fields[ 'ip-discord' ] ),
 	'ip-roblox': field_or_empty( props.config.fields && props.config.fields[ 'ip-roblox' ] ),
 	'ip-youtube': field_or_empty( props.config.fields && props.config.fields[ 'ip-youtube' ] ),
+	'ip-mastodon': field_or_empty( props.config.fields && props.config.fields[ 'ip-mastodon' ] ),
 	'ip-mediawiki': field_or_empty( props.config.fields && props.config.fields[ 'ip-mediawiki' ] ),
 	'ip-miraheze': field_or_empty( props.config.fields && props.config.fields[ 'ip-miraheze' ] ),
 	'ip-fandom': field_or_empty( props.config.fields && props.config.fields[ 'ip-fandom' ] ),
